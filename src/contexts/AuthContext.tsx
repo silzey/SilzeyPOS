@@ -48,7 +48,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (email === "kim.l@silzeypos.com" && pass === "password123") {
       setUser(mockUser);
       localStorage.setItem('mockUser', JSON.stringify(mockUser));
-      router.push('/'); 
+      router.push('/');
     } else {
       // In a real app, you'd handle errors properly
       alert("Mock Sign In Failed: Use kim.l@silzeypos.com / password123");
@@ -67,6 +67,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       firstName,
       lastName,
       memberSince: new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
+      rewardsPoints: 0, // New users start with 0 points
     };
     setUser(newUser);
     localStorage.setItem('mockUser', JSON.stringify(newUser));
@@ -97,4 +98,3 @@ export const useAuth = () => {
   }
   return context;
 };
-
