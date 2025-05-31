@@ -1,13 +1,14 @@
+
 import type { Product, Category } from '@/types/pos';
 
 export const CATEGORIES: Category[] = ["Flower", "Concentrates", "Vapes", "Edibles"];
 export const TAGS: string[] = ["Organic", "Hybrid", "Indica", "Sativa"];
 
 const PLACEHOLDER_IMAGE_INFO: Record<Category, { url: string, hint: string }> = {
-  Flower: { url: "https://placehold.co/300x200.png", hint: "cannabis buds" },
-  Concentrates: { url: "https://placehold.co/300x200.png", hint: "cannabis extract" },
-  Vapes: { url: "https://placehold.co/300x200.png", hint: "vape cartridge" },
-  Edibles: { url: "https://placehold.co/300x200.png", hint: "cannabis gummies" },
+  Flower: { url: "https://placehold.co/300x225.png", hint: "cannabis buds" }, // Slightly more rectangular
+  Concentrates: { url: "https://placehold.co/200x200.png", hint: "cannabis extract" }, // Square, often smaller packaging
+  Vapes: { url: "https://placehold.co/150x250.png", hint: "vape cartridge" }, // Taller, thinner
+  Edibles: { url: "https://placehold.co/250x180.png", hint: "cannabis gummies" }, // Wider, like packaging for gummies/chocolates
 };
 
 export const generateProducts = (category: Category): Product[] =>
@@ -24,3 +25,4 @@ export const generateProducts = (category: Category): Product[] =>
       category: category,
     };
 });
+
