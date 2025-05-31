@@ -11,9 +11,9 @@ import Link from 'next/link';
 // Mock user data for display
 const mockUserProfile: UserProfile = {
   id: 'user-123',
-  firstName: 'Alex',
-  lastName: 'Budtender',
-  email: 'alex.b@silzeypos.com',
+  firstName: 'Kim',
+  lastName: 'Lunaris',
+  email: 'kim.l@silzeypos.com',
   avatarUrl: 'https://placehold.co/150x150.png', 
   bio: 'Enthusiastic budtender with a passion for quality cannabis products and customer education. Helping people find the perfect strain since 2020.',
   memberSince: 'January 15, 2023',
