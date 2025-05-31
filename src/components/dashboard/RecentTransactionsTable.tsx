@@ -96,7 +96,7 @@ export const RecentTransactionsTable = () => {
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right">
-                    <Button variant="ghost" size="icon" onClick={() => alert(\`Viewing details for ${transaction.id} (mock)\`)} aria-label="View transaction details">
+                    <Button variant="ghost" size="icon" onClick={() => alert('Viewing details for ' + transaction.id + ' (mock)')} aria-label="View transaction details">
                       <Eye className="h-4 w-4" />
                     </Button>
                   </TableCell>
