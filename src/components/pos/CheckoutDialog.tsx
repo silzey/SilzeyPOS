@@ -1,3 +1,4 @@
+
 "use client";
 
 import type { FC } from 'react';
@@ -58,15 +59,15 @@ const CheckoutDialog: FC<CheckoutDialogProps> = ({
           <div className="p-6 space-y-6">
             <div>
               <h3 className="text-lg font-semibold mb-2 font-headline">Order Summary</h3>
-              <div className="space-y-2 text-sm max-h-40 overflow-y-auto pr-2">
+              <div className="space-y-2 max-h-40 overflow-y-auto pr-2">
                 {cart.map((item) => (
-                  <div key={item.id} className="flex justify-between items-center">
+                  <div key={item.id} className="flex justify-between items-center text-xs sm:text-sm">
                     <span>{item.name} (x{item.quantity})</span>
                     <span className="font-medium">${(parseFloat(item.price) * item.quantity).toFixed(2)}</span>
                   </div>
                 ))}
               </div>
-              <div className="flex justify-between font-bold text-xl mt-3 pt-3 border-t border-primary">
+              <div className="flex justify-between font-bold text-lg sm:text-xl mt-3 pt-3 border-t border-primary">
                 <span>Grand Total:</span>
                 <span>${totalPrice}</span>
               </div>

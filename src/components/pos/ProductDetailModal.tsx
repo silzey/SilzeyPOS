@@ -1,3 +1,4 @@
+
 "use client";
 
 import type { FC } from 'react';
@@ -37,7 +38,7 @@ const ProductDetailModal: FC<ProductDetailModalProps> = ({ product, onClose, onA
               priority
             />
           </div>
-          <DialogTitle className="text-2xl font-headline text-primary">{product.name}</DialogTitle>
+          <DialogTitle className="text-xl sm:text-2xl font-headline text-primary">{product.name}</DialogTitle>
           <DialogDescription className="flex justify-between items-center pt-1">
             <Badge variant="secondary">{product.tags}</Badge>
             <StarRating rating={product.rating} />
@@ -45,7 +46,7 @@ const ProductDetailModal: FC<ProductDetailModalProps> = ({ product, onClose, onA
         </DialogHeader>
         
         <div className="p-6 pt-2">
-          <p className="text-2xl font-semibold text-foreground mb-4">
+          <p className="text-xl sm:text-2xl font-semibold text-foreground mb-4">
             Price: ${product.price}
           </p>
           {/* Add more product details here if needed */}
