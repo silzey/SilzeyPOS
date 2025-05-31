@@ -8,7 +8,7 @@ interface SplashScreenProps {
 }
 
 const fullText = "Silzey POS";
-const typingSpeed = 120; // milliseconds per character
+const typingSpeed = 250; // milliseconds per character - Increased from 120
 
 const SplashScreen: FC<SplashScreenProps> = ({ isVisible }) => {
   const [displayText, setDisplayText] = useState('');
