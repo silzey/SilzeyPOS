@@ -12,7 +12,7 @@ interface HeaderProps {
 
 const Header: FC<HeaderProps> = ({ cartItemCount, onOpenCart }) => {
   return (
-    <header className="py-6 mb-6">
+    <header className="sticky top-0 z-40 bg-background py-6 shadow-md">
       <div className="container mx-auto flex justify-between items-center">
         <h1 className="text-3xl sm:text-4xl font-bold font-headline text-primary">
           Silzey POS

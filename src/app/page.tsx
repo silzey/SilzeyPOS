@@ -42,7 +42,7 @@ export default function PosPage() {
   const { toast } = useToast();
 
   useEffect(() => {
-    const timer = setTimeout(() => setShowSplash(false), 3000); // Splash for 3s (increased from 1.5s)
+    const timer = setTimeout(() => setShowSplash(false), 3000); // Splash for 3s
     return () => clearTimeout(timer);
   }, []);
 
@@ -176,7 +176,7 @@ export default function PosPage() {
   return (
     <div className="min-h-screen bg-background text-foreground font-body">
       <Header cartItemCount={cartItemCount} onOpenCart={() => setViewCart(true)} />
-      <main className="pb-12">
+      <main className="pb-12 pt-24">
         <CategoryNavigation
           categories={CATEGORIES}
           activeCategory={activeCategory}
