@@ -78,6 +78,14 @@ export default {
         md: 'calc(var(--radius) - 2px)',
         sm: 'calc(var(--radius) - 4px)',
       },
+      boxShadow: {
+        sm: '0 2px 4px 0 rgb(0 0 0 / 0.06)',
+        DEFAULT: '0 2px 6px 0 rgb(0 0 0 / 0.1), 0 2px 4px -1px rgb(0 0 0 / 0.08)', // This is Tailwind's 'shadow' class
+        md: '0 6px 10px -1px rgb(0 0 0 / 0.1), 0 4px 6px -2px rgb(0 0 0 / 0.08)',
+        lg: '0 12px 20px -3px rgb(0 0 0 / 0.12), 0 5px 8px -4px rgb(0 0 0 / 0.08)',
+        xl: '0 24px 30px -5px rgb(0 0 0 / 0.12), 0 10px 12px -6px rgb(0 0 0 / 0.08)',
+        '2xl': '0 30px 60px -12px rgb(0 0 0 / 0.3)',
+      },
       keyframes: {
         'accordion-down': {
           from: {

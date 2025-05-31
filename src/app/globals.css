@@ -4,34 +4,34 @@
 
 @layer base {
   :root {
-    --background: 60 56% 91%; /* Light Beige #F5F5DC */
-    --foreground: 60 10% 20%; /* Dark Brownish Gray for text on beige */
+    --background: 0 0% 100%; /* Pure White */
+    --foreground: 260 30% 25%; /* Dark Purple for text */
 
-    --muted: 60 30% 85%;
-    --muted-foreground: 60 10% 35%;
+    --muted: 260 20% 94%; /* Light lavender gray */
+    --muted-foreground: 260 15% 45%; /* Medium lavender gray */
 
-    --popover: 60 56% 91%;
-    --popover-foreground: 60 10% 20%;
+    --popover: 260 20% 98%; /* Very light lavender tint */
+    --popover-foreground: 260 30% 25%; /* Dark Purple */
 
-    --card: 60 56% 93%; /* Slightly whiter beige for cards */
-    --card-foreground: 60 10% 20%;
+    --card: 260 20% 98%; /* Very light lavender tint */
+    --card-foreground: 260 30% 25%; /* Dark Purple */
 
-    --border: 60 30% 80%;
-    --input: 60 30% 85%;
+    --border: 260 15% 88%; /* Lavender gray border */
+    --input: 260 15% 92%; /* Light lavender gray input */
 
-    --primary: 190 25% 55%; /* Soft Teal #70A1A9 */
-    --primary-foreground: 0 0% 100%; /* White text on teal */
+    --primary: 265 65% 58%; /* Vibrant Purple */
+    --primary-foreground: 0 0% 100%; /* White */
 
-    --secondary: 190 20% 65%; /* Lighter Teal */
-    --secondary-foreground: 0 0% 100%;
+    --secondary: 265 55% 70%; /* Lighter Purple */
+    --secondary-foreground: 0 0% 100%; /* White */
 
-    --accent: 45 65% 51%; /* Warm Gold #D4AF37 */
-    --accent-foreground: 45 60% 15%; /* Dark Brown text on gold */
+    --accent: 270 80% 70%; /* Bright, Lighter Purple */
+    --accent-foreground: 270 50% 20%; /* Dark Purple text on accent */
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
+    --destructive: 0 84.2% 60.2%; /* Red for destructive actions */
+    --destructive-foreground: 0 0% 98%; /* White text on destructive */
 
-    --ring: 190 25% 55%; /* Soft Teal for rings */
+    --ring: 265 65% 58%; /* Matches primary purple */
 
     --radius: 0.5rem;
 
@@ -41,45 +41,45 @@
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
 
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-background: 260 25% 96%; /* Very light lavender */
+    --sidebar-foreground: 260 30% 30%; /* Dark purple-gray */
+    --sidebar-primary: 265 65% 58%; /* Main purple */
+    --sidebar-primary-foreground: 0 0% 100%; /* White */
+    --sidebar-accent: 265 55% 85%; /* Very light purple accent */
+    --sidebar-accent-foreground: 265 60% 35%; /* Darker purple text */
+    --sidebar-border: 260 15% 85%; /* Lavender gray border */
+    --sidebar-ring: 265 65% 58%; /* Main purple */
   }
 
   .dark {
-    --background: 60 10% 10%; /* Darker Beige for dark mode background */
-    --foreground: 60 50% 85%; /* Lighter Beige for dark mode text */
+    --background: 260 15% 12%; /* Very dark purple-slate */
+    --foreground: 260 25% 88%; /* Light lavender gray */
 
-    --muted: 60 10% 20%;
-    --muted-foreground: 60 50% 70%;
+    --muted: 260 15% 20%; /* Darker muted purple-slate */
+    --muted-foreground: 260 20% 70%; /* Lighter muted foreground */
 
-    --popover: 60 10% 10%;
-    --popover-foreground: 60 50% 85%;
+    --popover: 260 15% 15%; /* Dark popover, slightly lighter than bg */
+    --popover-foreground: 260 25% 88%; /* Light lavender gray */
 
-    --card: 60 10% 12%;
-    --card-foreground: 60 50% 85%;
+    --card: 260 15% 15%; /* Dark card, slightly lighter than bg */
+    --card-foreground: 260 25% 88%; /* Light lavender gray */
 
-    --border: 60 10% 25%;
-    --input: 60 10% 25%;
+    --border: 260 10% 30%; /* Darker border */
+    --input: 260 10% 30%; /* Darker input */
 
-    --primary: 190 25% 55%; /* Soft Teal */
-    --primary-foreground: 0 0% 100%; /* White text on teal */
+    --primary: 265 70% 65%; /* Brighter purple for dark mode */
+    --primary-foreground: 0 0% 100%; /* White */
 
-    --secondary: 190 20% 45%; /* Darker Teal */
-    --secondary-foreground: 0 0% 100%;
+    --secondary: 265 60% 55%; /* Muted purple for dark mode */
+    --secondary-foreground: 0 0% 100%; /* White */
 
-    --accent: 45 65% 51%; /* Warm Gold */
-    --accent-foreground: 45 60% 15%; /* Dark Brown text on gold */
+    --accent: 270 80% 75%; /* Bright lavender for dark mode accent */
+    --accent-foreground: 270 50% 25%; /* Dark purple on light lavender accent */
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
+    --destructive: 0 70% 50%; /* Adjusted destructive for dark mode */
+    --destructive-foreground: 0 0% 98%; /* White text on destructive */
 
-    --ring: 190 25% 55%; /* Soft Teal */
+    --ring: 265 70% 65%; /* Matches dark primary purple */
 
     --chart-1: 220 70% 50%;
     --chart-2: 160 60% 45%;
@@ -87,14 +87,14 @@
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
 
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-background: 260 12% 18%; /* Dark purple-slate for sidebar */
+    --sidebar-foreground: 260 25% 85%; /* Light lavender gray */
+    --sidebar-primary: 265 70% 65%; /* Primary purple for dark mode */
+    --sidebar-primary-foreground: 0 0% 100%; /* White */
+    --sidebar-accent: 265 60% 40%; /* Muted dark purple accent */
+    --sidebar-accent-foreground: 0 0% 90%; /* Light text */
+    --sidebar-border: 260 10% 25%; /* Darker border */
+    --sidebar-ring: 265 70% 65%; /* Dark primary purple */
   }
 }
 
