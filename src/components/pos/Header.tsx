@@ -4,7 +4,7 @@
 import type { FC } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { ShoppingBag, User, LogIn, LogOut, UserPlus } from 'lucide-react';
+import { ShoppingBag, User, LogIn, LogOut, UserPlus, LayoutDashboard } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface HeaderProps {
@@ -38,6 +38,16 @@ const Header: FC<HeaderProps> = ({ cartItemCount, onOpenCart }) => {
                   aria-label="View user profile"
                 >
                   <User className="h-5 w-5 group-hover:text-primary transition-colors" />
+                </Button>
+              </Link>
+              <Link href="/dashboard" passHref>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="rounded-full shadow-md hover:shadow-lg transition-shadow duration-300 group"
+                  aria-label="Open Dashboard"
+                >
+                  <LayoutDashboard className="h-5 w-5 group-hover:text-primary transition-colors" />
                 </Button>
               </Link>
               <Button
@@ -87,3 +97,4 @@ const Header: FC<HeaderProps> = ({ cartItemCount, onOpenCart }) => {
 };
 
 export default Header;
+
