@@ -19,6 +19,7 @@ export default {
       fontFamily: {
         body: ['PT Sans', 'sans-serif'],
         headline: ['PT Sans', 'sans-serif'],
+        cursive: ['Dancing Script', 'cursive'],
         code: ['monospace'],
       },
       colors: {
@@ -79,12 +80,12 @@ export default {
         sm: 'calc(var(--radius) - 4px)',
       },
       boxShadow: {
-        sm: '0 2px 4px 0 rgb(0 0 0 / 0.06)',
-        DEFAULT: '0 2px 6px 0 rgb(0 0 0 / 0.1), 0 2px 4px -1px rgb(0 0 0 / 0.08)', // This is Tailwind's 'shadow' class
-        md: '0 6px 10px -1px rgb(0 0 0 / 0.1), 0 4px 6px -2px rgb(0 0 0 / 0.08)',
-        lg: '0 12px 20px -3px rgb(0 0 0 / 0.12), 0 5px 8px -4px rgb(0 0 0 / 0.08)',
-        xl: '0 24px 30px -5px rgb(0 0 0 / 0.12), 0 10px 12px -6px rgb(0 0 0 / 0.08)',
-        '2xl': '0 30px 60px -12px rgb(0 0 0 / 0.3)',
+        sm: '0 2px 4px 0 rgb(0 0 0 / 0.08)', // Slightly increased alpha
+        DEFAULT: '0 4px 8px 0 rgb(0 0 0 / 0.12), 0 2px 6px -1px rgb(0 0 0 / 0.1)', // Increased alpha and spread
+        md: '0 8px 14px -1px rgb(0 0 0 / 0.12), 0 5px 8px -2px rgb(0 0 0 / 0.1)', // Increased alpha and spread
+        lg: '0 15px 25px -3px rgb(0 0 0 / 0.15), 0 6px 10px -4px rgb(0 0 0 / 0.1)', // Increased alpha and spread
+        xl: '0 28px 35px -5px rgb(0 0 0 / 0.15), 0 12px 15px -6px rgb(0 0 0 / 0.1)', // Increased alpha and spread
+        '2xl': '0 35px 70px -12px rgb(0 0 0 / 0.35)', // Significantly increased alpha and spread
       },
       keyframes: {
         'accordion-down': {
