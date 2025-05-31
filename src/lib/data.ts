@@ -4,10 +4,10 @@ export const CATEGORIES: Category[] = ["Flower", "Concentrates", "Vapes", "Edibl
 export const TAGS: string[] = ["Organic", "Hybrid", "Indica", "Sativa"];
 
 const PLACEHOLDER_IMAGE_INFO: Record<Category, { url: string, hint: string }> = {
-  Flower: { url: "https://placehold.co/300x200.png", hint: "cannabis flower" },
-  Concentrates: { url: "https://placehold.co/300x200.png", hint: "cannabis concentrate" },
-  Vapes: { url: "https://placehold.co/300x200.png", hint: "vape pen" },
-  Edibles: { url: "https://placehold.co/300x200.png", hint: "cannabis edible" },
+  Flower: { url: "https://placehold.co/300x200.png", hint: "cannabis buds" },
+  Concentrates: { url: "https://placehold.co/300x200.png", hint: "cannabis extract" },
+  Vapes: { url: "https://placehold.co/300x200.png", hint: "vape cartridge" },
+  Edibles: { url: "https://placehold.co/300x200.png", hint: "cannabis gummies" },
 };
 
 export const generateProducts = (category: Category): Product[] =>
