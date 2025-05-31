@@ -1,3 +1,4 @@
+
 "use client";
 
 import type { FC } from 'react';
@@ -15,6 +16,8 @@ interface FilterControlsProps {
   onSearchChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
+const ALL_TAGS_OPTION_VALUE = "__ALL_TAGS__"; // Special non-empty value for "All Tags"
+
 const FilterControls: FC<FilterControlsProps> = ({
   sortOption,
   onSortChange,
@@ -24,6 +27,18 @@ const FilterControls: FC<FilterControlsProps> = ({
   searchTerm,
   onSearchChange,
 }) => {
+  const handleTagChange = (value: string) => {
+    if (value === ALL_TAGS_OPTION_VALUE) {
+      onTagChange(""); // Treat special value as "no tag selected"
+    } else {
+      onTagChange(value);
+    }
+  };
+
+  // Determine the value to pass to the Select component.
+  // If selectedTag is "", it means "All Tags" is selected, so use its special value.
+  const selectDisplayValue = selectedTag === "" ? ALL_TAGS_OPTION_VALUE : selectedTag;
+
   return (
     <div className="mb-8">
       <div className="container mx-auto flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-6">
@@ -44,12 +59,12 @@ const FilterControls: FC<FilterControlsProps> = ({
 
         <div className="relative w-full sm:w-auto">
           <ListFilter className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Select value={selectedTag} onValueChange={onTagChange}>
+          <Select value={selectDisplayValue} onValueChange={handleTagChange}>
             <SelectTrigger className="w-full sm:w-[180px] pl-10 shadow-sm" aria-label="Filter by tag">
               <SelectValue placeholder="Filter by tag..." />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Tags</SelectItem>
+              <SelectItem value={ALL_TAGS_OPTION_VALUE}>All Tags</SelectItem>
               {tags.map((tag) => (
                 <SelectItem key={tag} value={tag}>
                   {tag}
