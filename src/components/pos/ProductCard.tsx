@@ -16,7 +16,7 @@ interface ProductCardProps {
 const ProductCard: FC<ProductCardProps> = ({ product, onProductSelect }) => {
   return (
     <Card 
-      className="overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col h-full cursor-pointer group"
+      className="overflow-hidden shadow-xl hover:shadow-2xl transition-shadow duration-300 flex flex-col h-full cursor-pointer group"
       onClick={() => onProductSelect(product)}
       tabIndex={0}
       onKeyDown={(e) => e.key === 'Enter' && onProductSelect(product)}

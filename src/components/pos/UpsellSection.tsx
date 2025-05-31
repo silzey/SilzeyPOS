@@ -35,7 +35,7 @@ const UpsellSection: FC<UpsellSectionProps> = ({ suggestions, isLoading }) => {
   }
 
   return (
-    <Card className="bg-accent/10 border-accent/30 shadow-md">
+    <Card className="bg-accent/10 border-accent/30 shadow-lg">
       <CardHeader>
         <CardTitle className="flex items-center text-lg text-accent font-headline">
           <Lightbulb className="mr-2 h-5 w-5" /> AI Upsell Suggestions
