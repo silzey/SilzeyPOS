@@ -1,27 +1,60 @@
 
 "use client";
 
-import type { UserProfile } from '@/types/pos';
+import type { UserProfile as UserProfileType } from '@/types/pos';
 import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Edit3, Award, ShieldCheck, Activity } from 'lucide-react';
+import { ArrowLeft, Edit3, Award, ShieldCheck, Activity, LogIn } from 'lucide-react';
 import Link from 'next/link';
+import { useAuth } from '@/contexts/AuthContext';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
+import { Skeleton } from '@/components/ui/skeleton';
 
-// Mock user data for display
-const mockUserProfile: UserProfile = {
-  id: 'user-123',
-  firstName: 'Kim',
-  lastName: 'Lunaris',
-  email: 'kim.l@silzeypos.com',
-  avatarUrl: 'https://placehold.co/150x150.png', 
-  bio: 'Enthusiastic budtender with a passion for quality cannabis products and customer education. Helping people find the perfect strain since 2020.',
-  memberSince: 'January 15, 2023',
-  rewardsPoints: 1250,
-};
 
 export default function ProfilePage() {
-  const user = mockUserProfile;
+  const { user, loading, signOut } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!loading && !user) {
+      router.replace('/auth/signin');
+    }
+  }, [user, loading, router]);
+
+  if (loading || !user) {
+    return (
+      <div className="min-h-screen bg-background text-foreground font-body p-4 sm:p-6 md:p-8 flex items-center justify-center">
+        <div className="container mx-auto max-w-3xl">
+          <Card className="overflow-hidden shadow-xl border-primary">
+            <CardHeader className="bg-muted/30 p-6 flex flex-col sm:flex-row items-center gap-4">
+              <Skeleton className="w-24 h-24 sm:w-32 sm:h-32 rounded-full" />
+              <div className="text-center sm:text-left space-y-2">
+                <Skeleton className="h-8 w-48" />
+                <Skeleton className="h-5 w-64" />
+                <Skeleton className="h-4 w-40" />
+              </div>
+            </CardHeader>
+            <CardContent className="p-6 space-y-6">
+              <Skeleton className="h-6 w-1/4 mb-1" />
+              <Skeleton className="h-16 w-full" />
+              <Skeleton className="h-6 w-1/3 mb-2" />
+              <Card className="bg-muted/20 p-4 border-border">
+                <Skeleton className="h-4 w-3/4 mb-1.5" />
+                <Skeleton className="h-4 w-full mb-1.5" />
+                <Skeleton className="h-4 w-2/3 mb-1.5" />
+              </Card>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <Skeleton className="h-24 w-full" />
+                <Skeleton className="h-24 w-full" />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background text-foreground font-body p-4 sm:p-6 md:p-8">
@@ -35,8 +68,8 @@ export default function ProfilePage() {
           <h1 className="text-2xl sm:text-3xl font-bold font-headline text-primary">
             User Profile
           </h1>
-          <Button variant="outline" disabled> 
-            <Edit3 className="mr-2 h-4 w-4" /> Edit Profile
+          <Button variant="outline" onClick={signOut}>
+            <LogIn className="mr-2 h-4 w-4" /> Sign Out
           </Button>
         </div>
 
@@ -44,7 +77,7 @@ export default function ProfilePage() {
           <CardHeader className="bg-muted/30 p-6 flex flex-col sm:flex-row items-center gap-4">
             <div className="relative w-24 h-24 sm:w-32 sm:h-32 rounded-full overflow-hidden border-4 border-primary">
               <Image
-                src={user.avatarUrl}
+                src={user.avatarUrl || 'https://placehold.co/150x150.png'}
                 alt={`${user.firstName} ${user.lastName}`}
                 layout="fill"
                 objectFit="cover"
@@ -101,6 +134,11 @@ export default function ProfilePage() {
                         <p className="text-lg font-medium text-green-600">Active</p>
                     </CardContent>
                 </Card>
+            </div>
+             <div className="mt-6 flex justify-end">
+               <Button variant="outline" disabled> 
+                <Edit3 className="mr-2 h-4 w-4" /> Edit Profile
+              </Button>
             </div>
           </CardContent>
         </Card>
