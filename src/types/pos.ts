@@ -21,3 +21,14 @@ export interface CustomerInfo {
   dob: string;
   phoneNumber: string;
 }
+
+export interface UserProfile {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  avatarUrl: string;
+  bio?: string;
+  memberSince: string;
+  rewardsPoints?: number;
+}
