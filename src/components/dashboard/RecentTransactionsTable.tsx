@@ -19,7 +19,7 @@ const convertToCSV = (data: typeof transactions) => {
   const headers = ['ID', 'Customer', 'Date', 'Amount', 'Status'];
   const csvRows = [
     headers.join(','), // Header row
-    ...data.map(row => 
+    ...data.map(row =>
       [
         row.id,
         `"${row.customer.replace(/"/g, '""')}"`, // Escape quotes in customer name
@@ -88,7 +88,7 @@ export const RecentTransactionsTable = () => {
                   <TableCell>{transaction.date}</TableCell>
                   <TableCell className="text-right">{transaction.amount}</TableCell>
                   <TableCell className="text-center">
-                    <Badge 
+                    <Badge
                       variant={transaction.status === 'Completed' ? 'default' : transaction.status === 'Pending' ? 'secondary' : 'destructive'}
                       className={`capitalize ${transaction.status === 'Completed' ? 'bg-green-500/20 text-green-700 border-green-500/30' : transaction.status === 'Pending' ? 'bg-yellow-500/20 text-yellow-700 border-yellow-500/30' : 'bg-red-500/20 text-red-700 border-red-500/30'}`}
                     >
