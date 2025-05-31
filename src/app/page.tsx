@@ -42,7 +42,7 @@ export default function PosPage() {
   const { toast } = useToast();
 
   useEffect(() => {
-    const timer = setTimeout(() => setShowSplash(false), 1500); // Splash for 1.5s
+    const timer = setTimeout(() => setShowSplash(false), 3000); // Splash for 3s (increased from 1.5s)
     return () => clearTimeout(timer);
   }, []);
 
