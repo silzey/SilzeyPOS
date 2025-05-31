@@ -41,7 +41,7 @@ const FilterControls: FC<FilterControlsProps> = ({
 
   return (
     <div className="mb-8">
-      <div className="container mx-auto flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-6">
+      <div className="container mx-auto flex flex-row flex-wrap justify-center items-center gap-4 sm:gap-6">
         <div className="relative w-full sm:w-auto">
           <ArrowDownUp className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Select value={sortOption} onValueChange={onSortChange}>
@@ -91,3 +91,4 @@ const FilterControls: FC<FilterControlsProps> = ({
 };
 
 export default FilterControls;
+
