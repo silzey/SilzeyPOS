@@ -5,7 +5,7 @@ import type { UserProfile } from '@/types/pos';
 import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Edit3 } from 'lucide-react';
+import { ArrowLeft, Edit3,Award, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
 
 // Mock user data for display
@@ -14,10 +14,10 @@ const mockUserProfile: UserProfile = {
   firstName: 'Alex',
   lastName: 'Budtender',
   email: 'alex.b@silzeypos.com',
-  avatarUrl: 'https://placehold.co/150x150.png', // Placeholder image
+  avatarUrl: 'https://placehold.co/150x150.png', 
   bio: 'Enthusiastic budtender with a passion for quality cannabis products and customer education. Helping people find the perfect strain since 2020.',
   memberSince: 'January 15, 2023',
-  rewardsPoints: 1250,
+  rewardsPoints: 1250, // Added rewards points
 };
 
 export default function ProfilePage() {
@@ -35,12 +35,12 @@ export default function ProfilePage() {
           <h1 className="text-2xl sm:text-3xl font-bold font-headline text-primary">
             User Profile
           </h1>
-          <Button variant="outline" disabled> {/* Edit button, disabled for now */}
+          <Button variant="outline" disabled> 
             <Edit3 className="mr-2 h-4 w-4" /> Edit Profile
           </Button>
         </div>
 
-        <Card className="overflow-hidden shadow-xl">
+        <Card className="overflow-hidden shadow-xl border-primary">
           <CardHeader className="bg-muted/30 p-6 flex flex-col sm:flex-row items-center gap-4">
             <div className="relative w-24 h-24 sm:w-32 sm:h-32 rounded-full overflow-hidden border-4 border-primary">
               <Image
@@ -68,16 +68,18 @@ export default function ProfilePage() {
             )}
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <Card className="bg-accent/10 p-4">
-                    <CardHeader className="p-0 pb-2">
+                <Card className="bg-accent/10 p-4 border-accent/30">
+                    <CardHeader className="p-0 pb-2 flex flex-row items-center space-x-2">
+                         <Award className="h-5 w-5 text-accent" />
                          <CardTitle className="text-md font-semibold text-accent-foreground">Rewards Points</CardTitle>
                     </CardHeader>
                     <CardContent className="p-0">
                         <p className="text-2xl font-bold text-accent">{user.rewardsPoints ?? 0}</p>
                     </CardContent>
                 </Card>
-                 <Card className="bg-secondary/10 p-4">
-                    <CardHeader className="p-0 pb-2">
+                 <Card className="bg-secondary/10 p-4 border-secondary/30">
+                    <CardHeader className="p-0 pb-2 flex flex-row items-center space-x-2">
+                        <ShieldCheck className="h-5 w-5 text-secondary" />
                          <CardTitle className="text-md font-semibold text-secondary-foreground">Account Status</CardTitle>
                     </CardHeader>
                     <CardContent className="p-0">
