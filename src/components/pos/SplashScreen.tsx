@@ -8,7 +8,7 @@ interface SplashScreenProps {
 }
 
 const fullText = "Silzey POS";
-const typingSpeed = 250; // milliseconds per character - Increased from 120
+const typingSpeed = 250; // milliseconds per character
 
 const SplashScreen: FC<SplashScreenProps> = ({ isVisible }) => {
   const [displayText, setDisplayText] = useState('');
@@ -28,9 +28,9 @@ const SplashScreen: FC<SplashScreenProps> = ({ isVisible }) => {
         setDisplayText((prev) => prev + fullText[charIndex]);
         setCharIndex((prev) => prev + 1);
       }, typingSpeed);
-      return () => clearTimeout(timer); // Cleanup timer on unmount or if dependencies change
+      return () => clearTimeout(timer); 
     }
-  }, [isVisible, charIndex]); // Rerun effect if isVisible or charIndex changes
+  }, [isVisible, charIndex, fullText, typingSpeed]); // Added fullText and typingSpeed to dependencies
 
   if (!isVisible) return null;
 
@@ -42,7 +42,7 @@ const SplashScreen: FC<SplashScreenProps> = ({ isVisible }) => {
     >
       <h1 className="text-5xl sm:text-6xl md:text-7xl font-cursive">
         {displayText}
-        {charIndex < fullText.length && ( // Show cursor only while typing
+        {charIndex < fullText.length && ( 
           <span className="animate-pulse ml-1">|</span>
         )}
       </h1>
