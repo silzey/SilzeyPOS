@@ -5,7 +5,7 @@ import type { UserProfile } from '@/types/pos';
 import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Edit3,Award, ShieldCheck } from 'lucide-react';
+import { ArrowLeft, Edit3, Award, ShieldCheck, Activity } from 'lucide-react';
 import Link from 'next/link';
 
 // Mock user data for display
@@ -17,7 +17,7 @@ const mockUserProfile: UserProfile = {
   avatarUrl: 'https://placehold.co/150x150.png', 
   bio: 'Enthusiastic budtender with a passion for quality cannabis products and customer education. Helping people find the perfect strain since 2020.',
   memberSince: 'January 15, 2023',
-  rewardsPoints: 1250, // Added rewards points
+  rewardsPoints: 1250,
 };
 
 export default function ProfilePage() {
@@ -66,6 +66,21 @@ export default function ProfilePage() {
                 <p className="text-foreground/80 leading-relaxed">{user.bio}</p>
               </div>
             )}
+
+            <div>
+              <h3 className="text-lg font-semibold font-headline mb-2 flex items-center">
+                <Activity className="mr-2 h-5 w-5 text-primary" />
+                Recent Activity
+              </h3>
+              <Card className="bg-muted/20 p-4 border-border">
+                <ul className="list-disc list-inside text-foreground/80 space-y-1.5 text-sm">
+                  <li>Purchased 'Blue Dream' (Flower) - 2 days ago</li>
+                  <li>Redeemed 100 loyalty points - 1 week ago</li>
+                  <li>Viewed 'Concentrates' category - 1 week ago</li>
+                  <li>First purchase: 'Sour Diesel' (Flower) on {user.memberSince}</li>
+                </ul>
+              </Card>
+            </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <Card className="bg-accent/10 p-4 border-accent/30">
@@ -87,17 +102,6 @@ export default function ProfilePage() {
                     </CardContent>
                 </Card>
             </div>
-
-            {/* Placeholder for more profile details if needed */}
-            {/* 
-            <div>
-              <h3 className="text-lg font-semibold font-headline mb-2">Preferences</h3>
-              <ul className="list-disc list-inside text-foreground/80 space-y-1">
-                <li>Favorite Category: Flower</li>
-                <li>Notification: Email & SMS</li>
-              </ul>
-            </div>
-            */}
           </CardContent>
         </Card>
       </div>
