@@ -3,7 +3,7 @@
 
 import type { ReactNode } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { useEffect } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import Link from 'next/link';
@@ -13,6 +13,7 @@ import { Home, ShoppingBag, Users, BarChart3, LogOut as LogOutIcon } from 'lucid
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const { user, loading, signOut } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
     if (!loading && !user) {
@@ -47,6 +48,14 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     );
   }
 
+  let headerTitle = `Welcome, ${user.firstName}!`;
+  if (pathname === '/dashboard') {
+    headerTitle = 'Overview';
+  }
+  // Add more else if conditions here for other dashboard pages
+  // e.g., else if (pathname === '/dashboard/settings') { headerTitle = 'Settings'; }
+
+
   return (
     <div className="min-h-screen flex bg-muted/10">
       {/* Sidebar */}
@@ -58,7 +67,11 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           <p className="text-xs text-muted-foreground">Admin Dashboard</p>
         </div>
         <nav className="flex-1 p-4 space-y-2">
-          <Button variant="ghost" className="w-full justify-start text-foreground hover:bg-primary/10 hover:text-primary" asChild>
+          <Button 
+            variant={pathname === '/dashboard' ? "secondary" : "ghost"} 
+            className="w-full justify-start text-foreground hover:bg-primary/10 hover:text-primary" 
+            asChild
+          >
             <Link href="/dashboard"><Home className="mr-3 h-5 w-5" /> Overview</Link>
           </Button>
           <Button variant="ghost" className="w-full justify-start text-foreground hover:bg-primary/10 hover:text-primary" onClick={() => alert("Navigate to Orders (mock)")}>
@@ -82,9 +95,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       <div className="flex-1 flex flex-col">
         <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-4 border-b bg-background px-6 shadow-sm">
           <h1 className="text-xl font-semibold font-headline text-foreground">
-            Welcome, {user.firstName}!
+            {headerTitle}
           </h1>
-          {/* Mobile Menu Trigger (optional for future use) */}
            <Button variant="outline" size="icon" className="sm:hidden" onClick={() => alert("Open mobile menu (mock)")}>
             <Home className="h-5 w-5"/> {/* Placeholder icon */}
           </Button>
