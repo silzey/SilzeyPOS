@@ -11,11 +11,10 @@ import { Label } from '@/components/ui/label';
 import type { TransactionType, TransactionStatus, Order, CartItem } from '@/types/pos';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
-import OrderReceiptModal from '@/components/dashboard/OrderReceiptModal'; // Import the modal
+import OrderReceiptModal from '@/components/dashboard/OrderReceiptModal';
 
 const DASHBOARD_COMPLETED_ORDERS_STORAGE_KEY = 'dashboardCompletedOrdersSilzey';
 
-// Function to convert Orders to Transactions
 const convertOrdersToTransactions = (orders: Order[]): TransactionType[] => {
   if (!orders || orders.length === 0) {
     return [];
@@ -27,7 +26,7 @@ const convertOrdersToTransactions = (orders: Order[]): TransactionType[] => {
     customer: order.customerName,
     date: order.processedAt || order.orderDate,
     amount: `$${order.totalAmount.toFixed(2)}`,
-    status: 'Completed',
+    status: 'Completed', // Assuming all orders from this key are completed
     items: order.items.map((item: CartItem) => ({
       id: item.id,
       name: item.name,
@@ -91,11 +90,8 @@ export const RecentTransactionsTable = () => {
   const [selectedOrderForModal, setSelectedOrderForModal] = useState<Order | null>(null);
   const [isReceiptModalOpen, setIsReceiptModalOpen] = useState(false);
 
-  const loadTransactions = useCallback(async () => {
-    if (!isRefreshing) setIsLoading(true); // Only show main loading if not a manual refresh
-    setIsRefreshing(true);
+  const fetchData = useCallback(async () => {
     await new Promise(resolve => setTimeout(resolve, 300)); 
-
     let completedOrdersFromStorage: Order[] = [];
     try {
       const completedOrdersRaw = localStorage.getItem(DASHBOARD_COMPLETED_ORDERS_STORAGE_KEY);
@@ -104,6 +100,7 @@ export const RecentTransactionsTable = () => {
       }
     } catch (e) {
       console.error("Error parsing completed dashboard orders from localStorage in RTT:", e);
+      completedOrdersFromStorage = [];
     }
 
     if (completedOrdersFromStorage && completedOrdersFromStorage.length > 0) {
@@ -112,13 +109,32 @@ export const RecentTransactionsTable = () => {
     } else {
       setAllTransactions([]);
     }
-    setIsLoading(false);
-    setIsRefreshing(false);
-  }, [isRefreshing]);
+  }, []);
 
   useEffect(() => {
-    loadTransactions();
-  }, [loadTransactions]); // Initial load
+    const initialLoad = async () => {
+      setIsLoading(true);
+      try {
+        await fetchData();
+      } catch (error) {
+        console.error("Error during initial data load for RTT:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    initialLoad();
+  }, [fetchData]);
+
+  const handleRefresh = useCallback(async () => {
+    setIsRefreshing(true);
+    try {
+      await fetchData();
+    } catch (error) {
+      console.error("Error during data refresh for RTT:", error);
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [fetchData]);
 
   const filteredTransactions = useMemo(() => {
     return allTransactions.filter(transaction => {
@@ -204,14 +220,14 @@ export const RecentTransactionsTable = () => {
             <div className="flex-grow sm:flex-1 min-w-[150px] sm:min-w-[200px]">
               <Label htmlFor="filterCustomerRTT" className="text-xs text-muted-foreground block mb-1">Filter by Customer</Label>
               <Input
-                id="filterCustomerRTT" // Unique ID for this input
+                id="filterCustomerRTT"
                 placeholder="Customer name..."
                 value={filterCustomer}
                 onChange={(e) => setFilterCustomer(e.target.value)}
                 className="h-9"
               />
             </div>
-            <Button variant="outline" size="sm" onClick={loadTransactions} className="h-9 md:self-end w-full md:w-auto" disabled={isRefreshing}>
+            <Button variant="outline" size="sm" onClick={handleRefresh} className="h-9 md:self-end w-full md:w-auto" disabled={isRefreshing}>
                 <RefreshCw className={`mr-2 h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} /> 
                 {isRefreshing ? 'Refreshing...' : 'Refresh List'}
             </Button>
@@ -243,7 +259,7 @@ export const RecentTransactionsTable = () => {
                       <TableCell className="text-right">{transaction.amount}</TableCell>
                       <TableCell className="text-center">
                         <Badge
-                          variant={'default'}
+                          variant={'default'} // Status is always 'Completed' here, so variant can be 'default' or green-styled
                           className={`capitalize ${getStatusBadgeClassName(transaction.status)}`}
                         >
                           {transaction.status}
@@ -302,4 +318,3 @@ export const RecentTransactionsTable = () => {
     </>
   );
 };
-
