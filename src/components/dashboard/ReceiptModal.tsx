@@ -18,13 +18,7 @@ const ReceiptModal: FC<ReceiptModalProps> = ({ transaction, isOpen, onClose }) =
   if (!transaction) return null;
 
   const handlePrint = () => {
-    // In a real app, this would trigger window.print() for a print-optimized version of the modal content.
-    // Or send data to a backend printing service.
-    alert(`Simulating printing receipt for Transaction ID: ${transaction.id}`);
-    // For now, we can just close the modal after "printing"
-    // For a better experience, you might want to keep the modal open
-    // or provide a print-specific view via window.print().
-    // onClose(); 
+    window.print();
   };
 
   return (
@@ -89,7 +83,7 @@ const ReceiptModal: FC<ReceiptModalProps> = ({ transaction, isOpen, onClose }) =
             Close
           </Button>
           <Button onClick={handlePrint} className="w-full sm:w-auto">
-            <Printer className="mr-2 h-4 w-4" /> Print (Simulated)
+            <Printer className="mr-2 h-4 w-4" /> Print
           </Button>
         </DialogFooter>
       </DialogContent>
