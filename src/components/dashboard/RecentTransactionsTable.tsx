@@ -1,13 +1,14 @@
 
 "use client"
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button'; // Keep for "Download CSV" and "View details"
+import { Button } from '@/components/ui/button';
 import { Download, Eye, Printer } from 'lucide-react';
-import ReceiptModal from './ReceiptModal';
 
+// Keep original transactions data or ensure it's accessible
 const transactions = [
   { id: 'TRX731', customer: 'Aisha Khan', date: '2024-07-28', amount: '$75.50', status: 'Completed', items: [{name: 'Flower Product A', qty: 1, price: 30.00}, {name: 'Edible Product B', qty: 2, price: 22.75}] },
   { id: 'TRX732', customer: 'Ben Carter', date: '2024-07-28', amount: '$120.00', status: 'Completed', items: [{name: 'Vape Cartridge X', qty: 2, price: 60.00}] },
@@ -54,50 +55,13 @@ const downloadCSV = (csvString: string, filename: string) => {
 };
 
 export const RecentTransactionsTable = () => {
-  const [isReceiptModalOpen, setIsReceiptModalOpen] = useState(false);
-  const [selectedTransactionForReceipt, setSelectedTransactionForReceipt] = useState<TransactionType | null>(null);
-
-  useEffect(() => {
-    console.log(`%cDEBUG_RTT: Component Rendered/Updated. isReceiptModalOpen: ${isReceiptModalOpen}, selectedTXN: ${selectedTransactionForReceipt?.id || 'null'}`, "color: blue; font-weight: bold;");
-  }, [isReceiptModalOpen, selectedTransactionForReceipt]);
-
-
   const handleDownload = () => {
     const csvString = convertToCSV(transactions);
     downloadCSV(csvString, 'recent_transactions.csv');
   };
 
-  const handleShowReceipt = (transaction: TransactionType) => {
-    alert(`ALERT_RTT: handleShowReceipt CALLED for TXN ID: ${transaction.id}`); // Alert to confirm function call
-    console.log(`%cDEBUG_RTT: handleShowReceipt CALLED for TXN ID: ${transaction.id}. Current isReceiptModalOpen: ${isReceiptModalOpen}`, "color: green; font-weight: bold;");
-    
-    console.log(`%cDEBUG_RTT: BEFORE setSelectedTransactionForReceipt. Current selectedTXN ID: ${selectedTransactionForReceipt?.id || 'null'}`, "color: green;");
-    setSelectedTransactionForReceipt(transaction);
-    console.log(`%cDEBUG_RTT: AFTER setSelectedTransactionForReceipt. Target selectedTXN ID: ${transaction.id}.`, "color: green; font-style: italic;");
-
-    console.log(`%cDEBUG_RTT: BEFORE setIsReceiptModalOpen(true). Current isReceiptModalOpen: ${isReceiptModalOpen}`, "color: green;");
-    setIsReceiptModalOpen(true);
-    console.log(`%cDEBUG_RTT: AFTER setIsReceiptModalOpen(true).`, "color: green; font-style: italic;");
-    
-    console.log(`%cDEBUG_RTT: handleShowReceipt - FINISHED. Expect re-render. selectedTXN should be ${transaction.id}, isReceiptModalOpen should be true.`, "color: green; font-weight: bold;");
-  };
-
-  const handleCloseReceiptModal = () => {
-    alert('ALERT_RTT: handleCloseReceiptModal CALLED.'); // Alert to confirm function call
-    console.log('%cDEBUG_RTT: handleCloseReceiptModal CALLED. Setting isReceiptModalOpen to false and selectedTransaction to null.', "color: orange; font-weight: bold;");
-    setIsReceiptModalOpen(false);
-    setSelectedTransactionForReceipt(null);
-    console.log('%cDEBUG_RTT: handleCloseReceiptModal - FINISHED. Expect re-render. isReceiptModalOpen is now false, selectedTransactionForReceipt is now null.', "color: orange; font-weight: bold; font-style: italic;");
-  };
-
   return (
     <>
-      <div style={{ border: '3px solid red', padding: '10px', margin: '10px', backgroundColor: 'lightyellow', fontSize: '16px' }}>
-        <p style={{ fontWeight: 'bold', color: 'red' }}>DEBUG INFO (RecentTransactionsTable):</p>
-        <p>isReceiptModalOpen: <strong style={{color: isReceiptModalOpen ? 'green' : 'red'}}>{isReceiptModalOpen ? 'true' : 'false'}</strong></p>
-        <p>Selected Transaction ID: <strong style={{color: selectedTransactionForReceipt ? 'green' : 'red'}}>{selectedTransactionForReceipt ? selectedTransactionForReceipt.id : 'null'}</strong></p>
-      </div>
-
       <Card className="shadow-lg">
         <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
           <div>
@@ -141,26 +105,13 @@ export const RecentTransactionsTable = () => {
                       <Button variant="ghost" size="icon" onClick={() => alert('Viewing details for ' + transaction.id + ' (mock)')} aria-label="View transaction details">
                         <Eye className="h-4 w-4" />
                       </Button>
-                      <button
-                        onClick={() => {
-                          alert(`HTML BUTTON CLICKED in table row for ID: ${transaction.id}. This test does NOT call handleShowReceipt.`);
-                          console.log(`%cDEBUG_RTT_HTML_BUTTON_CLICK: HTML button in table row clicked for TXN ID: ${transaction.id}. This test does NOT call handleShowReceipt.`, "color: purple; font-weight: bold; background-color: lightcyan;");
-                        }}
-                        aria-label={`Test HTML Print Icon Click for ${transaction.id}`}
-                        style={{
-                          border: '3px solid darkorchid',
-                          backgroundColor: 'plum',
-                          padding: '6px', // Adjusted padding
-                          cursor: 'pointer',
-                          borderRadius: '4px', // Added some rounding
-                          display: 'inline-flex', // For icon centering
-                          alignItems: 'center', // For icon centering
-                          justifyContent: 'center' // For icon centering
-                        }}
-                        title="Test HTML Button Click"
-                      >
-                        <Printer className="h-5 w-5 text-black" />
-                      </button>
+                       <Link href={`/dashboard/print-receipt/${transaction.id}`} passHref legacyBehavior>
+                        <a target="_blank" rel="noopener noreferrer" aria-label={`Print receipt for ${transaction.id}`}>
+                          <Button variant="ghost" size="icon">
+                            <Printer className="h-4 w-4" />
+                          </Button>
+                        </a>
+                      </Link>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -169,14 +120,6 @@ export const RecentTransactionsTable = () => {
           </div>
         </CardContent>
       </Card>
-      {selectedTransactionForReceipt && (
-        <ReceiptModal
-          transaction={selectedTransactionForReceipt}
-          isOpen={isReceiptModalOpen}
-          onClose={handleCloseReceiptModal}
-        />
-      )}
     </>
   );
 };
-
