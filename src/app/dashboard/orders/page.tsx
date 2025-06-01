@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useMemo } from 'react';
-import Link from 'next/link';
+// Removed Link import as it's no longer used directly for the action button
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -13,6 +13,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { Order, OrderStatus, TransactionItem } from '@/types/pos';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { useRouter } from 'next/navigation'; // Added for programmatic navigation if needed
 
 const ORDER_STATUSES: OrderStatus[] = ["In-Store", "Online"];
 
@@ -36,7 +37,7 @@ const generateMockItems = (itemCount: number): TransactionItem[] => {
 
 export const mockOrders: Order[] = Array.from({ length: 50 }, (_, i) => {
   const statusIndex = i % ORDER_STATUSES.length;
-  const date = new Date(2024, 6, 28 - (i % 28)); 
+  const date = new Date(2024, 6, 28 - (i % 28));
   const itemCount = Math.floor(Math.random() * 5) + 1;
   const items = generateMockItems(itemCount);
   const totalAmount = items.reduce((sum, item) => sum + item.price * item.qty, 0);
@@ -93,8 +94,8 @@ const downloadCSV = (csvString: string, filename: string) => {
 
 const getStatusBadgeVariant = (status: OrderStatus): "default" | "secondary" | "outline" => {
   switch (status) {
-    case "In-Store": return "default"; 
-    case "Online": return "secondary"; 
+    case "In-Store": return "default";
+    case "Online": return "secondary";
     default: return "outline";
   }
 };
@@ -112,6 +113,7 @@ export default function OrdersPage() {
   const [filterOrderId, setFilterOrderId] = useState('');
   const [filterCustomerName, setFilterCustomerName] = useState('');
   const [filterStatus, setFilterStatus] = useState<OrderStatus | 'All'>('All');
+  const router = useRouter(); // Initialize router
 
   const filteredOrders = useMemo(() => {
     return mockOrders.filter(order => {
@@ -217,13 +219,19 @@ export default function OrdersPage() {
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right space-x-1">
-                        <Link href={`/dashboard/print-receipt/${order.id}?type=order`} passHref legacyBehavior>
-                          <a target="_blank" rel="noopener noreferrer" aria-label={`View details for order ${order.id}`}>
-                            <Button variant="ghost" size="icon">
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                          </a>
-                        </Link>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          aria-label={`View details for order ${order.id}`}
+                          onClick={() => {
+                            const url = `/dashboard/print-receipt/${order.id}?type=order`;
+                            console.log(`DEBUG_ORDERS_PAGE: View icon clicked for ${order.id}. Attempting to navigate to: ${url}`);
+                            alert(`DEBUG_ORDERS_PAGE: View icon clicked for ${order.id}. Attempting to navigate to: ${url}`);
+                            window.open(url, '_blank');
+                          }}
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
                         <Button variant="ghost" size="icon" onClick={() => alert('Editing order ' + order.id + ' (mock)')} aria-label="Edit order">
                           <Edit className="h-4 w-4" />
                         </Button>
@@ -245,3 +253,4 @@ export default function OrdersPage() {
     </div>
   );
 }
+

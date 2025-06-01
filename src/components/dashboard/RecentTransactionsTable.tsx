@@ -1,7 +1,7 @@
 
 "use client"
 import { useState, useEffect, useMemo } from 'react';
-import Link from 'next/link';
+// Removed Link import as it's no longer used directly for the action button
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { TransactionType as Transaction, TransactionItem, TransactionStatus } from '@/types/pos';
-
+import { useRouter } from 'next/navigation'; // Added for programmatic navigation if needed
 
 const transactionsData: Transaction[] = [
   { id: 'TRX731', customer: 'Aisha Khan', date: '2024-07-28', amount: '$75.50', status: 'Completed', items: [{name: 'Flower Product A', qty: 1, price: 30.00}, {name: 'Edible Product B', qty: 2, price: 22.75}] },
@@ -30,7 +30,7 @@ const convertToCSV = (data: Transaction[]) => {
     ...data.map(row =>
       [
         row.id,
-        `"${row.customer.replace(/"/g, '""')}"`, 
+        `"${row.customer.replace(/"/g, '""')}"`,
         row.date,
         row.amount.replace('$', ''),
         row.status
@@ -69,6 +69,7 @@ const getStatusBadgeClassName = (status: TransactionStatus): string => {
 export const RecentTransactionsTable = () => {
   const [filterCustomer, setFilterCustomer] = useState('');
   const [filterStatus, setFilterStatus] = useState<TransactionStatus | 'All'>('All');
+  const router = useRouter(); // Initialize router
 
   const filteredTransactions = useMemo(() => {
     return transactionsData.filter(transaction => {
@@ -159,13 +160,19 @@ export const RecentTransactionsTable = () => {
                         <Button variant="ghost" size="icon" onClick={() => alert('Viewing details for ' + transaction.id + ' (mock)')} aria-label="View transaction details (legacy)">
                           <Eye className="h-4 w-4" />
                         </Button>
-                        <Link href={`/dashboard/print-receipt/${transaction.id}?type=transaction`} passHref legacyBehavior>
-                          <a target="_blank" rel="noopener noreferrer" aria-label={`Print receipt for ${transaction.id}`}>
-                            <Button variant="ghost" size="icon">
-                              <Printer className="h-4 w-4" />
-                            </Button>
-                          </a>
-                        </Link>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          aria-label={`Print receipt for ${transaction.id}`}
+                          onClick={() => {
+                            const url = `/dashboard/print-receipt/${transaction.id}?type=transaction`;
+                            console.log(`DEBUG_RTT: Print icon clicked for ${transaction.id}. Attempting to navigate to: ${url}`);
+                            alert(`DEBUG_RTT: Print icon clicked for ${transaction.id}. Attempting to navigate to: ${url}`);
+                            window.open(url, '_blank');
+                          }}
+                        >
+                          <Printer className="h-4 w-4" />
+                        </Button>
                       </TableCell>
                     </TableRow>
                   ))
@@ -184,3 +191,4 @@ export const RecentTransactionsTable = () => {
     </>
   );
 };
+
