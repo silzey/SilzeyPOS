@@ -15,7 +15,16 @@ interface ReceiptModalProps {
 }
 
 const ReceiptModal: FC<ReceiptModalProps> = ({ transaction, isOpen, onClose }) => {
-  if (!transaction) return null;
+  console.log('ReceiptModal rendering. isOpen:', isOpen, 'Transaction ID:', transaction?.id); // Diagnostic log
+
+  if (!transaction) {
+    // console.log('ReceiptModal: No transaction, returning null.'); // Can be noisy, let's rely on the main log
+    return null;
+  }
+  if (!isOpen) {
+    // console.log('ReceiptModal: Not open, returning null.'); // Can be noisy
+    return null;
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -81,21 +90,23 @@ const ReceiptModal: FC<ReceiptModalProps> = ({ transaction, isOpen, onClose }) =
           <Button variant="outline" onClick={onClose} className="w-full sm:w-auto">
             Close
           </Button>
-          <Button 
+          <Button
+            id="test-print-button"
             onClick={() => {
-              alert('Inline alert: Print button clicked!');
-              console.log('Inline console: Print button onClick handler fired. Attempting window.print()...');
+              alert('ALERT: Test Print Button Clicked!');
+              console.log('CONSOLE LOG: Test Print Button Clicked! Attempting window.print().');
               try {
                 window.print();
-                console.log('Inline console: window.print() was executed.');
+                console.log('CONSOLE LOG: window.print() was executed.');
               } catch (error) {
-                console.error('Inline console: Error during window.print():', error);
-                alert('Inline alert: An error occurred while trying to print. Please check the browser console.');
+                console.error('CONSOLE LOG: Error during window.print():', error);
+                alert('ALERT: An error occurred while trying to print. Check console.');
               }
-            }} 
+            }}
             className="w-full sm:w-auto"
+            style={{ border: '3px solid red', padding: '10px', fontSize: '16px', fontWeight: 'bold' }}
           >
-            <Printer className="mr-2 h-4 w-4" /> Print
+            <Printer className="mr-2 h-4 w-4" /> PRINT NOW
           </Button>
         </DialogFooter>
       </DialogContent>
