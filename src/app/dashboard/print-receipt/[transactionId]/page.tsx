@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
+import { Badge } from '@/components/ui/badge'; // Added import
 import { ArrowLeft, PrinterIcon, XCircle } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -126,7 +127,7 @@ export default function PrintableReceiptPage() {
           <div className="flex justify-between"><span>Transaction ID:</span> <strong className="font-mono">{transaction.id}</strong></div>
           <div className="flex justify-between"><span>Date:</span> <strong>{new Date(transaction.date).toLocaleString()}</strong></div>
           <div className="flex justify-between"><span>Customer:</span> <strong>{transaction.customer}</strong></div>
-          <div className="flex justify-between"><span>Status:</span> <Badge variant={transaction.status === 'Completed' ? 'default' : 'destructive'} className={transaction.status === 'Completed' ? 'bg-green-600' : 'bg-red-600'}>{transaction.status}</Badge></div>
+          <div className="flex justify-between"><span>Status:</span> <Badge variant={transaction.status === 'Completed' ? 'default' : transaction.status === 'Pending' ? 'secondary' : 'destructive'} className={`capitalize ${transaction.status === 'Completed' ? 'bg-green-500/20 text-green-700 border-green-500/30' : transaction.status === 'Pending' ? 'bg-yellow-500/20 text-yellow-700 border-yellow-500/30' : 'bg-red-500/20 text-red-700 border-red-500/30'}`}>{transaction.status}</Badge></div>
         </section>
 
         <Separator className="my-4" />
@@ -175,3 +176,5 @@ export default function PrintableReceiptPage() {
     </div>
   );
 }
+
+    
