@@ -18,7 +18,15 @@ const ReceiptModal: FC<ReceiptModalProps> = ({ transaction, isOpen, onClose }) =
   if (!transaction) return null;
 
   const handlePrint = () => {
-    window.print();
+    console.log('handlePrint function called');
+    alert('Print button clicked. Check browser console. Attempting to print...');
+    try {
+      window.print();
+      console.log('window.print() executed successfully.');
+    } catch (e) {
+      console.error('Error calling window.print():', e);
+      alert('An error occurred while trying to print. Please check the browser console for details.');
+    }
   };
 
   return (
