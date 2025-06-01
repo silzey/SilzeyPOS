@@ -29,7 +29,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
   if (loading || !user) {
     return (
-      <div className="min-h-screen flex bg-muted/40">
+      <div className="min-h-screen flex flex-col sm:flex-row bg-muted/40">
         <aside className="hidden sm:flex flex-col w-64 bg-background border-r p-4 space-y-4">
           <Skeleton className="h-10 w-full" />
           <Skeleton className="h-8 w-full" />
@@ -38,12 +38,12 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           <Skeleton className="h-8 w-full" /> 
           <Skeleton className="h-8 w-full mt-auto" />
         </aside>
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col min-w-0"> {/* Added min-w-0 for flex children */}
           <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-4 border-b bg-background px-6">
             <Skeleton className="h-8 w-32" />
             <Skeleton className="h-8 w-8 rounded-full" />
           </header>
-          <main className="flex-1 p-6 space-y-6">
+          <main className="flex-1 p-6 space-y-6 overflow-y-auto">
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
               {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-32 w-full rounded-lg" />)}
             </div>
@@ -116,8 +116,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
 
   return (
-    <div className="min-h-screen flex bg-muted/10">
-      <aside className="hidden sm:flex flex-col w-64 bg-background border-r shadow-md">
+    <div className="min-h-screen flex flex-col sm:flex-row bg-muted/10">
+      <aside className="hidden sm:flex flex-col w-64 bg-background border-r shadow-md flex-shrink-0">
         <div className="p-6 border-b">
           <Link href="/" passHref>
             <h1 className="text-2xl font-bold font-headline text-primary cursor-pointer">Silzey POS</h1>
@@ -134,7 +134,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         </div>
       </aside>
 
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col min-w-0"> {/* Added min-w-0 for flex children */}
         <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-4 border-b bg-background px-6 shadow-sm">
           <div className="flex items-center gap-4">
             <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
@@ -144,14 +144,14 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                   <span className="sr-only">Open menu</span>
                 </Button>
               </SheetTrigger>
-              <SheetContent side="left" className="sm:hidden w-64 p-0 pt-10">
+              <SheetContent side="left" className="sm:hidden w-64 p-0 pt-10 flex flex-col"> {/* Added flex flex-col */}
                 <div className="p-6 border-b mb-2">
                   <Link href="/" passHref onClick={() => setIsMobileMenuOpen(false)}>
                     <h1 className="text-2xl font-bold font-headline text-primary cursor-pointer">Silzey POS</h1>
                   </Link>
                    <p className="text-xs text-muted-foreground">Admin Dashboard</p>
                 </div>
-                <nav className="flex-1 p-4 space-y-2">
+                <nav className="flex-1 p-4 space-y-2 overflow-y-auto"> {/* Added overflow-y-auto */}
                   {commonNavLinks}
                 </nav>
                  <div className="p-4 mt-auto border-t">
@@ -161,13 +161,13 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                 </div>
               </SheetContent>
             </Sheet>
-            <h1 className="text-xl font-semibold font-headline text-foreground">
+            <h1 className="text-xl font-semibold font-headline text-foreground truncate"> {/* Added truncate */}
               {headerTitle}
             </h1>
           </div>
-           <div></div>
+           <div></div> {/* This div helps balance the header if needed */}
         </header>
-        <main className="flex-1 p-6 overflow-y-auto">
+        <main className="flex-1 p-4 sm:p-6 overflow-y-auto">
           {children}
         </main>
       </div>

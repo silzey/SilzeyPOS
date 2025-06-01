@@ -17,13 +17,13 @@ const Header: FC<HeaderProps> = ({ cartItemCount, onOpenCart }) => {
 
   return (
     <header className="sticky top-0 z-40 bg-background py-6 shadow-md">
-      <div className="container mx-auto flex justify-between items-center">
+      <div className="container mx-auto flex justify-between items-center gap-2 sm:gap-4">
         <Link href="/" passHref>
-          <h1 className="text-3xl sm:text-4xl font-bold font-headline text-primary cursor-pointer">
+          <h1 className="text-3xl sm:text-4xl font-bold font-headline text-primary cursor-pointer flex-shrink-0">
             Silzey POS
           </h1>
         </Link>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3 flex-wrap justify-end">
           {loading ? (
             <Button variant="outline" size="icon" className="rounded-full" disabled>
               <User className="h-5 w-5" />
@@ -53,7 +53,7 @@ const Header: FC<HeaderProps> = ({ cartItemCount, onOpenCart }) => {
               <Button
                 onClick={signOut}
                 variant="outline"
-                className="rounded-full shadow-md hover:shadow-lg transition-shadow duration-300 group"
+                className="rounded-full shadow-md hover:shadow-lg transition-shadow duration-300 group px-3 sm:px-4"
                 aria-label="Sign out"
               >
                 <LogOut className="h-5 w-5 mr-0 sm:mr-2 group-hover:text-destructive transition-colors" />
@@ -63,15 +63,15 @@ const Header: FC<HeaderProps> = ({ cartItemCount, onOpenCart }) => {
           ) : (
             <>
               <Link href="/auth/signin" passHref>
-                <Button variant="outline" className="rounded-full shadow-md hover:shadow-lg transition-shadow duration-300 group">
-                  <LogIn className="h-5 w-5 mr-2 group-hover:text-primary transition-colors" />
-                  <span className="font-semibold">Sign In</span>
+                <Button variant="outline" className="rounded-full shadow-md hover:shadow-lg transition-shadow duration-300 group px-3 sm:px-4">
+                  <LogIn className="h-5 w-5 mr-1 sm:mr-2 group-hover:text-primary transition-colors" />
+                  <span className="font-semibold text-xs sm:text-sm">Sign In</span>
                 </Button>
               </Link>
               <Link href="/auth/signup" passHref>
-                <Button variant="default" className="rounded-full shadow-md hover:shadow-lg transition-shadow duration-300 group">
-                  <UserPlus className="h-5 w-5 mr-2 group-hover:text-white transition-colors" />
-                  <span className="font-semibold">Sign Up</span>
+                <Button variant="default" className="rounded-full shadow-md hover:shadow-lg transition-shadow duration-300 group px-3 sm:px-4">
+                  <UserPlus className="h-5 w-5 mr-1 sm:mr-2 group-hover:text-white transition-colors" />
+                  <span className="font-semibold text-xs sm:text-sm">Sign Up</span>
                 </Button>
               </Link>
             </>
@@ -79,13 +79,13 @@ const Header: FC<HeaderProps> = ({ cartItemCount, onOpenCart }) => {
           <Button
             onClick={onOpenCart}
             variant="outline"
-            className="rounded-full shadow-md hover:shadow-lg transition-shadow duration-300 group"
+            className="rounded-full shadow-md hover:shadow-lg transition-shadow duration-300 group px-3 sm:px-4"
             aria-label={`Open cart with ${cartItemCount} items`}
           >
-            <ShoppingBag className="h-5 w-5 mr-2 group-hover:text-primary transition-colors" />
-            <span className="font-semibold">Cart</span>
+            <ShoppingBag className="h-5 w-5 mr-1 sm:mr-2 group-hover:text-primary transition-colors" />
+            <span className="font-semibold text-xs sm:text-sm">Cart</span>
             {cartItemCount > 0 && (
-              <span className="ml-2 bg-primary text-primary-foreground text-xs font-bold px-2 py-0.5 rounded-full">
+              <span className="ml-1.5 sm:ml-2 bg-primary text-primary-foreground text-xs font-bold px-1.5 sm:px-2 py-0.5 rounded-full">
                 {cartItemCount}
               </span>
             )}
@@ -97,4 +97,3 @@ const Header: FC<HeaderProps> = ({ cartItemCount, onOpenCart }) => {
 };
 
 export default Header;
-
