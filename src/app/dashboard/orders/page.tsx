@@ -2,6 +2,7 @@
 "use client";
 
 import { useState, useMemo } from 'react';
+import Link from 'next/link';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -10,21 +11,44 @@ import { Download, Eye, Edit, PackageSearch, Filter } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import type { Order, OrderStatus } from '@/types/pos';
+import type { Order, OrderStatus, TransactionItem } from '@/types/pos';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 const ORDER_STATUSES: OrderStatus[] = ["In-Store", "Online"];
 
-const mockOrders: Order[] = Array.from({ length: 50 }, (_, i) => {
+const mockProductNames = [
+  "Mystic Haze Flower", "Cosmic Kush Edible", "Nebula Nectar Vape", "Galaxy Gold Concentrate",
+  "Stardust Sativa Pre-Roll", "Zero-G Indica Bud", "Lunar Lavender Tincture", "Orion's Belt Gummies",
+  "Pulsar Pineapple Express", "Quasar Queen Flower"
+];
+
+const generateMockItems = (itemCount: number): TransactionItem[] => {
+  const items: TransactionItem[] = [];
+  for (let i = 0; i < itemCount; i++) {
+    items.push({
+      name: mockProductNames[Math.floor(Math.random() * mockProductNames.length)],
+      qty: Math.floor(Math.random() * 3) + 1,
+      price: parseFloat((Math.random() * 50 + 10).toFixed(2))
+    });
+  }
+  return items;
+};
+
+export const mockOrders: Order[] = Array.from({ length: 50 }, (_, i) => {
   const statusIndex = i % ORDER_STATUSES.length;
-  const date = new Date(2024, 6, 28 - (i % 28)); // Spread dates over July 2024
+  const date = new Date(2024, 6, 28 - (i % 28)); 
+  const itemCount = Math.floor(Math.random() * 5) + 1;
+  const items = generateMockItems(itemCount);
+  const totalAmount = items.reduce((sum, item) => sum + item.price * item.qty, 0);
+
   return {
     id: `ORD-${String(1001 + i).padStart(4, '0')}`,
     customerName: ['Liam Smith', 'Olivia Johnson', 'Noah Williams', 'Emma Brown', 'Oliver Jones', 'Ava Garcia', 'Elijah Miller', 'Sophia Davis', 'Lucas Rodriguez', 'Isabella Martinez'][i % 10],
     orderDate: date.toISOString(),
     status: ORDER_STATUSES[statusIndex],
-    totalAmount: parseFloat((Math.random() * 200 + 20).toFixed(2)),
-    itemCount: Math.floor(Math.random() * 5) + 1,
+    totalAmount: parseFloat(totalAmount.toFixed(2)),
+    itemCount: itemCount,
+    items: items,
     shippingAddress: `${123 + i} Main St, Anytown, USA`,
     paymentMethod: ['Credit Card', 'PayPal', 'Stripe', 'Cash'][i % 4]
   };
@@ -111,7 +135,7 @@ export default function OrdersPage() {
             <CardTitle className="font-headline text-primary flex items-center">
               <PackageSearch className="mr-2 h-6 w-6" /> Orders List
             </CardTitle>
-            <CardDescription>View and manage all customer orders (mock data).</CardDescription>
+            <CardDescription>View and manage all customer orders.</CardDescription>
           </div>
           <Button variant="outline" size="sm" onClick={handleDownload} className="w-full sm:w-auto">
             <Download className="mr-2 h-4 w-4" />
@@ -162,7 +186,7 @@ export default function OrdersPage() {
         </CardContent>
 
         <CardContent className="pt-4">
-          <ScrollArea className="h-[600px] w-full"> {/* Adjust height as needed */}
+          <ScrollArea className="h-[600px] w-full">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -193,9 +217,13 @@ export default function OrdersPage() {
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right space-x-1">
-                        <Button variant="ghost" size="icon" onClick={() => alert('Viewing details for ' + order.id + ' (mock)')} aria-label="View order details">
-                          <Eye className="h-4 w-4" />
-                        </Button>
+                        <Link href={`/dashboard/print-receipt/${order.id}?type=order`} passHref legacyBehavior>
+                          <a target="_blank" rel="noopener noreferrer" aria-label={`View details for order ${order.id}`}>
+                            <Button variant="ghost" size="icon">
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                          </a>
+                        </Link>
                         <Button variant="ghost" size="icon" onClick={() => alert('Editing order ' + order.id + ' (mock)')} aria-label="Edit order">
                           <Edit className="h-4 w-4" />
                         </Button>
@@ -217,4 +245,3 @@ export default function OrdersPage() {
     </div>
   );
 }
-

@@ -10,9 +10,10 @@ import { Download, Eye, Printer } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import type { TransactionType as Transaction, TransactionItem, TransactionStatus } from '@/types/pos';
 
-// Keep original transactions data or ensure it's accessible
-const transactionsData = [
+
+const transactionsData: Transaction[] = [
   { id: 'TRX731', customer: 'Aisha Khan', date: '2024-07-28', amount: '$75.50', status: 'Completed', items: [{name: 'Flower Product A', qty: 1, price: 30.00}, {name: 'Edible Product B', qty: 2, price: 22.75}] },
   { id: 'TRX732', customer: 'Ben Carter', date: '2024-07-28', amount: '$120.00', status: 'Completed', items: [{name: 'Vape Cartridge X', qty: 2, price: 60.00}] },
   { id: 'TRX733', customer: 'Chloe Davis', date: '2024-07-27', amount: '$45.20', status: 'Pending', items: [{name: 'Concentrate Y', qty: 1, price: 45.20}] },
@@ -21,16 +22,15 @@ const transactionsData = [
   { id: 'TRX736', customer: 'Finn Green', date: '2024-07-26', amount: '$32.00', status: 'Completed', items: [{name: 'Pre-roll Pack', qty: 1, price: 32.00}] },
 ];
 
-export type TransactionType = typeof transactionsData[0];
 
-const convertToCSV = (data: TransactionType[]) => {
+const convertToCSV = (data: Transaction[]) => {
   const headers = ['ID', 'Customer', 'Date', 'Amount', 'Status'];
   const csvRows = [
     headers.join(','),
     ...data.map(row =>
       [
         row.id,
-        `"${row.customer.replace(/"/g, '""')}"`, // Handle commas in customer names
+        `"${row.customer.replace(/"/g, '""')}"`, 
         row.date,
         row.amount.replace('$', ''),
         row.status
@@ -57,13 +57,22 @@ const downloadCSV = (csvString: string, filename: string) => {
   }
 };
 
+const getStatusBadgeClassName = (status: TransactionStatus): string => {
+  switch (status) {
+    case 'Completed': return 'bg-green-500/20 text-green-700 border-green-500/30';
+    case 'Pending': return 'bg-yellow-500/20 text-yellow-700 border-yellow-500/30';
+    case 'Failed': return 'bg-red-500/20 text-red-700 border-red-500/30';
+    default: return 'border-muted-foreground';
+  }
+};
+
 export const RecentTransactionsTable = () => {
   const [filterCustomer, setFilterCustomer] = useState('');
-  const [filterStatus, setFilterStatus] = useState('All'); // "All", "Completed", "Pending", "Failed"
+  const [filterStatus, setFilterStatus] = useState<TransactionStatus | 'All'>('All');
 
   const filteredTransactions = useMemo(() => {
     return transactionsData.filter(transaction => {
-      const customerMatch = transaction.customer.toLowerCase().includes(filterCustomer.toLowerCase());
+      const customerMatch = filterCustomer ? transaction.customer.toLowerCase().includes(filterCustomer.toLowerCase()) : true;
       const statusMatch = filterStatus === 'All' || transaction.status === filterStatus;
       return customerMatch && statusMatch;
     });
@@ -80,7 +89,7 @@ export const RecentTransactionsTable = () => {
         <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
           <div>
             <CardTitle className="font-headline text-primary">Recent Transactions</CardTitle>
-            <CardDescription>Latest transactions processed by the POS (mock data).</CardDescription>
+            <CardDescription>Latest transactions processed by the POS.</CardDescription>
           </div>
           <Button variant="outline" size="sm" onClick={handleDownload} className="w-full sm:w-auto">
             <Download className="mr-2 h-4 w-4" />
@@ -102,7 +111,7 @@ export const RecentTransactionsTable = () => {
             </div>
             <div className="flex-grow sm:flex-1 min-w-[150px] sm:min-w-[180px]">
               <Label htmlFor="filterStatus" className="text-xs text-muted-foreground block mb-1">Filter by Status</Label>
-              <Select value={filterStatus} onValueChange={setFilterStatus}>
+              <Select value={filterStatus} onValueChange={(value) => setFilterStatus(value as TransactionStatus | 'All')}>
                 <SelectTrigger id="filterStatus" className="h-9">
                   <SelectValue placeholder="Select status" />
                 </SelectTrigger>
@@ -117,7 +126,7 @@ export const RecentTransactionsTable = () => {
           </div>
         </CardContent>
 
-        <CardContent className="pt-4"> {/* Adjusted padding for table content */}
+        <CardContent className="pt-4">
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
@@ -141,16 +150,16 @@ export const RecentTransactionsTable = () => {
                       <TableCell className="text-center">
                         <Badge
                           variant={transaction.status === 'Completed' ? 'default' : transaction.status === 'Pending' ? 'secondary' : 'destructive'}
-                          className={`capitalize ${transaction.status === 'Completed' ? 'bg-green-500/20 text-green-700 border-green-500/30' : transaction.status === 'Pending' ? 'bg-yellow-500/20 text-yellow-700 border-yellow-500/30' : 'bg-red-500/20 text-red-700 border-red-500/30'}`}
+                          className={`capitalize ${getStatusBadgeClassName(transaction.status)}`}
                         >
                           {transaction.status}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right space-x-1">
-                        <Button variant="ghost" size="icon" onClick={() => alert('Viewing details for ' + transaction.id + ' (mock)')} aria-label="View transaction details">
+                        <Button variant="ghost" size="icon" onClick={() => alert('Viewing details for ' + transaction.id + ' (mock)')} aria-label="View transaction details (legacy)">
                           <Eye className="h-4 w-4" />
                         </Button>
-                        <Link href={`/dashboard/print-receipt/${transaction.id}`} passHref legacyBehavior>
+                        <Link href={`/dashboard/print-receipt/${transaction.id}?type=transaction`} passHref legacyBehavior>
                           <a target="_blank" rel="noopener noreferrer" aria-label={`Print receipt for ${transaction.id}`}>
                             <Button variant="ghost" size="icon">
                               <Printer className="h-4 w-4" />

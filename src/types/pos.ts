@@ -34,27 +34,28 @@ export interface UserProfile {
   rewardsPoints?: number;
 }
 
-// Updated OrderStatus type
-export type OrderStatus = "In-Store" | "Online";
+export type OrderStatus = "In-Store" | "Online"; // For actual orders
+export type TransactionStatus = "Completed" | "Pending" | "Failed"; // For point-of-sale transactions
+
+export interface TransactionItem { name: string; qty: number; price: number };
 
 export interface Order {
   id: string;
   customerName: string;
-  orderDate: string; // Consider ISO string for easier sorting/filtering, then format for display
+  orderDate: string; 
   status: OrderStatus;
   totalAmount: number;
   itemCount: number;
-  shippingAddress?: string; // Optional
-  paymentMethod?: string; // Optional
+  items: TransactionItem[]; // Added items to Order
+  shippingAddress?: string; 
+  paymentMethod?: string; 
 }
 
-export interface TransactionItem { name: string; qty: number; price: number };
 export interface TransactionType {
   id: string;
-  customer: string;
+  customer: string; // Customer name for the transaction
   date: string;
-  amount: string;
-  status: string;
+  amount: string; // Formatted string, e.g., "$75.50"
+  status: TransactionStatus;
   items: TransactionItem[];
 }
-
