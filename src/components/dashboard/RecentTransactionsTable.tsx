@@ -58,7 +58,7 @@ export const RecentTransactionsTable = () => {
   const [selectedTransactionForReceipt, setSelectedTransactionForReceipt] = useState<TransactionType | null>(null);
 
   useEffect(() => {
-    console.log(`DEBUG: RecentTransactionsTable RENDERED/UPDATED. isReceiptModalOpen: ${isReceiptModalOpen}, selectedTransactionId: ${selectedTransactionForReceipt?.id}`);
+    console.log(`%cDEBUG_RTT: Component Rendered/Updated. isReceiptModalOpen: ${isReceiptModalOpen}, selectedTXN: ${selectedTransactionForReceipt?.id || 'null'}`, "color: blue; font-weight: bold;");
   }, [isReceiptModalOpen, selectedTransactionForReceipt]);
 
 
@@ -68,23 +68,25 @@ export const RecentTransactionsTable = () => {
   };
 
   const handleShowReceipt = (transaction: TransactionType) => {
-    console.log(`DEBUG: handleShowReceipt called for transaction ID: ${transaction.id}. Attempting to open modal.`);
+    console.log(`%cDEBUG_RTT: handleShowReceipt called for TXN ID: ${transaction.id}. Current isReceiptModalOpen: ${isReceiptModalOpen}`, "color: green;");
     setSelectedTransactionForReceipt(transaction);
     setIsReceiptModalOpen(true);
+    console.log(`%cDEBUG_RTT: handleShowReceipt - AFTER setting state. Expect re-render. selectedTXN should be ${transaction.id}, isReceiptModalOpen should be true.`, "color: green;");
   };
 
   const handleCloseReceiptModal = () => {
-    console.log('DEBUG: handleCloseReceiptModal called from onClose. Setting isReceiptModalOpen to false and selectedTransaction to null.');
+    console.log('%cDEBUG_RTT: handleCloseReceiptModal called. Setting isReceiptModalOpen to false and selectedTransaction to null.', "color: orange;");
     setIsReceiptModalOpen(false);
     setSelectedTransactionForReceipt(null);
+    console.log('%cDEBUG_RTT: handleCloseReceiptModal - AFTER setting state. Expect re-render.', "color: orange;");
   };
 
   return (
     <>
-      <div style={{ border: '2px solid red', padding: '10px', margin: '10px', backgroundColor: 'lightyellow' }}>
+      <div style={{ border: '3px solid red', padding: '10px', margin: '10px', backgroundColor: 'lightyellow', fontSize: '16px' }}>
         <p style={{ fontWeight: 'bold', color: 'red' }}>DEBUG INFO (RecentTransactionsTable):</p>
-        <p>isReceiptModalOpen: {isReceiptModalOpen ? 'true' : 'false'}</p>
-        <p>Selected Transaction ID: {selectedTransactionForReceipt ? selectedTransactionForReceipt.id : 'null'}</p>
+        <p>isReceiptModalOpen: <strong style={{color: isReceiptModalOpen ? 'green' : 'red'}}>{isReceiptModalOpen ? 'true' : 'false'}</strong></p>
+        <p>Selected Transaction ID: <strong style={{color: selectedTransactionForReceipt ? 'green' : 'red'}}>{selectedTransactionForReceipt ? selectedTransactionForReceipt.id : 'null'}</strong></p>
       </div>
 
       <Card className="shadow-lg">
@@ -141,6 +143,7 @@ export const RecentTransactionsTable = () => {
           </div>
         </CardContent>
       </Card>
+      {/* Conditional rendering of ReceiptModal based on selectedTransactionForReceipt being non-null first, then its isOpen state */}
       {selectedTransactionForReceipt && (
         <ReceiptModal
           transaction={selectedTransactionForReceipt}
