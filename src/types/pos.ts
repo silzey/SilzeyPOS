@@ -35,21 +35,24 @@ export interface UserProfile {
   rewardsPoints?: number;
 }
 
-export type OrderStatus = "In-Store" | "Online";
+export type OrderStatus = "In-Store" | "Online" | "Pending Checkout"; // Added "Pending Checkout"
 export type TransactionStatus = "Completed" | "Pending" | "Failed";
 
 export interface TransactionItem { id?: string; name: string; qty: number; price: number };
 
 export interface Order {
   id: string;
-  customerName: string; // Could be customerId in a real system
+  customerName: string; 
+  customerId?: string; // Added to link back to a customer
   orderDate: string;
   status: OrderStatus;
   totalAmount: number;
   itemCount: number;
-  items: CartItem[]; // Changed from TransactionItem[] to CartItem[]
+  items: CartItem[]; 
   shippingAddress?: string;
   paymentMethod?: string;
+  submittedByPOS?: boolean; // Flag for orders from the client POS
+  processedAt?: string; // Timestamp for when checkout is completed
 }
 
 export interface TransactionType {

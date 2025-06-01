@@ -1,3 +1,4 @@
+
 "use client";
 
 import type { FC } from 'react';
@@ -5,10 +6,13 @@ import { CheckCircle } from 'lucide-react';
 
 interface ThankYouCardProps {
   isVisible: boolean;
+  message?: string; // Optional message
 }
 
-const ThankYouCard: FC<ThankYouCardProps> = ({ isVisible }) => {
+const ThankYouCard: FC<ThankYouCardProps> = ({ isVisible, message }) => {
   if (!isVisible) return null;
+
+  const displayMessage = message || "Your order is being processed.";
 
   return (
     <div
@@ -20,10 +24,10 @@ const ThankYouCard: FC<ThankYouCardProps> = ({ isVisible }) => {
         <CheckCircle className="mx-auto h-16 w-16 text-green-500 mb-6" />
         <h2 className="text-3xl font-bold font-headline text-primary mb-3">Thank You!</h2>
         <p className="text-lg text-foreground/80 mb-2">
-          Your order is being processed.
+          {displayMessage}
         </p>
         <p className="text-sm text-muted-foreground">
-          This screen will reset shortly.
+          This screen will close shortly.
         </p>
       </div>
     </div>

@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import type { Product, CartItem, Category, CustomerInfo } from '@/types/pos';
+import type { Product, CartItem, Category, CustomerInfo, Order, UserProfile } from '@/types/pos';
 import { CATEGORIES, TAGS, generateProducts } from '@/lib/data';
 import { getUpsellSuggestions, type UpsellSuggestionsOutput } from '@/ai/flows/upsell-suggestions';
 
@@ -16,9 +16,10 @@ import ProductDetailModal from '@/components/pos/ProductDetailModal';
 import CartSheet from '@/components/pos/CartSheet';
 import CheckoutDialog from '@/components/pos/CheckoutDialog';
 import { useToast } from "@/hooks/use-toast";
-
+import { useAuth } from '@/contexts/AuthContext'; // Import useAuth
 
 const INITIAL_VISIBLE_COUNT = 12;
+const POS_PENDING_ORDERS_STORAGE_KEY = 'posPendingOrdersSilzey';
 
 export default function PosPage() {
   const [showSplash, setShowSplash] = useState(true);
@@ -32,20 +33,39 @@ export default function PosPage() {
   const [viewCart, setViewCart] = useState(false);
   const [viewCheckout, setViewCheckout] = useState(false);
   const [showThankYouCard, setShowThankYouCard] = useState(false);
+  const [thankYouMessage, setThankYouMessage] = useState("");
   const [checkoutMessage, setCheckoutMessage] = useState("");
   const [customerInfo, setCustomerInfo] = useState<CustomerInfo>({
     firstName: "", lastName: "", dob: "", phoneNumber: ""
   });
-  const [rewardsPoints, setRewardsPoints] = useState(0);
+  const [rewardsPoints, setRewardsPoints] = useState(0); // This seems to be for display in checkout
   const [upsellData, setUpsellData] = useState<UpsellSuggestionsOutput | null>(null);
   const [isLoadingUpsell, setIsLoadingUpsell] = useState(false);
 
   const { toast } = useToast();
+  const { user } = useAuth(); // Get authenticated user
 
   useEffect(() => {
-    const timer = setTimeout(() => setShowSplash(false), 3000); // Splash for 3s
+    const timer = setTimeout(() => setShowSplash(false), 3000); 
     return () => clearTimeout(timer);
   }, []);
+
+  useEffect(() => {
+    if (user) {
+      setCustomerInfo(prev => ({
+        ...prev,
+        firstName: user.firstName || "",
+        lastName: user.lastName || "",
+        // DOB and phone number are not typically part of UserProfile, so keep them from form or empty
+      }));
+      setRewardsPoints(user.rewardsPoints || 0);
+    } else {
+      // Reset if user logs out or is not logged in
+      setCustomerInfo({ firstName: "", lastName: "", dob: "", phoneNumber: "" });
+      setRewardsPoints(0);
+    }
+  }, [user]);
+
 
   const allProductsForCategory = useMemo(() => generateProducts(activeCategory), [activeCategory]);
 
@@ -95,7 +115,7 @@ export default function PosPage() {
         .map((item) =>
           item.id === productId ? { ...item, quantity: Math.max(0, item.quantity + delta) } : item
         )
-        .filter((item) => item.quantity > 0) // Remove if quantity is 0
+        .filter((item) => item.quantity > 0) 
     );
   }, []);
 
@@ -109,7 +129,7 @@ export default function PosPage() {
   }, []);
 
   const totalPrice = useMemo(() =>
-    cart.reduce((acc, item) => acc + parseFloat(item.price) * item.quantity, 0).toFixed(2),
+    cart.reduce((acc, item) => acc + parseFloat(item.price) * item.quantity, 0),
   [cart]);
 
   const cartItemCount = useMemo(() => cart.reduce((acc, item) => acc + item.quantity, 0), [cart]);
@@ -118,6 +138,11 @@ export default function PosPage() {
     if (cart.length === 0) {
       toast({ title: "Empty Cart", description: "Please add items before checking out.", variant: "destructive" });
       return;
+    }
+    if (!user) {
+        toast({ title: "Please Sign In", description: "You need to be signed in to place an order.", variant: "destructive" });
+        // Optionally, redirect to sign-in or open sign-in modal
+        return;
     }
     setCheckoutMessage("");
     setViewCart(false);
@@ -142,37 +167,63 @@ export default function PosPage() {
   }, []);
   
   const finalizeSale = useCallback(() => {
+    if (!user) {
+      setCheckoutMessage("Error: No user signed in. Please sign in to complete the order.");
+      toast({ title: "Not Signed In", description: "Please sign in to complete your order.", variant: "destructive" });
+      return;
+    }
     if (!customerInfo.firstName || !customerInfo.lastName || !customerInfo.dob || !customerInfo.phoneNumber) {
       setCheckoutMessage("Please fill in all customer information fields.");
       return;
     }
 
-    const pointsEarned = Math.floor(parseFloat(totalPrice));
-    const newTotalRewards = rewardsPoints + pointsEarned;
-    setRewardsPoints(newTotalRewards);
+    const newOrder: Order = {
+      id: `POS-ORD-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+      customerName: `${customerInfo.firstName} ${customerInfo.lastName}`,
+      customerId: user.id,
+      orderDate: new Date().toISOString(),
+      status: "Pending Checkout",
+      totalAmount: parseFloat(totalPrice.toFixed(2)),
+      itemCount: cartItemCount,
+      items: cart,
+      submittedByPOS: true,
+      // paymentMethod and shippingAddress can be added if collected
+    };
 
-    setCheckoutMessage(`Sale complete! Earned ${pointsEarned} points. Total: ${newTotalRewards}`);
-    
-    setShowThankYouCard(true);
-    setViewCheckout(false); // Close checkout dialog
-    
-    // Reset state for next transaction
-    setCart([]);
-    setCustomerInfo({ firstName: "", lastName: "", dob: "", phoneNumber: "" });
-    // rewardsPoints will be reset when thank you card timer finishes (page reload behavior)
-    // If no reload, reset here: setRewardsPoints(0) for the next customer after current rewards shown.
-    // For this version, it will reset on reload as per original request.
+    try {
+      const existingPendingOrdersRaw = localStorage.getItem(POS_PENDING_ORDERS_STORAGE_KEY);
+      const existingPendingOrders: Order[] = existingPendingOrdersRaw ? JSON.parse(existingPendingOrdersRaw) : [];
+      existingPendingOrders.push(newOrder);
+      localStorage.setItem(POS_PENDING_ORDERS_STORAGE_KEY, JSON.stringify(existingPendingOrders));
+      
+      setCheckoutMessage(""); // Clear any previous messages
+      setThankYouMessage(`Order ${newOrder.id} submitted! A budtender will process it shortly.`);
+      setShowThankYouCard(true);
+      setViewCheckout(false); 
+      
+      setCart([]);
+      // Customer info reset might be optional if they are logged in and it pre-fills,
+      // but DOB and Phone might be per-transaction.
+      setCustomerInfo({ firstName: user.firstName || "", lastName: user.lastName || "", dob: "", phoneNumber: "" });
+      
+      toast({ title: "Order Submitted!", description: `Your order ${newOrder.id} is pending processing.`, duration: 5000 });
 
-    setTimeout(() => {
-       // Reset rewards points for the next customer IF we weren't reloading
-       // setRewardsPoints(0); // This line is for a non-reloading scenario
-      window.location.reload(); 
-    }, 5000); // Thank you card for 5 seconds, then reload
-  }, [customerInfo, totalPrice, rewardsPoints, toast]);
+      setTimeout(() => {
+        setShowThankYouCard(false);
+        // No reload, user stays on POS page.
+      }, 5000);
+
+    } catch (error) {
+      console.error("Error saving pending order to localStorage:", error);
+      setCheckoutMessage("An error occurred while submitting your order. Please try again.");
+      toast({ title: "Submission Error", description: "Could not submit order to local queue.", variant: "destructive" });
+    }
+
+  }, [user, customerInfo, cart, totalPrice, cartItemCount, toast]);
 
 
   if (showSplash) return <SplashScreen isVisible={showSplash} />;
-  if (showThankYouCard) return <ThankYouCard isVisible={showThankYouCard} />;
+  if (showThankYouCard) return <ThankYouCard isVisible={showThankYouCard} message={thankYouMessage} />;
 
   return (
     <div className="min-h-screen bg-background text-foreground font-body">
@@ -215,7 +266,7 @@ export default function PosPage() {
         onUpdateQuantity={updateQuantity}
         onRemoveItem={removeFromCart}
         onCheckout={handleOpenCheckout}
-        totalPrice={totalPrice}
+        totalPrice={totalPrice.toFixed(2)}
       />
       
       {viewCheckout && (
@@ -223,8 +274,8 @@ export default function PosPage() {
           isOpen={viewCheckout}
           onClose={() => setViewCheckout(false)}
           cart={cart}
-          totalPrice={totalPrice}
-          rewardsPoints={rewardsPoints}
+          totalPrice={totalPrice.toFixed(2)}
+          rewardsPoints={rewardsPoints} // This is current user's points, not points from this sale
           onFinalizeSale={finalizeSale}
           customerInfo={customerInfo}
           onCustomerInfoChange={handleCustomerInfoChange}
@@ -236,4 +287,3 @@ export default function PosPage() {
     </div>
   );
 }
-

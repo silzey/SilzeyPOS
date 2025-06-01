@@ -8,7 +8,7 @@ import { useEffect, useState } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Home, ShoppingBag, Users, BarChart3, LogOut as LogOutIcon, Menu } from 'lucide-react';
+import { Home, ShoppingBag, Users, BarChart3, LogOut as LogOutIcon, Menu, Terminal } from 'lucide-react'; // Added Terminal
 import {
   Sheet,
   SheetContent,
@@ -35,6 +35,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           <Skeleton className="h-8 w-full" />
           <Skeleton className="h-8 w-full" />
           <Skeleton className="h-8 w-full" />
+          <Skeleton className="h-8 w-full" /> 
           <Skeleton className="h-8 w-full mt-auto" />
         </aside>
         <div className="flex-1 flex flex-col">
@@ -59,11 +60,12 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     headerTitle = 'Overview';
   } else if (pathname === '/dashboard/orders') {
     headerTitle = 'Orders Management';
-  } else if (pathname === '/dashboard/customers') {
+  } else if (pathname.startsWith('/dashboard/customers')) {
     headerTitle = 'Customer Management';
-  } else if (pathname.startsWith('/dashboard/customers/')) {
-    headerTitle = 'Customer Profile';
-  } else if (pathname === '/dashboard/analytics') { // Assuming analytics might be added
+    if (pathname.split('/').length > 3) headerTitle = "Customer Profile";
+  } else if (pathname === '/dashboard/live-queue') { // New page
+    headerTitle = 'Live POS Queue';
+  } else if (pathname === '/dashboard/analytics') { 
     headerTitle = 'Analytics';
   }
 
@@ -79,12 +81,20 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         <Link href="/dashboard"><Home className="mr-3 h-5 w-5" /> Overview</Link>
       </Button>
       <Button
+        variant={pathname === '/dashboard/live-queue' ? "secondary" : "ghost"}
+        className="w-full justify-start text-foreground hover:bg-primary/10 hover:text-primary"
+        asChild
+        onClick={() => isMobileMenuOpen && setIsMobileMenuOpen(false)}
+      >
+        <Link href="/dashboard/live-queue"><Terminal className="mr-3 h-5 w-5" /> Live POS Queue</Link>
+      </Button>
+      <Button
         variant={pathname === '/dashboard/orders' ? "secondary" : "ghost"}
         className="w-full justify-start text-foreground hover:bg-primary/10 hover:text-primary"
         asChild
         onClick={() => isMobileMenuOpen && setIsMobileMenuOpen(false)}
       >
-        <Link href="/dashboard/orders"><ShoppingBag className="mr-3 h-5 w-5" /> Orders</Link>
+        <Link href="/dashboard/orders"><ShoppingBag className="mr-3 h-5 w-5" /> All Orders</Link>
       </Button>
       <Button
         variant={pathname.startsWith('/dashboard/customers') ? "secondary" : "ghost"}

@@ -1,23 +1,27 @@
 
 "use client";
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Download, Eye, Edit, PackageSearch, Filter } from 'lucide-react';
+import { Download, Eye, Edit, PackageSearch, Filter, AlertTriangle } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import type { Order, OrderStatus, CartItem, Category as ProductCategory } from '@/types/pos'; // Import CartItem and ProductCategory
+import type { Order, OrderStatus, CartItem, Category as ProductCategory } from '@/types/pos';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useRouter } from 'next/navigation';
 import OrderReceiptModal from '@/components/dashboard/OrderReceiptModal';
 import { CATEGORIES as PRODUCT_CATEGORIES_LIST, TAGS as PRODUCT_TAGS_LIST } from '@/lib/data';
 
-const ORDER_STATUSES: OrderStatus[] = ["In-Store", "Online"];
+const POS_PENDING_ORDERS_STORAGE_KEY = 'posPendingOrdersSilzey';
+const DASHBOARD_COMPLETED_ORDERS_STORAGE_KEY = 'dashboardCompletedOrdersSilzey'; // For orders processed by dashboard
 
+const ALL_ORDER_STATUSES: OrderStatus[] = ["In-Store", "Online", "Pending Checkout"];
+
+// --- Mock Data Generation (Kept for baseline, but localStorage will be primary for dynamic orders) ---
 const mockProductNamesByCategory: Record<ProductCategory, string[]> = {
   "Flower": ["Mystic Haze Flower", "Stardust Sativa Pre-Roll", "Quasar Queen Flower", "Blue Dream Bud", "Green Crack Strain"],
   "Concentrates": ["Galaxy Gold Concentrate", "Cosmic Kush Shatter", "Nebula Nectar Wax", "Lunar Rosin", "Solar Flare Oil"],
@@ -26,7 +30,6 @@ const mockProductNamesByCategory: Record<ProductCategory, string[]> = {
 };
 
 const getMockImageForCategory = (category: ProductCategory, index: number): { url: string; hint: string } => {
-  // Using generic placeholders for simplicity, enhance with specific images if needed
   const hints: Record<ProductCategory, string> = {
     Flower: "cannabis flower",
     Concentrates: "cannabis concentrate",
@@ -34,7 +37,7 @@ const getMockImageForCategory = (category: ProductCategory, index: number): { ur
     Edibles: "food edible"
   };
   return {
-    url: `https://placehold.co/100x100.png?text=${category.substring(0,3)}${index}`, // Generic placeholder
+    url: `https://placehold.co/100x100.png?text=${category.substring(0,3)}${index}`,
     hint: hints[category] || "product image"
   };
 };
@@ -42,71 +45,67 @@ const getMockImageForCategory = (category: ProductCategory, index: number): { ur
 const generateMockCartItems = (itemCount: number): CartItem[] => {
   const items: CartItem[] = [];
   const usedNames: Set<string> = new Set();
-
   for (let i = 0; i < itemCount; i++) {
     const category = PRODUCT_CATEGORIES_LIST[Math.floor(Math.random() * PRODUCT_CATEGORIES_LIST.length)];
     const productNamesForCategory = mockProductNamesByCategory[category];
     let name = productNamesForCategory[Math.floor(Math.random() * productNamesForCategory.length)];
-    
     let uniqueNameAttempt = 0;
     while(usedNames.has(`${category}-${name}`) && uniqueNameAttempt < productNamesForCategory.length * 2) {
         name = productNamesForCategory[Math.floor(Math.random() * productNamesForCategory.length)];
         uniqueNameAttempt++;
     }
     usedNames.add(`${category}-${name}`);
-
     const imageDetails = getMockImageForCategory(category, i);
-
     items.push({
       id: `product-item-${category}-${Math.random().toString(36).substring(2, 9)}`,
       name: name,
-      price: (Math.random() * 40 + 10).toFixed(2), // Price between 10 and 50
+      price: (Math.random() * 40 + 10).toFixed(2),
       tags: PRODUCT_TAGS_LIST[Math.floor(Math.random() * PRODUCT_TAGS_LIST.length)],
-      rating: (Math.random() * 1.5 + 3.5).toFixed(1), // Rating between 3.5 and 5.0
+      rating: (Math.random() * 1.5 + 3.5).toFixed(1),
       category: category,
       image: imageDetails.url,
       dataAiHint: imageDetails.hint,
-      quantity: Math.floor(Math.random() * 3) + 1, // Quantity between 1 and 3
+      quantity: Math.floor(Math.random() * 3) + 1,
     });
   }
   return items;
 };
 
-
-export const mockOrders: Order[] = Array.from({ length: 50 }, (_, i) => {
-  const statusIndex = i % ORDER_STATUSES.length;
-  const date = new Date(2024, 6, 28 - (i % 28)); // Example: July 2024 dates
-  const itemCount = Math.floor(Math.random() * 4) + 1; // 1 to 4 items per order
-  const items = generateMockCartItems(itemCount);
+const generateInitialMockOrders = (): Order[] => Array.from({ length: 25 }, (_, i) => { // Reduced static mocks
+  const statusIndex = i % (ALL_ORDER_STATUSES.length -1); // Exclude "Pending Checkout" for initial mocks
+  const date = new Date(2024, 6, 28 - (i % 28)); 
+  const items = generateMockCartItems(Math.floor(Math.random() * 4) + 1);
   const totalAmount = items.reduce((sum, item) => sum + parseFloat(item.price) * item.quantity, 0);
-
   return {
-    id: `ORD-${String(1001 + i).padStart(4, '0')}`,
-    customerName: ['Liam Smith', 'Olivia Johnson', 'Noah Williams', 'Emma Brown', 'Oliver Jones', 'Ava Garcia', 'Elijah Miller', 'Sophia Davis', 'Lucas Rodriguez', 'Isabella Martinez'][i % 10],
+    id: `MOCK-ORD-${String(1001 + i).padStart(4, '0')}`,
+    customerName: ['Liam Smith', 'Olivia Johnson', 'Noah Williams', 'Emma Brown', 'Oliver Jones'][i % 5],
     orderDate: date.toISOString(),
-    status: ORDER_STATUSES[statusIndex],
+    status: ALL_ORDER_STATUSES[statusIndex],
     totalAmount: parseFloat(totalAmount.toFixed(2)),
-    itemCount: items.reduce((sum, item) => sum + item.quantity, 0), // Correct item count based on quantity
+    itemCount: items.reduce((sum, item) => sum + item.quantity, 0),
     items: items,
     shippingAddress: `${123 + i} Main St, Anytown, USA`,
     paymentMethod: ['Credit Card', 'PayPal', 'Stripe', 'Cash'][i % 4]
   };
 });
+// --- End Mock Data Generation ---
 
 const convertOrdersToCSV = (data: Order[]) => {
-  const headers = ['Order ID', 'Customer Name', 'Order Date', 'Status', 'Total Amount', 'Item Count', 'Shipping Address', 'Payment Method', 'Items (Name|Qty|Price;...)'];
+  const headers = ['Order ID', 'Customer Name', 'Customer ID', 'Order Date', 'Status', 'Total Amount', 'Item Count', 'Shipping Address', 'Payment Method', 'Submitted by POS', 'Items (Name|Qty|Price;...)'];
   const csvRows = [
     headers.join(','),
     ...data.map(order =>
       [
         order.id,
         `"${order.customerName.replace(/"/g, '""')}"`,
+        order.customerId || '',
         new Date(order.orderDate).toLocaleDateString(),
         order.status,
         order.totalAmount.toFixed(2),
         order.itemCount,
         `"${order.shippingAddress?.replace(/"/g, '""') || ''}"`,
         `"${order.paymentMethod || ''}"`,
+        order.submittedByPOS ? 'Yes' : 'No',
         `"${order.items.map(item => `${item.name}|${item.quantity}|${item.price}`).join(';')}"`
       ].join(',')
     )
@@ -131,10 +130,11 @@ const downloadCSV = (csvString: string, filename: string) => {
   }
 };
 
-const getStatusBadgeVariant = (status: OrderStatus): "default" | "secondary" | "outline" => {
+const getStatusBadgeVariant = (status: OrderStatus): "default" | "secondary" | "outline" | "destructive" => {
   switch (status) {
     case "In-Store": return "default";
     case "Online": return "secondary";
+    case "Pending Checkout": return "destructive"; // Will be styled by className
     default: return "outline";
   }
 };
@@ -143,12 +143,14 @@ const getStatusBadgeClassName = (status: OrderStatus): string => {
   switch (status) {
     case "In-Store": return "bg-blue-500/20 text-blue-700 border-blue-500/30";
     case "Online": return "bg-green-500/20 text-green-700 border-green-500/30";
+    case "Pending Checkout": return "bg-orange-500/20 text-orange-700 border-orange-500/30 animate-pulse"; // Pulsating effect
     default: return "border-muted-foreground";
   }
 };
 
 
 export default function OrdersPage() {
+  const [allOrders, setAllOrders] = useState<Order[]>([]);
   const [filterOrderId, setFilterOrderId] = useState('');
   const [filterCustomerName, setFilterCustomerName] = useState('');
   const [filterStatus, setFilterStatus] = useState<OrderStatus | 'All'>('All');
@@ -156,14 +158,45 @@ export default function OrdersPage() {
   const [isReceiptModalOpen, setIsReceiptModalOpen] = useState(false);
   const router = useRouter();
 
+  useEffect(() => {
+    // Load orders from all sources
+    const staticMockOrders = generateInitialMockOrders();
+    let pendingOrders: Order[] = [];
+    try {
+      const pendingOrdersRaw = localStorage.getItem(POS_PENDING_ORDERS_STORAGE_KEY);
+      if (pendingOrdersRaw) {
+        pendingOrders = JSON.parse(pendingOrdersRaw);
+      }
+    } catch (e) {
+      console.error("Error parsing pending orders from localStorage", e);
+    }
+
+    let completedDashboardOrders: Order[] = [];
+     try {
+      const completedRaw = localStorage.getItem(DASHBOARD_COMPLETED_ORDERS_STORAGE_KEY);
+      if (completedRaw) {
+        completedDashboardOrders = JSON.parse(completedRaw);
+      }
+    } catch (e) {
+      console.error("Error parsing completed dashboard orders from localStorage", e);
+    }
+
+    // Combine and deduplicate (prefer localStorage if IDs match)
+    const combined = [...pendingOrders, ...completedDashboardOrders, ...staticMockOrders];
+    const uniqueOrders = Array.from(new Map(combined.map(order => [order.id, order])).values());
+    
+    setAllOrders(uniqueOrders.sort((a,b) => new Date(b.orderDate).getTime() - new Date(a.orderDate).getTime() ));
+  }, []);
+
+
   const filteredOrders = useMemo(() => {
-    return mockOrders.filter(order => {
+    return allOrders.filter(order => {
       const orderIdMatch = filterOrderId ? order.id.toLowerCase().includes(filterOrderId.toLowerCase()) : true;
       const customerNameMatch = filterCustomerName ? order.customerName.toLowerCase().includes(filterCustomerName.toLowerCase()) : true;
       const statusMatch = filterStatus === 'All' || order.status === filterStatus;
       return orderIdMatch && customerNameMatch && statusMatch;
     });
-  }, [filterOrderId, filterCustomerName, filterStatus]);
+  }, [allOrders, filterOrderId, filterCustomerName, filterStatus]);
 
   const handleDownload = () => {
     const csvString = convertOrdersToCSV(filteredOrders);
@@ -189,7 +222,7 @@ export default function OrdersPage() {
             <CardTitle className="font-headline text-primary flex items-center">
               <PackageSearch className="mr-2 h-6 w-6" /> Orders List
             </CardTitle>
-            <CardDescription>View and manage all customer orders.</CardDescription>
+            <CardDescription>View and manage all customer orders. Pending POS checkouts are highlighted.</CardDescription>
           </div>
           <Button variant="outline" size="sm" onClick={handleDownload} className="w-full sm:w-auto">
             <Download className="mr-2 h-4 w-4" />
@@ -227,13 +260,13 @@ export default function OrdersPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="All">All Statuses</SelectItem>
-                  {ORDER_STATUSES.map(status => (
+                  {ALL_ORDER_STATUSES.map(status => (
                     <SelectItem key={status} value={status}>{status}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
-             <Button variant="outline" size="sm" className="h-9 md:self-end w-full md:w-auto" onClick={() => { /* Placeholder for explicit filter application if needed */ }}>
+             <Button variant="outline" size="sm" className="h-9 md:self-end w-full md:w-auto" onClick={() => { /* Placeholder */ }}>
                 <Filter className="mr-2 h-4 w-4" /> Apply Filters
             </Button>
           </div>
@@ -256,19 +289,24 @@ export default function OrdersPage() {
               <TableBody>
                 {filteredOrders.length > 0 ? (
                   filteredOrders.map((order) => (
-                    <TableRow key={order.id} className="hover:bg-muted/50">
+                    <TableRow key={order.id} className={`hover:bg-muted/50 ${order.status === 'Pending Checkout' ? 'bg-orange-500/5' : ''}`}>
                       <TableCell className="font-medium">{order.id}</TableCell>
                       <TableCell>{order.customerName}</TableCell>
                       <TableCell>{new Date(order.orderDate).toLocaleDateString()}</TableCell>
                       <TableCell className="text-right">${order.totalAmount.toFixed(2)}</TableCell>
                       <TableCell className="text-center">{order.itemCount}</TableCell>
                       <TableCell className="text-center">
-                        <Badge
-                          variant={getStatusBadgeVariant(order.status)}
-                          className={`capitalize ${getStatusBadgeClassName(order.status)}`}
-                        >
-                          {order.status}
-                        </Badge>
+                        <div className="flex items-center justify-center">
+                          {order.status === 'Pending Checkout' && (
+                            <span className="mr-2 h-3 w-3 rounded-full bg-destructive pulsate-red-dot"></span>
+                          )}
+                          <Badge
+                            variant={getStatusBadgeVariant(order.status)}
+                            className={`capitalize ${getStatusBadgeClassName(order.status)}`}
+                          >
+                            {order.status}
+                          </Badge>
+                        </div>
                       </TableCell>
                       <TableCell className="text-right space-x-1">
                         <Button
@@ -276,14 +314,11 @@ export default function OrdersPage() {
                           size="icon"
                           className="hover:bg-primary/10 text-primary"
                           aria-label={`View details for order ${order.id}`}
-                           onClick={() => {
-                            // alert('Orders page - View icon CLICKED for ' + order.id); // Keep for debugging if needed
-                            handleShowOrderReceipt(order);
-                           }}
+                           onClick={() => handleShowOrderReceipt(order)}
                         >
                           <Eye className="h-4 w-4" />
                         </Button>
-                        <Button variant="ghost" size="icon" onClick={() => alert('Editing order ' + order.id + ' (mock)')} aria-label="Edit order">
+                        <Button variant="ghost" size="icon" onClick={() => alert('Editing order ' + order.id + ' (mock)')} aria-label="Edit order" disabled={order.status === 'Pending Checkout'}>
                           <Edit className="h-4 w-4" />
                         </Button>
                       </TableCell>
