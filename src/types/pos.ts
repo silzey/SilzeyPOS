@@ -37,7 +37,7 @@ export interface UserProfile {
 export type OrderStatus = "In-Store" | "Online"; // For actual orders
 export type TransactionStatus = "Completed" | "Pending" | "Failed"; // For point-of-sale transactions
 
-export interface TransactionItem { name: string; qty: number; price: number };
+export interface TransactionItem { id?: string; name: string; qty: number; price: number }; // Added optional id to TransactionItem
 
 export interface Order {
   id: string;
@@ -46,16 +46,16 @@ export interface Order {
   status: OrderStatus;
   totalAmount: number;
   itemCount: number;
-  items: TransactionItem[]; // Added items to Order
+  items: TransactionItem[]; 
   shippingAddress?: string; 
   paymentMethod?: string; 
 }
 
 export interface TransactionType {
   id: string;
-  customer: string; // Customer name for the transaction
+  customer: string; 
   date: string;
-  amount: string; // Formatted string, e.g., "$75.50"
+  amount: string; 
   status: TransactionStatus;
   items: TransactionItem[];
 }

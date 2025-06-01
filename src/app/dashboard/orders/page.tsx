@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import type { Order, OrderStatus, TransactionItem } from '@/types/pos';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useRouter } from 'next/navigation';
+import OrderReceiptModal from '@/components/dashboard/OrderReceiptModal';
 
 const ORDER_STATUSES: OrderStatus[] = ["In-Store", "Online"];
 
@@ -26,6 +27,7 @@ const generateMockItems = (itemCount: number): TransactionItem[] => {
   const items: TransactionItem[] = [];
   for (let i = 0; i < itemCount; i++) {
     items.push({
+      id: `item-${Math.random().toString(36).substr(2, 9)}`, // Added unique ID for items
       name: mockProductNames[Math.floor(Math.random() * mockProductNames.length)],
       qty: Math.floor(Math.random() * 3) + 1,
       price: parseFloat((Math.random() * 50 + 10).toFixed(2))
@@ -112,6 +114,8 @@ export default function OrdersPage() {
   const [filterOrderId, setFilterOrderId] = useState('');
   const [filterCustomerName, setFilterCustomerName] = useState('');
   const [filterStatus, setFilterStatus] = useState<OrderStatus | 'All'>('All');
+  const [selectedOrderForModal, setSelectedOrderForModal] = useState<Order | null>(null);
+  const [isReceiptModalOpen, setIsReceiptModalOpen] = useState(false);
   const router = useRouter();
 
   const filteredOrders = useMemo(() => {
@@ -128,7 +132,18 @@ export default function OrdersPage() {
     downloadCSV(csvString, 'orders_report.csv');
   };
 
+  const handleShowOrderReceipt = (order: Order) => {
+    setSelectedOrderForModal(order);
+    setIsReceiptModalOpen(true);
+  };
+
+  const handleCloseOrderReceiptModal = () => {
+    setIsReceiptModalOpen(false);
+    setSelectedOrderForModal(null);
+  };
+
   return (
+    <>
     <div className="space-y-6">
       <Card className="shadow-lg">
         <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
@@ -221,13 +236,11 @@ export default function OrdersPage() {
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="bg-pink-200 hover:bg-pink-300 border-2 border-fuchsia-500"
-                          aria-label={`TEST View details for order ${order.id}`}
-                          onClick={() => {
-                            alert('Orders page - View icon CLICKED for ' + order.id);
-                          }}
+                          className="hover:bg-primary/10"
+                          aria-label={`View details for order ${order.id}`}
+                           onClick={() => handleShowOrderReceipt(order)}
                         >
-                          <Eye className="h-4 w-4 text-fuchsia-700" />
+                          <Eye className="h-4 w-4 text-primary" />
                         </Button>
                         <Button variant="ghost" size="icon" onClick={() => alert('Editing order ' + order.id + ' (mock)')} aria-label="Edit order">
                           <Edit className="h-4 w-4" />
@@ -248,6 +261,13 @@ export default function OrdersPage() {
         </CardContent>
       </Card>
     </div>
+    {selectedOrderForModal && (
+        <OrderReceiptModal
+          order={selectedOrderForModal}
+          isOpen={isReceiptModalOpen}
+          onClose={handleCloseOrderReceiptModal}
+        />
+      )}
+    </>
   );
 }
-
