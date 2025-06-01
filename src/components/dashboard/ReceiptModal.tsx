@@ -18,7 +18,8 @@ const ReceiptModal: FC<ReceiptModalProps> = ({ transaction, isOpen, onClose }) =
   console.log(`%cDEBUG_MODAL: Component Rendered. Props -> isOpen: ${isOpen}, TXN ID: ${transaction?.id || 'null'}`, "color: purple; font-weight: bold;");
 
   if (!isOpen || !transaction) {
-    console.log(`%cDEBUG_MODAL: Not rendering Dialog body. isOpen: ${isOpen}, TXN: ${transaction ? 'present' : 'absent'}. Returning null.`, "color: purple;");
+    // This log is fine, it just means the modal isn't supposed to be open.
+    // console.log(`%cDEBUG_MODAL: Not rendering Dialog body. isOpen: ${isOpen}, TXN: ${transaction ? 'present' : 'absent'}. Returning null.`, "color: purple;");
     return null;
   }
   
@@ -30,8 +31,8 @@ const ReceiptModal: FC<ReceiptModalProps> = ({ transaction, isOpen, onClose }) =
       onOpenChange={(openState) => {
         console.log(`%cDEBUG_MODAL: Dialog onOpenChange CALLED by Radix. Radix wants to set openState to: ${openState}. Current "isOpen" prop from parent: ${isOpen}. TXN ID: ${transaction?.id}`, "color: red; font-weight: bold;");
         if (!openState) {
-          console.log('%cDEBUG_MODAL: onOpenChange -> Radix wants to close. Calling parent onClose() is *TEMPORARILY COMMENTED OUT FOR DIAGNOSIS*.', "color: red; font-style: italic;");
-          // onClose(); // <<<<<<<< TEMPORARILY COMMENTED OUT!
+          console.log('%cDEBUG_MODAL: onOpenChange -> Radix wants to close. *PARENT onClose() IS INTENTIONALLY NOT CALLED FOR THIS TEST* to see if modal can stay open.', "color: red; font-style: italic; background-color: yellow;");
+          // onClose(); // <<<<<<<< INTENTIONALLY COMMENTED OUT FOR THIS SPECIFIC TEST!
         } else {
           console.log('%cDEBUG_MODAL: onOpenChange -> Radix wants to open. This is normal for initial mount with open=true.', "color: red;");
         }
@@ -41,10 +42,11 @@ const ReceiptModal: FC<ReceiptModalProps> = ({ transaction, isOpen, onClose }) =
           <DialogHeader className="mb-2">
             <div className="flex flex-row justify-between items-center">
               <h1 className="text-3xl font-cursive text-primary">Silzey POS</h1>
+              {/* Explicit Close Button for the Dialog */}
               <DialogClose asChild>
                 <Button variant="ghost" size="icon" className="rounded-full" aria-label="Close receipt" onClick={() => {
                     console.log('%cDEBUG_MODAL: Manual DialogClose X button clicked. Calling onClose().', "color: orange;");
-                    onClose();
+                    onClose(); // This explicit close button WILL call the parent's onClose
                 }}>
                   <X className="h-5 w-5" />
                 </Button>
@@ -100,21 +102,27 @@ const ReceiptModal: FC<ReceiptModalProps> = ({ transaction, isOpen, onClose }) =
         <DialogFooter className="p-4 bg-muted/10 border-t flex-col sm:flex-row gap-2">
           <Button variant="outline" onClick={() => {
             console.log('%cDEBUG_MODAL: Footer Close button clicked. Calling onClose().', "color: orange;");
-            onClose();
+            onClose(); // This explicit close button WILL call the parent's onClose
           }} className="w-full sm:w-auto">
             Close
           </Button>
           <Button
             id="diagnostic-print-button" 
             onClick={() => {
-              alert('MODAL BUTTON CLICKED! Check console.');
-              console.log('%cMODAL_BUTTON_CLICK: "CLICK ME!" button was clicked.', "background: lime; color: black; font-size: 14px; font-weight: bold;");
-              // window.print(); // window.print() temporarily commented out for focus on click registration
+              alert('MODAL BUTTON CLICKED! Check console for "window.print()" attempt.');
+              console.log('%cMODAL_BUTTON_CLICK: "Print (Test Click)" button was clicked. Attempting window.print()', "background: lime; color: black; font-size: 14px; font-weight: bold;");
+              try {
+                window.print();
+                console.log('%cMODAL_BUTTON_CLICK: window.print() called successfully.', "background: lightgreen;");
+              } catch (e) {
+                console.error('%cMODAL_BUTTON_CLICK: Error calling window.print():', "background: red; color: white;", e);
+                alert('Error calling window.print(). Check console.');
+              }
             }}
             className="w-full sm:w-auto"
-            style={{ border: '5px solid deeppink', padding: '15px', fontSize: '18px', fontWeight: 'bold', backgroundColor: 'lightpink' }}
+            style={{ border: '3px solid deeppink', padding: '10px', fontSize: '16px', fontWeight: 'bold', backgroundColor: 'lightpink' }}
           >
-            <Printer className="mr-2 h-5 w-5" /> CLICK ME!
+            <Printer className="mr-2 h-5 w-5" /> Print (Test Click)
           </Button>
         </DialogFooter>
       </DialogContent>
