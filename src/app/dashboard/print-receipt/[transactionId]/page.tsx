@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { Badge } from '@/components/ui/badge'; // Added import
+import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, PrinterIcon, XCircle } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -103,8 +103,20 @@ export default function PrintableReceiptPage() {
     );
   }
 
-  // Calculate subtotal for items if needed, for this example we use the transaction.amount directly.
   const itemsSubtotal = transaction.items.reduce((acc, item) => acc + (item.price * item.qty), 0);
+
+  const getStatusBadgeVariant = () => {
+    if (transaction.status === 'Completed') return 'default';
+    if (transaction.status === 'Pending') return 'secondary';
+    return 'destructive';
+  };
+
+  const getStatusBadgeClassName = () => {
+    if (transaction.status === 'Completed') return 'bg-green-500/20 text-green-700 border-green-500/30';
+    if (transaction.status === 'Pending') return 'bg-yellow-500/20 text-yellow-700 border-yellow-500/30';
+    return 'bg-red-500/20 text-red-700 border-red-500/30';
+  };
+
 
   return (
     <div className="min-h-screen bg-gray-100 p-2 sm:p-4 print:bg-white print:p-0 flex justify-center items-start sm:items-center">
@@ -127,7 +139,7 @@ export default function PrintableReceiptPage() {
           <div className="flex justify-between"><span>Transaction ID:</span> <strong className="font-mono">{transaction.id}</strong></div>
           <div className="flex justify-between"><span>Date:</span> <strong>{new Date(transaction.date).toLocaleString()}</strong></div>
           <div className="flex justify-between"><span>Customer:</span> <strong>{transaction.customer}</strong></div>
-          <div className="flex justify-between"><span>Status:</span> <Badge variant={transaction.status === 'Completed' ? 'default' : transaction.status === 'Pending' ? 'secondary' : 'destructive'} className={`capitalize ${transaction.status === 'Completed' ? 'bg-green-500/20 text-green-700 border-green-500/30' : transaction.status === 'Pending' ? 'bg-yellow-500/20 text-yellow-700 border-yellow-500/30' : 'bg-red-500/20 text-red-700 border-red-500/30'}`}>{transaction.status}</Badge></div>
+          <div className="flex justify-between"><span>Status:</span> <Badge variant={getStatusBadgeVariant()} className={`capitalize ${getStatusBadgeClassName()}`}>{transaction.status}</Badge></div>
         </section>
 
         <Separator className="my-4" />
@@ -148,9 +160,6 @@ export default function PrintableReceiptPage() {
         <Separator className="my-4" />
 
         <section className="text-right space-y-1 mb-6">
-           {/* If there were taxes or discounts, they'd go here */}
-           {/* <div className="flex justify-between text-sm"><span>Subtotal:</span> <span>${itemsSubtotal.toFixed(2)}</span></div> */}
-           {/* <div className="flex justify-between text-sm"><span>Tax (10%):</span> <span>${(itemsSubtotal * 0.1).toFixed(2)}</span></div> */}
           <div className="flex justify-between items-center text-lg font-bold text-primary">
             <span>TOTAL:</span>
             <span>{transaction.amount}</span>
@@ -176,5 +185,3 @@ export default function PrintableReceiptPage() {
     </div>
   );
 }
-
-    
