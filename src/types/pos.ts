@@ -35,33 +35,36 @@ export interface UserProfile {
   rewardsPoints?: number;
 }
 
-export type OrderStatus = "In-Store" | "Online" | "Pending Checkout"; // Added "Pending Checkout"
+export type OrderStatus = "In-Store" | "Online" | "Pending Checkout";
 export type TransactionStatus = "Completed" | "Pending" | "Failed";
 
+// TransactionItem id is optional if it's derived and not a stored DB id.
 export interface TransactionItem { id?: string; name: string; qty: number; price: number };
 
 export interface Order {
   id: string;
   customerName: string; 
-  customerId?: string; // Added to link back to a customer
-  orderDate: string;
+  customerId?: string;
+  orderDate: string; // ISO string
   status: OrderStatus;
   totalAmount: number;
   itemCount: number;
   items: CartItem[]; 
   shippingAddress?: string;
   paymentMethod?: string;
-  submittedByPOS?: boolean; // Flag for orders from the client POS
-  processedAt?: string; // Timestamp for when checkout is completed
+  submittedByPOS?: boolean;
+  processedAt?: string; // ISO string
 }
 
 export interface TransactionType {
   id: string;
   customer: string;
-  date: string;
-  amount: string;
-  status: TransactionStatus;
+  date: string; // This will be the processedAt or orderDate from the Order, as an ISO string
+  amount: string; // Formatted as "$XX.XX"
+  status: TransactionStatus; // Should always be "Completed" for this table
   items: TransactionItem[];
+  originalOrderId?: string; // ID of the Order it was derived from
+  originalOrderType?: 'order'; // To know it came from an Order
 }
 
 // New Customer type
@@ -69,3 +72,4 @@ export interface Customer extends UserProfile {
   orderHistory: Order[];
   currentOrder?: Order;
 }
+

@@ -5,13 +5,13 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Download, Eye, Printer, RefreshCw, Filter } from 'lucide-react'; // Added RefreshCw and Filter
+import { Download, Eye, Printer, RefreshCw } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import type { TransactionType, TransactionItem, TransactionStatus, Order, CartItem } from '@/types/pos'; // Added Order and CartItem
-import { ScrollArea } from '@/components/ui/scroll-area'; // Added ScrollArea
-import { Skeleton } from '@/components/ui/skeleton'; // Added Skeleton
+import type { TransactionType, TransactionStatus, Order, CartItem } from '@/types/pos';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Skeleton } from '@/components/ui/skeleton';
+import OrderReceiptModal from '@/components/dashboard/OrderReceiptModal'; // Import the modal
 
 const DASHBOARD_COMPLETED_ORDERS_STORAGE_KEY = 'dashboardCompletedOrdersSilzey';
 
@@ -21,15 +21,14 @@ const convertOrdersToTransactions = (orders: Order[]): TransactionType[] => {
     return [];
   }
   return orders.map(order => ({
-    id: `TRX-ORD-${order.id.substring(order.id.length - 7)}`, // Create a transaction-like ID
-    originalOrderId: order.id, // Keep original order ID
-    originalOrderType: 'order', // Mark as sourced from an Order
+    id: `TRX-ORD-${order.id.substring(order.id.length - 7)}`,
+    originalOrderId: order.id,
+    originalOrderType: 'order',
     customer: order.customerName,
-    // Use processedAt for the date, fallback to orderDate. Ensure it's a format new Date() can parse well for sorting.
     date: order.processedAt || order.orderDate,
     amount: `$${order.totalAmount.toFixed(2)}`,
-    status: 'Completed', // All processed orders are 'Completed' transactions
-    items: order.items.map((item: CartItem) => ({ // Ensure item is treated as CartItem
+    status: 'Completed',
+    items: order.items.map((item: CartItem) => ({
       id: item.id,
       name: item.name,
       qty: item.quantity,
@@ -78,8 +77,8 @@ const downloadCSV = (csvString: string, filename: string) => {
 const getStatusBadgeClassName = (status: TransactionStatus): string => {
   switch (status) {
     case 'Completed': return 'bg-green-500/20 text-green-700 border-green-500/30';
-    case 'Pending': return 'bg-yellow-500/20 text-yellow-700 border-yellow-500/30'; // Should not appear here
-    case 'Failed': return 'bg-red-500/20 text-red-700 border-red-500/30'; // Should not appear here
+    case 'Pending': return 'bg-yellow-500/20 text-yellow-700 border-yellow-500/30';
+    case 'Failed': return 'bg-red-500/20 text-red-700 border-red-500/30';
     default: return 'border-muted-foreground';
   }
 };
@@ -87,14 +86,14 @@ const getStatusBadgeClassName = (status: TransactionStatus): string => {
 export const RecentTransactionsTable = () => {
   const [allTransactions, setAllTransactions] = useState<TransactionType[]>([]);
   const [filterCustomer, setFilterCustomer] = useState('');
-  // Status filter is less relevant here as all are "Completed"
-  // const [filterStatus, setFilterStatus] = useState<TransactionStatus | 'All'>('All');
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [selectedOrderForModal, setSelectedOrderForModal] = useState<Order | null>(null);
+  const [isReceiptModalOpen, setIsReceiptModalOpen] = useState(false);
 
   const loadTransactions = useCallback(async () => {
-    setIsRefreshing(true); // Indicate refresh is in progress
-    // Simulate async operation if needed, or just proceed
+    if (!isRefreshing) setIsLoading(true); // Only show main loading if not a manual refresh
+    setIsRefreshing(true);
     await new Promise(resolve => setTimeout(resolve, 300)); 
 
     let completedOrdersFromStorage: Order[] = [];
@@ -115,18 +114,15 @@ export const RecentTransactionsTable = () => {
     }
     setIsLoading(false);
     setIsRefreshing(false);
-  }, []);
+  }, [isRefreshing]);
 
   useEffect(() => {
-    setIsLoading(true);
     loadTransactions();
-  }, [loadTransactions]);
-
+  }, [loadTransactions]); // Initial load
 
   const filteredTransactions = useMemo(() => {
     return allTransactions.filter(transaction => {
       const customerMatch = filterCustomer ? transaction.customer.toLowerCase().includes(filterCustomer.toLowerCase()) : true;
-      // const statusMatch = filterStatus === 'All' || transaction.status === filterStatus; // Status is always "Completed"
       return customerMatch;
     });
   }, [allTransactions, filterCustomer]);
@@ -138,6 +134,36 @@ export const RecentTransactionsTable = () => {
     }
     const csvString = convertToCSV(filteredTransactions);
     downloadCSV(csvString, 'recent_transactions_from_pos.csv');
+  };
+
+  const handleShowOrderReceipt = (transaction: TransactionType) => {
+    if (!transaction.originalOrderId) {
+      alert("Cannot view details: Original order ID not found for this transaction.");
+      return;
+    }
+    try {
+      const completedOrdersRaw = localStorage.getItem(DASHBOARD_COMPLETED_ORDERS_STORAGE_KEY);
+      if (completedOrdersRaw) {
+        const completedOrders: Order[] = JSON.parse(completedOrdersRaw);
+        const orderToShow = completedOrders.find(o => o.id === transaction.originalOrderId);
+        if (orderToShow) {
+          setSelectedOrderForModal(orderToShow);
+          setIsReceiptModalOpen(true);
+        } else {
+          alert(`Original order (${transaction.originalOrderId}) not found in completed orders.`);
+        }
+      } else {
+        alert("No completed orders found in storage.");
+      }
+    } catch (e) {
+      console.error("Error loading order for modal:", e);
+      alert("Error loading order details.");
+    }
+  };
+
+  const handleCloseOrderReceiptModal = () => {
+    setIsReceiptModalOpen(false);
+    setSelectedOrderForModal(null);
   };
   
   if (isLoading) {
@@ -159,7 +185,6 @@ export const RecentTransactionsTable = () => {
     );
   }
 
-
   return (
     <>
       <Card className="shadow-lg">
@@ -177,16 +202,15 @@ export const RecentTransactionsTable = () => {
         <CardContent className="py-4 border-y border-border">
           <div className="flex flex-col sm:flex-row gap-4 items-end">
             <div className="flex-grow sm:flex-1 min-w-[150px] sm:min-w-[200px]">
-              <Label htmlFor="filterCustomer" className="text-xs text-muted-foreground block mb-1">Filter by Customer</Label>
+              <Label htmlFor="filterCustomerRTT" className="text-xs text-muted-foreground block mb-1">Filter by Customer</Label>
               <Input
-                id="filterCustomer"
+                id="filterCustomerRTT" // Unique ID for this input
                 placeholder="Customer name..."
                 value={filterCustomer}
                 onChange={(e) => setFilterCustomer(e.target.value)}
                 className="h-9"
               />
             </div>
-            {/* Status filter removed as all transactions here are "Completed" */}
             <Button variant="outline" size="sm" onClick={loadTransactions} className="h-9 md:self-end w-full md:w-auto" disabled={isRefreshing}>
                 <RefreshCw className={`mr-2 h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} /> 
                 {isRefreshing ? 'Refreshing...' : 'Refresh List'}
@@ -195,7 +219,7 @@ export const RecentTransactionsTable = () => {
         </CardContent>
 
         <CardContent className="pt-4">
-          <ScrollArea className="h-[300px] w-full"> {/* Added ScrollArea for limited height */}
+          <ScrollArea className="h-[300px] w-full">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -219,17 +243,23 @@ export const RecentTransactionsTable = () => {
                       <TableCell className="text-right">{transaction.amount}</TableCell>
                       <TableCell className="text-center">
                         <Badge
-                          variant={'default'} // Always 'Completed'
+                          variant={'default'}
                           className={`capitalize ${getStatusBadgeClassName(transaction.status)}`}
                         >
                           {transaction.status}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right space-x-1">
-                        {/* The Eye icon might be less relevant here as details are in the table or for a full order view */}
-                        {/* <Button variant="ghost" size="icon" onClick={() => alert('Viewing details for ' + transaction.id + ' (mock)')} aria-label="View transaction details">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          title={`View Details for Order ${transaction.originalOrderId}`}
+                          aria-label={`View details for order ${transaction.originalOrderId}`}
+                          onClick={() => handleShowOrderReceipt(transaction)}
+                          disabled={!transaction.originalOrderId}
+                        >
                           <Eye className="h-4 w-4" />
-                        </Button> */}
+                        </Button>
                         <Button
                           variant="ghost"
                           size="icon"
@@ -262,6 +292,14 @@ export const RecentTransactionsTable = () => {
           </ScrollArea>
         </CardContent>
       </Card>
+      {selectedOrderForModal && (
+        <OrderReceiptModal
+          order={selectedOrderForModal}
+          isOpen={isReceiptModalOpen}
+          onClose={handleCloseOrderReceiptModal}
+        />
+      )}
     </>
   );
 };
+
