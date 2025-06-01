@@ -1,12 +1,12 @@
 
 "use client"
-import { useState } from 'react';
+import { useState, useEffect } from 'react'; // Added useEffect for debugging if needed
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Download, Eye, Printer } from 'lucide-react';
-import ReceiptModal from './ReceiptModal'; // Import the new modal
+import ReceiptModal from './ReceiptModal';
 
 const transactions = [
   { id: 'TRX731', customer: 'Aisha Khan', date: '2024-07-28', amount: '$75.50', status: 'Completed', items: [{name: 'Flower Product A', qty: 1, price: '$30.00'}, {name: 'Edible Product B', qty: 2, price: '$22.75'}] },
@@ -57,18 +57,34 @@ export const RecentTransactionsTable = () => {
   const [isReceiptModalOpen, setIsReceiptModalOpen] = useState(false);
   const [selectedTransactionForReceipt, setSelectedTransactionForReceipt] = useState<TransactionType | null>(null);
 
+  // For debugging UI
+  useEffect(() => {
+    console.log(`DEBUG: RecentTransactionsTable - isReceiptModalOpen: ${isReceiptModalOpen}, selectedTransactionId: ${selectedTransactionForReceipt?.id}`);
+  }, [isReceiptModalOpen, selectedTransactionForReceipt]);
+
+
   const handleDownload = () => {
     const csvString = convertToCSV(transactions);
     downloadCSV(csvString, 'recent_transactions.csv');
   };
 
   const handleShowReceipt = (transaction: TransactionType) => {
+    console.log(`DEBUG: handleShowReceipt called for transaction ID: ${transaction.id}`);
     setSelectedTransactionForReceipt(transaction);
     setIsReceiptModalOpen(true);
+    console.log(`DEBUG: After setting state - isReceiptModalOpen: true, selectedTransactionId: ${transaction.id}`);
   };
 
   return (
     <>
+      {/* DEBUGGING UI ELEMENT - REMOVE LATER */}
+      <div style={{ border: '2px solid red', padding: '10px', margin: '10px', backgroundColor: 'lightyellow' }}>
+        <p style={{ fontWeight: 'bold', color: 'red' }}>DEBUG INFO (RecentTransactionsTable):</p>
+        <p>isReceiptModalOpen: {isReceiptModalOpen ? 'true' : 'false'}</p>
+        <p>Selected Transaction ID: {selectedTransactionForReceipt ? selectedTransactionForReceipt.id : 'null'}</p>
+      </div>
+      {/* END DEBUGGING UI ELEMENT */}
+
       <Card className="shadow-lg">
         <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
           <div>
@@ -127,7 +143,12 @@ export const RecentTransactionsTable = () => {
         <ReceiptModal
           transaction={selectedTransactionForReceipt}
           isOpen={isReceiptModalOpen}
-          onClose={() => setIsReceiptModalOpen(false)}
+          onClose={() => {
+            console.log('DEBUG: ReceiptModal onClose called. Setting isReceiptModalOpen to false.');
+            setIsReceiptModalOpen(false);
+            // Optionally reset selected transaction:
+            // setSelectedTransactionForReceipt(null); 
+          }}
         />
       )}
     </>

@@ -15,19 +15,32 @@ interface ReceiptModalProps {
 }
 
 const ReceiptModal: FC<ReceiptModalProps> = ({ transaction, isOpen, onClose }) => {
-  console.log('ReceiptModal rendering. isOpen:', isOpen, 'Transaction ID:', transaction?.id); // Diagnostic log
+  // CRUCIAL: Check browser console for this log when you expect the modal to open.
+  console.log(`DEBUG: ReceiptModal rendering. isOpen: ${isOpen}, Transaction ID: ${transaction?.id}`);
 
   if (!transaction) {
-    // console.log('ReceiptModal: No transaction, returning null.'); // Can be noisy, let's rely on the main log
+    // This check ensures we don't try to render without a transaction.
+    // If the modal isn't opening, this might not even be reached.
+    console.log('DEBUG: ReceiptModal - No transaction provided, returning null.');
     return null;
   }
+  
+  // If isOpen is false, Radix Dialog won't render its content visibly.
+  // This is mostly for clarity, as Dialog handles its own open state.
   if (!isOpen) {
-    // console.log('ReceiptModal: Not open, returning null.'); // Can be noisy
-    return null;
+    console.log('DEBUG: ReceiptModal - isOpen is false, Dialog will not be visible.');
+    // The Dialog component itself handles not rendering content if open is false,
+    // but we'll keep the log for clarity.
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={(openState) => {
+      // This function is called by Radix when the dialog's open state changes (e.g., by pressing Esc or clicking overlay)
+      console.log(`DEBUG: ReceiptModal Dialog onOpenChange called. New openState: ${openState}`);
+      if (!openState) {
+        onClose(); // Call the passed onClose handler
+      }
+    }}>
       <DialogContent className="sm:max-w-sm p-0 shadow-xl rounded-lg">
         <div className="p-6">
           <DialogHeader className="mb-2">
@@ -87,26 +100,31 @@ const ReceiptModal: FC<ReceiptModalProps> = ({ transaction, isOpen, onClose }) =
         </div>
 
         <DialogFooter className="p-4 bg-muted/10 border-t flex-col sm:flex-row gap-2">
-          <Button variant="outline" onClick={onClose} className="w-full sm:w-auto">
+          <Button variant="outline" onClick={() => {
+            console.log('DEBUG: Close button in ReceiptModal clicked.');
+            onClose();
+          }} className="w-full sm:w-auto">
             Close
           </Button>
           <Button
-            id="test-print-button"
+            id="diagnostic-print-button"
             onClick={() => {
-              alert('ALERT: Test Print Button Clicked!');
-              console.log('CONSOLE LOG: Test Print Button Clicked! Attempting window.print().');
-              try {
-                window.print();
-                console.log('CONSOLE LOG: window.print() was executed.');
-              } catch (error) {
-                console.error('CONSOLE LOG: Error during window.print():', error);
-                alert('ALERT: An error occurred while trying to print. Check console.');
-              }
+              // THIS IS THE MOST BASIC TEST FOR A CLICK
+              alert('Button in Modal CLICKED!');
+              console.log('CONSOLE LOG: Button in Modal CLICKED - logged!');
+              // We can add window.print() back later if the alert fires.
+              // try {
+              //   window.print();
+              //   console.log('CONSOLE LOG: window.print() was executed.');
+              // } catch (error) {
+              //   console.error('CONSOLE LOG: Error during window.print():', error);
+              //   alert('ALERT: An error occurred while trying to print. Check console.');
+              // }
             }}
             className="w-full sm:w-auto"
-            style={{ border: '3px solid red', padding: '10px', fontSize: '16px', fontWeight: 'bold' }}
+            style={{ border: '5px solid red', padding: '15px', fontSize: '18px', fontWeight: 'bold', backgroundColor: 'pink' }}
           >
-            <Printer className="mr-2 h-4 w-4" /> PRINT NOW
+            <Printer className="mr-2 h-5 w-5" /> CLICK ME!
           </Button>
         </DialogFooter>
       </DialogContent>
