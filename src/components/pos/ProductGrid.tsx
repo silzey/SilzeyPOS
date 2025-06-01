@@ -42,7 +42,7 @@ const ProductGrid: FC<ProductGridProps> = ({ products, onProductSelect }) => {
           <div className="flex overflow-x-auto space-x-4 p-3">
             {rowItems.length > 0 ? (
               rowItems.map((product) => (
-                <div key={product.id} className="flex-shrink-0 w-56 md:w-60 lg:w-64">
+                <div key={product.id} className="flex-shrink-0 w-48 sm:w-52 md:w-56 lg:w-60 xl:w-64">
                   <ProductCard product={product} onProductSelect={onProductSelect} />
                 </div>
               ))
