@@ -8,12 +8,18 @@ import { useEffect } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Home, ShoppingBag, Users, BarChart3, LogOut as LogOutIcon } from 'lucide-react';
+import { Home, ShoppingBag, Users, BarChart3, LogOut as LogOutIcon, Menu } from 'lucide-react'; // Added Menu for mobile
+import {
+  Sheet,
+  SheetContent,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const { user, loading, signOut } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -51,14 +57,42 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   let headerTitle = `Welcome, ${user.firstName}!`;
   if (pathname === '/dashboard') {
     headerTitle = 'Overview';
+  } else if (pathname === '/dashboard/orders') {
+    headerTitle = 'Orders Management';
   }
   // Add more else if conditions here for other dashboard pages
-  // e.g., else if (pathname === '/dashboard/settings') { headerTitle = 'Settings'; }
+
+  const commonNavLinks = (
+    <>
+      <Button
+        variant={pathname === '/dashboard' ? "secondary" : "ghost"}
+        className="w-full justify-start text-foreground hover:bg-primary/10 hover:text-primary"
+        asChild
+        onClick={() => isMobileMenuOpen && setIsMobileMenuOpen(false)}
+      >
+        <Link href="/dashboard"><Home className="mr-3 h-5 w-5" /> Overview</Link>
+      </Button>
+      <Button
+        variant={pathname === '/dashboard/orders' ? "secondary" : "ghost"}
+        className="w-full justify-start text-foreground hover:bg-primary/10 hover:text-primary"
+        asChild
+        onClick={() => isMobileMenuOpen && setIsMobileMenuOpen(false)}
+      >
+        <Link href="/dashboard/orders"><ShoppingBag className="mr-3 h-5 w-5" /> Orders</Link>
+      </Button>
+      <Button variant="ghost" className="w-full justify-start text-foreground hover:bg-primary/10 hover:text-primary" onClick={() => { alert("Navigate to Customers (mock)"); if (isMobileMenuOpen) setIsMobileMenuOpen(false); }}>
+        <Users className="mr-3 h-5 w-5" /> Customers
+      </Button>
+      <Button variant="ghost" className="w-full justify-start text-foreground hover:bg-primary/10 hover:text-primary" onClick={() => { alert("Navigate to Analytics (mock)"); if (isMobileMenuOpen) setIsMobileMenuOpen(false); }}>
+        <BarChart3 className="mr-3 h-5 w-5" /> Analytics
+      </Button>
+    </>
+  );
 
 
   return (
     <div className="min-h-screen flex bg-muted/10">
-      {/* Sidebar */}
+      {/* Sidebar for Desktop */}
       <aside className="hidden sm:flex flex-col w-64 bg-background border-r shadow-md">
         <div className="p-6 border-b">
           <Link href="/" passHref>
@@ -67,22 +101,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           <p className="text-xs text-muted-foreground">Admin Dashboard</p>
         </div>
         <nav className="flex-1 p-4 space-y-2">
-          <Button 
-            variant={pathname === '/dashboard' ? "secondary" : "ghost"} 
-            className="w-full justify-start text-foreground hover:bg-primary/10 hover:text-primary" 
-            asChild
-          >
-            <Link href="/dashboard"><Home className="mr-3 h-5 w-5" /> Overview</Link>
-          </Button>
-          <Button variant="ghost" className="w-full justify-start text-foreground hover:bg-primary/10 hover:text-primary" onClick={() => alert("Navigate to Orders (mock)")}>
-            <ShoppingBag className="mr-3 h-5 w-5" /> Orders
-          </Button>
-          <Button variant="ghost" className="w-full justify-start text-foreground hover:bg-primary/10 hover:text-primary" onClick={() => alert("Navigate to Customers (mock)")}>
-            <Users className="mr-3 h-5 w-5" /> Customers
-          </Button>
-           <Button variant="ghost" className="w-full justify-start text-foreground hover:bg-primary/10 hover:text-primary" onClick={() => alert("Navigate to Analytics (mock)")}>
-            <BarChart3 className="mr-3 h-5 w-5" /> Analytics
-          </Button>
+          {commonNavLinks}
         </nav>
         <div className="p-4 mt-auto border-t">
            <Button variant="outline" className="w-full justify-start" onClick={signOut}>
@@ -94,12 +113,37 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col">
         <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-4 border-b bg-background px-6 shadow-sm">
-          <h1 className="text-xl font-semibold font-headline text-foreground">
-            {headerTitle}
-          </h1>
-           <Button variant="outline" size="icon" className="sm:hidden" onClick={() => alert("Open mobile menu (mock)")}>
-            <Home className="h-5 w-5"/> {/* Placeholder icon */}
-          </Button>
+          <div className="flex items-center gap-4">
+            <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
+              <SheetTrigger asChild>
+                <Button variant="outline" size="icon" className="sm:hidden">
+                  <Menu className="h-5 w-5"/>
+                  <span className="sr-only">Open menu</span>
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="sm:hidden w-64 p-0 pt-10">
+                <div className="p-6 border-b mb-2">
+                  <Link href="/" passHref onClick={() => setIsMobileMenuOpen(false)}>
+                    <h1 className="text-2xl font-bold font-headline text-primary cursor-pointer">Silzey POS</h1>
+                  </Link>
+                   <p className="text-xs text-muted-foreground">Admin Dashboard</p>
+                </div>
+                <nav className="flex-1 p-4 space-y-2">
+                  {commonNavLinks}
+                </nav>
+                 <div className="p-4 mt-auto border-t">
+                   <Button variant="outline" className="w-full justify-start" onClick={() => { signOut(); setIsMobileMenuOpen(false);}}>
+                    <LogOutIcon className="mr-3 h-5 w-5" /> Sign Out
+                  </Button>
+                </div>
+              </SheetContent>
+            </Sheet>
+            <h1 className="text-xl font-semibold font-headline text-foreground">
+              {headerTitle}
+            </h1>
+          </div>
+           {/* Placeholder for potential right-side header items like user avatar - ensure consistent layout */}
+           <div></div>
         </header>
         <main className="flex-1 p-6 overflow-y-auto">
           {children}

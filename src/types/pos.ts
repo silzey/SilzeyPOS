@@ -1,3 +1,4 @@
+
 export type Category = "Flower" | "Concentrates" | "Vapes" | "Edibles";
 
 export interface Product {
@@ -31,4 +32,28 @@ export interface UserProfile {
   bio?: string;
   memberSince: string;
   rewardsPoints?: number;
+}
+
+// New types for Orders page
+export type OrderStatus = "Pending Payment" | "Processing" | "Shipped" | "Delivered" | "Cancelled" | "Refunded";
+
+export interface Order {
+  id: string;
+  customerName: string;
+  orderDate: string; // Consider ISO string for easier sorting/filtering, then format for display
+  status: OrderStatus;
+  totalAmount: number;
+  itemCount: number;
+  shippingAddress?: string; // Optional
+  paymentMethod?: string; // Optional
+}
+
+export interface TransactionItem { name: string; qty: number; price: number };
+export interface TransactionType {
+  id: string;
+  customer: string;
+  date: string;
+  amount: string;
+  status: string;
+  items: TransactionItem[];
 }
