@@ -8,7 +8,7 @@ import { useEffect, useState } from 'react';
 import FullPageLoader from '@/components/ui/loader'; // Import the new loader
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Home, ShoppingBag, Users, BarChart3, LogOut as LogOutIcon, Menu, Terminal } from 'lucide-react';
+import { Home, ShoppingBag, Users, BarChart3, LogOut as LogOutIcon, Menu, Terminal, Package } from 'lucide-react'; // Added Package
 import {
   Sheet,
   SheetContent,
@@ -41,6 +41,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     if (pathname.split('/').length > 3) headerTitle = "Customer Profile";
   } else if (pathname === '/dashboard/live-queue') { 
     headerTitle = 'Live POS Queue';
+  } else if (pathname === '/dashboard/inventory') {
+    headerTitle = 'Inventory Management';
   } else if (pathname === '/dashboard/analytics') { 
     headerTitle = 'Analytics';
   }
@@ -63,6 +65,14 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         onClick={() => isMobileMenuOpen && setIsMobileMenuOpen(false)}
       >
         <Link href="/dashboard/live-queue"><Terminal className="mr-3 h-5 w-5" /> Live POS Queue</Link>
+      </Button>
+      <Button
+        variant={pathname.startsWith('/dashboard/inventory') ? "secondary" : "ghost"}
+        className="w-full justify-start text-foreground hover:bg-primary/10 hover:text-primary"
+        asChild
+        onClick={() => isMobileMenuOpen && setIsMobileMenuOpen(false)}
+      >
+        <Link href="/dashboard/inventory"><Package className="mr-3 h-5 w-5" /> Inventory</Link>
       </Button>
       <Button
         variant={pathname === '/dashboard/orders' ? "secondary" : "ghost"}

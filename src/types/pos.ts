@@ -73,3 +73,20 @@ export interface Customer extends UserProfile {
   currentOrder?: Order;
 }
 
+// New InventoryItem type
+export interface InventoryItem {
+  id: string;          // Unique product identifier
+  name: string;
+  sku: string;         // Stock Keeping Unit
+  category: Category;
+  supplier: string;
+  stock: number;       // Current stock quantity
+  lowStockThreshold: number;
+  purchasePrice: number; // Cost to acquire the item
+  salePrice: number;    // Price to the customer
+  lastRestockDate: string; // ISO date string
+  imageUrl: string;
+  dataAiHint?: string;
+  notes?: string;
+}
+
