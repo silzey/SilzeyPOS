@@ -2,22 +2,54 @@
 import type { Customer, Order, CartItem, Category as ProductCategory, UserProfile } from '@/types/pos';
 import { CATEGORIES as PRODUCT_CATEGORIES_LIST, TAGS as PRODUCT_TAGS_LIST } from '@/lib/data';
 
-// Customer Avatars and AI Hints for them
-const customerAvatars = [
-    'https://placehold.co/150x150.png?text=AL', // Alice Liddell
-    'https://placehold.co/150x150.png?text=BW', // Bob Weaver
-    'https://placehold.co/150x150.png?text=CS', // Clara Smith
-    'https://placehold.co/150x150.png?text=DJ', // David Jones
-    'https://placehold.co/150x150.png?text=EM', // Eva Miller
+// Expanded lists for more variety
+const firstNames = [
+  'Alice', 'Bob', 'Clara', 'David', 'Eva', 'Finn', 'Grace', 'Henry', 'Ivy', 'Jack',
+  'Kate', 'Liam', 'Mia', 'Noah', 'Olivia', 'Paul', 'Quinn', 'Ryan', 'Sofia', 'Tom',
+  'Uma', 'Victor', 'Wendy', 'Xavier', 'Yara', 'Zane', 'Amber', 'Bruce', 'Chloe',
+  'Daniel', 'Emily', 'Felix', 'Gloria', 'Harry', 'Isla', 'Jacob', 'Lily', 'Max',
+  'Nora', 'Oscar', 'Penelope', 'Riley', 'Samuel', 'Tara', 'Vincent', 'Willow', 'Zachary'
 ];
-const customerDataHints = ['woman face', 'man face', 'smiling person', 'professional portrait', 'user avatar'];
+const lastNames = [
+  'Smith', 'Jones', 'Williams', 'Brown', 'Davis', 'Miller', 'Wilson', 'Moore', 'Taylor', 'Anderson',
+  'Thomas', 'Jackson', 'White', 'Harris', 'Martin', 'Thompson', 'Garcia', 'Martinez', 'Robinson', 'Clark',
+  'Rodriguez', 'Lewis', 'Lee', 'Walker', 'Hall', 'Allen', 'Young', 'King', 'Wright', 'Scott',
+  'Green', 'Baker', 'Adams', 'Nelson', 'Carter', 'Mitchell', 'Perez', 'Roberts', 'Turner', 'Phillips',
+  'Campbell', 'Parker', 'Evans', 'Edwards', 'Collins', 'Stewart', 'Sanchez', 'Morris', 'Rogers', 'Reed'
+];
 
+const customerAvatars = [
+    'https://placehold.co/150x150.png?text=P1',
+    'https://placehold.co/150x150.png?text=P2',
+    'https://placehold.co/150x150.png?text=P3',
+    'https://placehold.co/150x150.png?text=P4',
+    'https://placehold.co/150x150.png?text=P5',
+    'https://placehold.co/150x150.png?text=P6',
+    'https://placehold.co/150x150.png?text=P7',
+    'https://placehold.co/150x150.png?text=P8',
+    'https://placehold.co/150x150.png?text=P9',
+    'https://placehold.co/150x150.png?text=P10',
+];
+const customerDataHints = ['person face', 'user portrait', 'smiling individual', 'customer photo', 'avatar image', 'profile picture', 'happy user', 'client image', 'member photo', 'user icon'];
+
+const bios = [
+  "Loves exploring new flower strains and enjoys a good sativa. Long-time loyal customer.",
+  "Prefers edibles and CBD products. Often asks for recommendations for relaxation.",
+  "Newer customer, interested in vapes and concentrates. Appreciates quick service.",
+  "Connoisseur of high-THC concentrates. Regular high-value purchaser.",
+  "Occasional buyer, typically purchases pre-rolls and accessories. Values discretion.",
+  "Enthusiast for artisanal edibles and locally sourced products.",
+  "Primarily interested in topical CBD for wellness and recovery.",
+  "Collects various vape pen models and enjoys trying new cartridge flavors.",
+  "Focuses on high-CBD, low-THC flower for daytime use.",
+  "Experimental with all product types, always looking for unique effects."
+];
 
 const mockProductNamesByCategory: Record<ProductCategory, string[]> = {
-  "Flower": ["Mystic Haze", "Stardust Sativa", "Quasar Queen", "Blue Dream", "Green Crack"],
-  "Concentrates": ["Galaxy Gold", "Cosmic Kush Shatter", "Nebula Nectar Wax", "Lunar Rosin", "Solar Flare Oil"],
-  "Vapes": ["Orion Haze Pen", "Pulsar Pineapple Cart", "Zero-G Disposable", "Comet Berry Vape", "Astro Mint Pods"],
-  "Edibles": ["Lunar Gummies", "Orion Brownies", "Cosmic Cookies", "Stardust Cereal Bar", "Nebula Chocolate"],
+  "Flower": ["Mystic Haze", "Stardust Sativa", "Quasar Queen", "Blue Dream", "Green Crack", "Aurora Indica", "Cosmic Kush"],
+  "Concentrates": ["Galaxy Gold", "Cosmic Kush Shatter", "Nebula Nectar Wax", "Lunar Rosin", "Solar Flare Oil", "Void Dabs", "Pulsar Crumble"],
+  "Vapes": ["Orion Haze Pen", "Pulsar Pineapple Cart", "Zero-G Disposable", "Comet Berry Vape", "Astro Mint Pods", "Celestial Haze Vape", "Meteor Mango Cart"],
+  "Edibles": ["Lunar Gummies", "Orion Brownies", "Cosmic Cookies", "Stardust Cereal Bar", "Nebula Chocolate", "Galaxy Grape Bites", "Planet Peach Pastries"],
 };
 
 const getMockItemImage = (category: ProductCategory, index: number): { url: string; hint: string } => {
@@ -27,7 +59,6 @@ const getMockItemImage = (category: ProductCategory, index: number): { url: stri
     Vapes: "vape pen",
     Edibles: "food edible"
   };
-  // More distinct placeholders for items
   return {
     url: `https://placehold.co/80x80.png?text=${category.substring(0,1)}${index + 1}`,
     hint: hints[category] || "product image"
@@ -70,106 +101,55 @@ const generateMockCartItemsForCustomer = (itemCount: number): CartItem[] => {
 const generateMockOrdersForCustomer = (orderCount: number, customerId: string): Order[] => {
     const orders: Order[] = [];
     for (let i = 0; i < orderCount; i++) {
-        const items = generateMockCartItemsForCustomer(Math.floor(Math.random() * 3) + 1); // 1 to 3 items per order
+        const items = generateMockCartItemsForCustomer(Math.floor(Math.random() * 4) + 1); // 1 to 4 items per order
         const totalAmount = items.reduce((sum, item) => sum + parseFloat(item.price) * item.quantity, 0);
         orders.push({
-            id: `ORD-${customerId.slice(-3)}-${String(301 + i).padStart(3, '0')}`,
+            id: `ORD-${customerId.slice(-3)}-${String(101 + i).padStart(3, '0')}`,
             customerName: customerId, 
-            orderDate: new Date(Date.now() - Math.random() * 60 * 24 * 60 * 60 * 1000).toISOString(), // Within last 60 days
+            orderDate: new Date(Date.now() - Math.random() * 365 * 24 * 60 * 60 * 1000).toISOString(), // Within last year
             status: Math.random() > 0.3 ? "In-Store" : "Online",
             totalAmount: parseFloat(totalAmount.toFixed(2)),
             itemCount: items.reduce((sum, item) => sum + item.quantity, 0),
             items: items,
-            paymentMethod: i % 2 === 0 ? "Credit Card" : "Cash",
-            shippingAddress: Math.random() > 0.5 ? `${100+i} Oak St, Townsville, USA` : undefined,
+            paymentMethod: i % 3 === 0 ? "Credit Card" : (i % 3 === 1 ? "Cash" : "PayPal"),
+            shippingAddress: Math.random() > 0.6 ? `${100+i} ${['Oak', 'Pine', 'Maple', 'Elm'][i%4]} St, ${['Townsville', 'Cityburg', 'Villagetown'][i%3]}, USA` : undefined,
         });
     }
     return orders.sort((a, b) => new Date(b.orderDate).getTime() - new Date(a.orderDate).getTime()); // Sort by most recent
 };
 
-export const mockCustomers: Customer[] = [
-    {
-        id: 'cust-001',
-        firstName: 'Alice',
-        lastName: 'Liddell',
-        email: 'alice.liddell@example.com',
-        avatarUrl: customerAvatars[0],
-        dataAiHint: customerDataHints[0],
-        memberSince: 'January 15, 2023',
-        rewardsPoints: 1250,
-        bio: "Loves exploring new flower strains and enjoys a good sativa. Long-time loyal customer.",
-        orderHistory: generateMockOrdersForCustomer(4, 'cust-001'),
-        currentOrder: {
-            id: `CUR-ORD-AL001`,
-            customerName: 'Alice Liddell',
-            orderDate: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2 hours ago
-            status: "In-Store", 
-            totalAmount: 55.75,
-            itemCount: 2,
-            items: generateMockCartItemsForCustomer(2),
-            paymentMethod: "Pending",
-        }
-    },
-    {
-        id: 'cust-002',
-        firstName: 'Bob',
-        lastName: 'Weaver',
-        email: 'bob.weaver@example.com',
-        avatarUrl: customerAvatars[1],
-        dataAiHint: customerDataHints[1],
-        memberSince: 'March 22, 2023',
-        rewardsPoints: 850,
-        bio: "Prefers edibles and CBD products. Often asks for recommendations for relaxation.",
-        orderHistory: generateMockOrdersForCustomer(2, 'cust-002'),
-    },
-    {
-        id: 'cust-003',
-        firstName: 'Clara',
-        lastName: 'Smith',
-        email: 'clara.smith@example.com',
-        avatarUrl: customerAvatars[2],
-        dataAiHint: customerDataHints[2],
-        memberSince: 'July 01, 2023',
-        rewardsPoints: 150,
-        bio: "Newer customer, interested in vapes and concentrates. Appreciates quick service.",
-        orderHistory: generateMockOrdersForCustomer(1, 'cust-003'),
-    },
-    {
-        id: 'cust-004',
-        firstName: 'David',
-        lastName: 'Jones',
-        email: 'david.jones@example.com',
-        avatarUrl: customerAvatars[3],
-        dataAiHint: customerDataHints[3],
-        memberSince: 'November 05, 2022',
-        rewardsPoints: 2300,
-        bio: "Connoisseur of high-THC concentrates. Regular high-value purchaser.",
-        orderHistory: generateMockOrdersForCustomer(6, 'cust-004'),
-        currentOrder: {
-            id: `CUR-ORD-DJ004`,
-            customerName: 'David Jones',
-            orderDate: new Date(Date.now() - 30 * 60 * 1000).toISOString(), // 30 mins ago
-            status: "Online", 
-            totalAmount: 120.50,
-            itemCount: 3,
-            items: generateMockCartItemsForCustomer(3),
-            paymentMethod: "Credit Card",
-            shippingAddress: "456 Pine Ave, Cityville, USA"
-        }
-    },
-    {
-        id: 'cust-005',
-        firstName: 'Eva',
-        lastName: 'Miller',
-        email: 'eva.miller@example.com',
-        avatarUrl: customerAvatars[4],
-        dataAiHint: customerDataHints[4],
-        memberSince: 'September 10, 2023',
-        rewardsPoints: 475,
-        bio: "Occasional buyer, typically purchases pre-rolls and accessories. Values discretion.",
-        orderHistory: generateMockOrdersForCustomer(3, 'cust-005'),
-    }
-];
+
+export const mockCustomers: Customer[] = Array.from({ length: 50 }, (_, i) => {
+  const firstName = firstNames[i % firstNames.length];
+  const lastName = lastNames[i % lastNames.length];
+  const customerId = `cust-${String(i + 1).padStart(3, '0')}`;
+  
+  const memberSinceDate = new Date(Date.now() - Math.random() * 2 * 365 * 24 * 60 * 60 * 1000); // Within last 2 years
+
+  return {
+    id: customerId,
+    firstName: firstName,
+    lastName: `${lastName}${i < lastNames.length ? '' : Math.floor(i / lastNames.length)}`, // Add a number if we run out of unique last names
+    email: `${firstName.toLowerCase()}.${lastName.toLowerCase()}${i + 1}@example.com`,
+    avatarUrl: customerAvatars[i % customerAvatars.length],
+    dataAiHint: customerDataHints[i % customerDataHints.length],
+    memberSince: memberSinceDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
+    rewardsPoints: Math.floor(Math.random() * 3000) + 50,
+    bio: bios[i % bios.length],
+    orderHistory: generateMockOrdersForCustomer(Math.floor(Math.random() * 8) + 1, customerId), // 1 to 8 orders
+    currentOrder: Math.random() > 0.7 ? { // 30% chance of having a current order
+        id: `CUR-ORD-${customerId.slice(-3)}-${String(Math.floor(Math.random()*99)+1).padStart(2,'0')}`,
+        customerName: `${firstName} ${lastName}`,
+        orderDate: new Date(Date.now() - Math.random() * 5 * 60 * 60 * 1000).toISOString(), // Within last 5 hours
+        status: Math.random() > 0.5 ? "In-Store" : "Online", 
+        totalAmount: parseFloat((Math.random() * 150 + 20).toFixed(2)),
+        itemCount: Math.floor(Math.random() * 3) + 1,
+        items: generateMockCartItemsForCustomer(Math.floor(Math.random() * 3) + 1),
+        paymentMethod: "Pending",
+        shippingAddress: Math.random() > 0.5 && Math.random() > 0.5 ? `${200+i} ${['Willow', 'Birch', 'Cedar'][i%3]} Ave, ${['Metropolis', 'Gotham', 'Star City'][i%3]}, USA` : undefined,
+    } : undefined,
+  };
+});
 
 export const getCustomerById = (id: string): Customer | undefined => {
     return mockCustomers.find(customer => customer.id === id);
