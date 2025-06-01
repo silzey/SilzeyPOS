@@ -4,7 +4,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Download, Eye } from 'lucide-react';
+import { Download, Eye, Printer } from 'lucide-react';
 
 const transactions = [
   { id: 'TRX731', customer: 'Aisha Khan', date: '2024-07-28', amount: '$75.50', status: 'Completed' },
@@ -55,6 +55,10 @@ export const RecentTransactionsTable = () => {
     downloadCSV(csvString, 'recent_transactions.csv');
   };
 
+  const handlePrintReceipt = (transactionId: string) => {
+    alert('Simulating printing receipt for transaction ' + transactionId + '...');
+  };
+
   return (
     <Card className="shadow-lg">
       <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
@@ -95,9 +99,12 @@ export const RecentTransactionsTable = () => {
                       {transaction.status}
                     </Badge>
                   </TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="text-right space-x-1">
                     <Button variant="ghost" size="icon" onClick={() => alert('Viewing details for ' + transaction.id + ' (mock)')} aria-label="View transaction details">
                       <Eye className="h-4 w-4" />
+                    </Button>
+                    <Button variant="ghost" size="icon" onClick={() => handlePrintReceipt(transaction.id)} aria-label="Print receipt">
+                      <Printer className="h-4 w-4" />
                     </Button>
                   </TableCell>
                 </TableRow>
