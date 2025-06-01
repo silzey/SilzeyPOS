@@ -2,14 +2,15 @@
 "use client";
 
 import { useEffect, useState, Suspense } from 'react';
+import Image from 'next/image';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, PrinterIcon, XCircle, ShoppingBag, UserCircle } from 'lucide-react';
+import { ArrowLeft, PrinterIcon, XCircle, ShoppingBag } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
-import type { TransactionItem, Order, TransactionStatus, OrderStatus as AppOrderStatus } from '@/types/pos'; // Use AppOrderStatus to avoid conflict
-import { mockOrders } from '@/app/dashboard/orders/page'; // Import mockOrders
+import type { TransactionItem, Order as AppOrder, TransactionStatus, OrderStatus as AppOrderStatus, CartItem } from '@/types/pos';
+import { mockOrders } from '@/app/dashboard/orders/page'; 
 
 // Mock transaction data - in a real app, you'd fetch this or have it available
 const mockTransactionsData: Array<{
@@ -18,25 +19,21 @@ const mockTransactionsData: Array<{
   date: string;
   amount: string;
   status: TransactionStatus;
-  items: TransactionItem[];
+  items: TransactionItem[]; // Transactions keep simpler items for now
 }> = [
-  { id: 'TRX731', customer: 'Aisha Khan', date: '2024-07-28', amount: '$75.50', status: 'Completed', items: [{name: 'Flower Product A', qty: 1, price: 30.00}, {name: 'Edible Product B', qty: 2, price: 22.75}] },
-  { id: 'TRX732', customer: 'Ben Carter', date: '2024-07-28', amount: '$120.00', status: 'Completed', items: [{name: 'Vape Cartridge X', qty: 2, price: 60.00}] },
-  { id: 'TRX733', customer: 'Chloe Davis', date: '2024-07-27', amount: '$45.20', status: 'Pending', items: [{name: 'Concentrate Y', qty: 1, price: 45.20}] },
-  { id: 'TRX734', customer: 'Daniel Evans', date: '2024-07-27', amount: '$210.80', status: 'Completed', items: [{name: 'Premium Flower Z', qty: 1, price: 70.00}, {name: 'Accessory Pack', qty: 1, price: 140.80}] },
-  { id: 'TRX735', customer: 'Elena Foster', date: '2024-07-26', amount: '$99.99', status: 'Failed', items: [{name: 'Specialty Edible', qty: 3, price: 33.33}] },
-  { id: 'TRX736', customer: 'Finn Green', date: '2024-07-26', amount: '$32.00', status: 'Completed', items: [{name: 'Pre-roll Pack', qty: 1, price: 32.00}] },
+  { id: 'TRX731', customer: 'Aisha Khan', date: '2024-07-28', amount: '$75.50', status: 'Completed', items: [{id: 'item-1', name: 'Flower Product A', qty: 1, price: 30.00}, {id: 'item-2', name: 'Edible Product B', qty: 2, price: 22.75}] },
+  { id: 'TRX732', customer: 'Ben Carter', date: '2024-07-28', amount: '$120.00', status: 'Completed', items: [{id: 'item-3', name: 'Vape Cartridge X', qty: 2, price: 60.00}] },
 ];
 
 interface DisplayableRecord {
   id: string;
   recordType: 'Transaction' | 'Order';
   customerName: string;
-  date: string; // ISO string
+  date: string; // ISO string for Orders, simple string for Transactions
   status: TransactionStatus | AppOrderStatus;
-  items: TransactionItem[];
-  totalAmountDisplay: string; // Formatted, e.g., "$123.45"
-  identifierLabel: string; // "Transaction ID" or "Order ID"
+  items: CartItem[] | TransactionItem[]; // Union type for items
+  totalAmountDisplay: string;
+  identifierLabel: string;
 }
 
 function PrintableReceiptContent() {
@@ -47,7 +44,7 @@ function PrintableReceiptContent() {
   const recordId = params.id as string;
   const recordTypeParam = searchParams.get('type') as 'transaction' | 'order' | null;
 
-  const [record, setRecord] = useState<DisplayableRecord | null | undefined>(undefined); // undefined for loading
+  const [record, setRecord] = useState<DisplayableRecord | null | undefined>(undefined);
 
   useEffect(() => {
     if (recordId && recordTypeParam) {
@@ -59,9 +56,9 @@ function PrintableReceiptContent() {
             id: transaction.id,
             recordType: 'Transaction',
             customerName: transaction.customer,
-            date: transaction.date, // Assuming this is already a suitable date string or ISO
+            date: new Date().toISOString(), // Standardize date for display
             status: transaction.status,
-            items: transaction.items,
+            items: transaction.items, // Stays as TransactionItem[]
             totalAmountDisplay: transaction.amount,
             identifierLabel: 'Transaction ID'
           };
@@ -75,7 +72,7 @@ function PrintableReceiptContent() {
             customerName: order.customerName,
             date: order.orderDate, // This is an ISO string
             status: order.status,
-            items: order.items,
+            items: order.items, // This is CartItem[]
             totalAmountDisplay: `$${order.totalAmount.toFixed(2)}`,
             identifierLabel: 'Order ID'
           };
@@ -86,7 +83,7 @@ function PrintableReceiptContent() {
   }, [recordId, recordTypeParam]);
 
   useEffect(() => {
-    if (record && record !== undefined) { // Ensure record is loaded and not null
+    if (record && record !== undefined) { 
       const timer = setTimeout(() => {
         window.print();
       }, 500);
@@ -97,7 +94,7 @@ function PrintableReceiptContent() {
   const handlePrint = () => window.print();
   const handleClose = () => window.opener ? window.close() : router.push('/dashboard');
 
-  if (record === undefined) { // Loading state
+  if (record === undefined) {
     return (
       <div className="min-h-screen bg-gray-100 p-4 sm:p-8 flex justify-center items-center">
         <div className="bg-white p-6 sm:p-8 shadow-2xl rounded-lg w-full max-w-md print:shadow-none print:border-none">
@@ -135,7 +132,7 @@ function PrintableReceiptContent() {
         if (s === 'Completed') return { variant: 'default', className: 'bg-green-500/20 text-green-700 border-green-500/30' };
         if (s === 'Pending') return { variant: 'secondary', className: 'bg-yellow-500/20 text-yellow-700 border-yellow-500/30' };
         return { variant: 'destructive', className: 'bg-red-500/20 text-red-700 border-red-500/30' };
-    } else { // Order
+    } else { 
         const s = status as AppOrderStatus;
         if (s === 'In-Store') return { variant: 'default', className: 'bg-blue-500/20 text-blue-700 border-blue-500/30' };
         if (s === 'Online') return { variant: 'secondary', className: 'bg-green-500/20 text-green-700 border-green-500/30' };
@@ -165,12 +162,24 @@ function PrintableReceiptContent() {
         <Separator className="my-4" />
         <section className="mb-4">
           <h2 className="font-semibold text-sm mb-1 flex items-center"><ShoppingBag className="mr-2 h-4 w-4 text-primary" />Items:</h2>
-          <div className="space-y-1 text-xs">
+          <div className="space-y-1.5 text-xs">
             {record.items.map((item, index) => (
-              <div key={index} className="grid grid-cols-[1fr_auto_auto] gap-x-2 items-center py-1 border-b border-border/50 last:border-b-0">
-                <span className="truncate">{item.name} (x{item.qty})</span>
-                <span className="text-right">${item.price.toFixed(2)} ea.</span>
-                <span className="text-right font-medium">${(item.price * item.qty).toFixed(2)}</span>
+              <div key={item.id || index} className="flex items-center gap-2 py-1 border-b border-border/50 last:border-b-0">
+                {record.recordType === 'Order' && (item as CartItem).image && (
+                  <Image
+                    src={(item as CartItem).image}
+                    alt={item.name}
+                    width={30}
+                    height={30}
+                    className="rounded object-cover"
+                    data-ai-hint={(item as CartItem).dataAiHint || (item as CartItem).category?.toLowerCase()}
+                  />
+                )}
+                <div className="flex-grow grid grid-cols-[1fr_auto_auto] gap-x-2 items-center">
+                    <span className="truncate">{item.name} (x{item.qty})</span>
+                    <span className="text-right text-muted-foreground">${item.price.toFixed(2)} ea.</span>
+                    <span className="text-right font-medium">${(item.price * item.qty).toFixed(2)}</span>
+                </div>
               </div>
             ))}
              {record.items.length === 0 && <p className="text-muted-foreground text-center py-2">No items in this {record.recordType.toLowerCase()}.</p>}
@@ -201,7 +210,6 @@ function PrintableReceiptContent() {
   );
 }
 
-// Wrap with Suspense for useSearchParams
 export default function PrintableReceiptPage() {
   return (
     <Suspense fallback={<div className="min-h-screen flex justify-center items-center"><Skeleton className="h-64 w-96" /></div>}>

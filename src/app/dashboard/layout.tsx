@@ -4,11 +4,11 @@
 import type { ReactNode } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter, usePathname } from 'next/navigation';
-import { useEffect, useState } from 'react'; // Import useState here
+import { useEffect, useState } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Home, ShoppingBag, Users, BarChart3, LogOut as LogOutIcon, Menu } from 'lucide-react'; // Added Menu for mobile
+import { Home, ShoppingBag, Users, BarChart3, LogOut as LogOutIcon, Menu } from 'lucide-react';
 import {
   Sheet,
   SheetContent,
@@ -19,7 +19,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   const { user, loading, signOut } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false); // Use useState directly
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -59,8 +59,14 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     headerTitle = 'Overview';
   } else if (pathname === '/dashboard/orders') {
     headerTitle = 'Orders Management';
+  } else if (pathname === '/dashboard/customers') {
+    headerTitle = 'Customer Management';
+  } else if (pathname.startsWith('/dashboard/customers/')) {
+    headerTitle = 'Customer Profile';
+  } else if (pathname === '/dashboard/analytics') { // Assuming analytics might be added
+    headerTitle = 'Analytics';
   }
-  // Add more else if conditions here for other dashboard pages
+
 
   const commonNavLinks = (
     <>
@@ -80,10 +86,19 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       >
         <Link href="/dashboard/orders"><ShoppingBag className="mr-3 h-5 w-5" /> Orders</Link>
       </Button>
-      <Button variant="ghost" className="w-full justify-start text-foreground hover:bg-primary/10 hover:text-primary" onClick={() => { alert("Navigate to Customers (mock)"); if (isMobileMenuOpen) setIsMobileMenuOpen(false); }}>
-        <Users className="mr-3 h-5 w-5" /> Customers
+      <Button
+        variant={pathname.startsWith('/dashboard/customers') ? "secondary" : "ghost"}
+        className="w-full justify-start text-foreground hover:bg-primary/10 hover:text-primary"
+        asChild
+        onClick={() => isMobileMenuOpen && setIsMobileMenuOpen(false)}
+      >
+        <Link href="/dashboard/customers"><Users className="mr-3 h-5 w-5" /> Customers</Link>
       </Button>
-      <Button variant="ghost" className="w-full justify-start text-foreground hover:bg-primary/10 hover:text-primary" onClick={() => { alert("Navigate to Analytics (mock)"); if (isMobileMenuOpen) setIsMobileMenuOpen(false); }}>
+      <Button 
+        variant={pathname === '/dashboard/analytics' ? "secondary" : "ghost"}
+        className="w-full justify-start text-foreground hover:bg-primary/10 hover:text-primary" 
+        onClick={() => { alert("Navigate to Analytics (mock)"); if (isMobileMenuOpen) setIsMobileMenuOpen(false); }}
+      >
         <BarChart3 className="mr-3 h-5 w-5" /> Analytics
       </Button>
     </>
@@ -92,7 +107,6 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
   return (
     <div className="min-h-screen flex bg-muted/10">
-      {/* Sidebar for Desktop */}
       <aside className="hidden sm:flex flex-col w-64 bg-background border-r shadow-md">
         <div className="p-6 border-b">
           <Link href="/" passHref>
@@ -110,7 +124,6 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         </div>
       </aside>
 
-      {/* Main Content Area */}
       <div className="flex-1 flex flex-col">
         <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-4 border-b bg-background px-6 shadow-sm">
           <div className="flex items-center gap-4">
@@ -142,7 +155,6 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
               {headerTitle}
             </h1>
           </div>
-           {/* Placeholder for potential right-side header items like user avatar - ensure consistent layout */}
            <div></div>
         </header>
         <main className="flex-1 p-6 overflow-y-auto">

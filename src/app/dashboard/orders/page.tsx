@@ -10,38 +10,75 @@ import { Download, Eye, Edit, PackageSearch, Filter } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import type { Order, OrderStatus, TransactionItem } from '@/types/pos';
+import type { Order, OrderStatus, CartItem, Category as ProductCategory } from '@/types/pos'; // Import CartItem and ProductCategory
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useRouter } from 'next/navigation';
 import OrderReceiptModal from '@/components/dashboard/OrderReceiptModal';
+import { CATEGORIES as PRODUCT_CATEGORIES_LIST, TAGS as PRODUCT_TAGS_LIST } from '@/lib/data';
 
 const ORDER_STATUSES: OrderStatus[] = ["In-Store", "Online"];
 
-const mockProductNames = [
-  "Mystic Haze Flower", "Cosmic Kush Edible", "Nebula Nectar Vape", "Galaxy Gold Concentrate",
-  "Stardust Sativa Pre-Roll", "Zero-G Indica Bud", "Lunar Lavender Tincture", "Orion's Belt Gummies",
-  "Pulsar Pineapple Express", "Quasar Queen Flower"
-];
+const mockProductNamesByCategory: Record<ProductCategory, string[]> = {
+  "Flower": ["Mystic Haze Flower", "Stardust Sativa Pre-Roll", "Quasar Queen Flower", "Blue Dream Bud", "Green Crack Strain"],
+  "Concentrates": ["Galaxy Gold Concentrate", "Cosmic Kush Shatter", "Nebula Nectar Wax", "Lunar Rosin", "Solar Flare Oil"],
+  "Vapes": ["Orion's Haze Vape Pen", "Pulsar Pineapple Express Cartridge", "Zero-G Indica Disposable", "Comet Berry Vape", "Astro Mint Pods"],
+  "Edibles": ["Lunar Lavender Gummies", "Orion's Belt Brownies", "Cosmic Kush Cookies", "Stardust Cereal Bar", "Nebula Nectar Chocolate"],
+};
 
-const generateMockItems = (itemCount: number): TransactionItem[] => {
-  const items: TransactionItem[] = [];
+const getMockImageForCategory = (category: ProductCategory, index: number): { url: string; hint: string } => {
+  // Using generic placeholders for simplicity, enhance with specific images if needed
+  const hints: Record<ProductCategory, string> = {
+    Flower: "cannabis flower",
+    Concentrates: "cannabis concentrate",
+    Vapes: "vape pen",
+    Edibles: "food edible"
+  };
+  return {
+    url: `https://placehold.co/100x100.png?text=${category.substring(0,3)}${index}`, // Generic placeholder
+    hint: hints[category] || "product image"
+  };
+};
+
+const generateMockCartItems = (itemCount: number): CartItem[] => {
+  const items: CartItem[] = [];
+  const usedNames: Set<string> = new Set();
+
   for (let i = 0; i < itemCount; i++) {
+    const category = PRODUCT_CATEGORIES_LIST[Math.floor(Math.random() * PRODUCT_CATEGORIES_LIST.length)];
+    const productNamesForCategory = mockProductNamesByCategory[category];
+    let name = productNamesForCategory[Math.floor(Math.random() * productNamesForCategory.length)];
+    
+    let uniqueNameAttempt = 0;
+    while(usedNames.has(`${category}-${name}`) && uniqueNameAttempt < productNamesForCategory.length * 2) {
+        name = productNamesForCategory[Math.floor(Math.random() * productNamesForCategory.length)];
+        uniqueNameAttempt++;
+    }
+    usedNames.add(`${category}-${name}`);
+
+    const imageDetails = getMockImageForCategory(category, i);
+
     items.push({
-      id: `item-${Math.random().toString(36).substr(2, 9)}`, // Added unique ID for items
-      name: mockProductNames[Math.floor(Math.random() * mockProductNames.length)],
-      qty: Math.floor(Math.random() * 3) + 1,
-      price: parseFloat((Math.random() * 50 + 10).toFixed(2))
+      id: `product-item-${category}-${Math.random().toString(36).substring(2, 9)}`,
+      name: name,
+      price: (Math.random() * 40 + 10).toFixed(2), // Price between 10 and 50
+      tags: PRODUCT_TAGS_LIST[Math.floor(Math.random() * PRODUCT_TAGS_LIST.length)],
+      rating: (Math.random() * 1.5 + 3.5).toFixed(1), // Rating between 3.5 and 5.0
+      category: category,
+      image: imageDetails.url,
+      dataAiHint: imageDetails.hint,
+      quantity: Math.floor(Math.random() * 3) + 1, // Quantity between 1 and 3
     });
   }
   return items;
 };
 
+
 export const mockOrders: Order[] = Array.from({ length: 50 }, (_, i) => {
   const statusIndex = i % ORDER_STATUSES.length;
-  const date = new Date(2024, 6, 28 - (i % 28));
-  const itemCount = Math.floor(Math.random() * 5) + 1;
-  const items = generateMockItems(itemCount);
-  const totalAmount = items.reduce((sum, item) => sum + item.price * item.qty, 0);
+  const date = new Date(2024, 6, 28 - (i % 28)); // Example: July 2024 dates
+  const itemCount = Math.floor(Math.random() * 4) + 1; // 1 to 4 items per order
+  const items = generateMockCartItems(itemCount);
+  const totalAmount = items.reduce((sum, item) => sum + parseFloat(item.price) * item.quantity, 0);
 
   return {
     id: `ORD-${String(1001 + i).padStart(4, '0')}`,
@@ -49,7 +86,7 @@ export const mockOrders: Order[] = Array.from({ length: 50 }, (_, i) => {
     orderDate: date.toISOString(),
     status: ORDER_STATUSES[statusIndex],
     totalAmount: parseFloat(totalAmount.toFixed(2)),
-    itemCount: itemCount,
+    itemCount: items.reduce((sum, item) => sum + item.quantity, 0), // Correct item count based on quantity
     items: items,
     shippingAddress: `${123 + i} Main St, Anytown, USA`,
     paymentMethod: ['Credit Card', 'PayPal', 'Stripe', 'Cash'][i % 4]
@@ -57,7 +94,7 @@ export const mockOrders: Order[] = Array.from({ length: 50 }, (_, i) => {
 });
 
 const convertOrdersToCSV = (data: Order[]) => {
-  const headers = ['Order ID', 'Customer Name', 'Order Date', 'Status', 'Total Amount', 'Item Count', 'Shipping Address', 'Payment Method'];
+  const headers = ['Order ID', 'Customer Name', 'Order Date', 'Status', 'Total Amount', 'Item Count', 'Shipping Address', 'Payment Method', 'Items (Name|Qty|Price;...)'];
   const csvRows = [
     headers.join(','),
     ...data.map(order =>
@@ -69,7 +106,8 @@ const convertOrdersToCSV = (data: Order[]) => {
         order.totalAmount.toFixed(2),
         order.itemCount,
         `"${order.shippingAddress?.replace(/"/g, '""') || ''}"`,
-        `"${order.paymentMethod || ''}"`
+        `"${order.paymentMethod || ''}"`,
+        `"${order.items.map(item => `${item.name}|${item.quantity}|${item.price}`).join(';')}"`
       ].join(',')
     )
   ];
@@ -195,7 +233,7 @@ export default function OrdersPage() {
                 </SelectContent>
               </Select>
             </div>
-             <Button variant="outline" size="sm" className="h-9 md:self-end w-full md:w-auto">
+             <Button variant="outline" size="sm" className="h-9 md:self-end w-full md:w-auto" onClick={() => { /* Placeholder for explicit filter application if needed */ }}>
                 <Filter className="mr-2 h-4 w-4" /> Apply Filters
             </Button>
           </div>
@@ -236,11 +274,14 @@ export default function OrdersPage() {
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="hover:bg-primary/10"
+                          className="hover:bg-primary/10 text-primary"
                           aria-label={`View details for order ${order.id}`}
-                           onClick={() => handleShowOrderReceipt(order)}
+                           onClick={() => {
+                            // alert('Orders page - View icon CLICKED for ' + order.id); // Keep for debugging if needed
+                            handleShowOrderReceipt(order);
+                           }}
                         >
-                          <Eye className="h-4 w-4 text-primary" />
+                          <Eye className="h-4 w-4" />
                         </Button>
                         <Button variant="ghost" size="icon" onClick={() => alert('Editing order ' + order.id + ' (mock)')} aria-label="Edit order">
                           <Edit className="h-4 w-4" />

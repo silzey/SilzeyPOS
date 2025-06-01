@@ -2,13 +2,14 @@
 "use client";
 
 import type { FC } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
+import Image from 'next/image'; // Import Image
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { X, ShoppingBag, UserCircle, CalendarDays, Hash, DollarSign, MapPin, CreditCardIcon } from 'lucide-react';
-import type { Order, OrderStatus as AppOrderStatus } from '@/types/pos';
+import { X, ShoppingBag, UserCircle, CalendarDays, Hash, DollarSign, MapPin, CreditCardIcon, Printer } from 'lucide-react';
+import type { Order, OrderStatus as AppOrderStatus, CartItem } from '@/types/pos'; // Import CartItem
 
 interface OrderReceiptModalProps {
   order: Order | null;
@@ -28,6 +29,10 @@ const OrderReceiptModal: FC<OrderReceiptModalProps> = ({ order, isOpen, onClose 
   if (!isOpen || !order) return null;
 
   const statusBadgeClassName = getStatusBadgeClassName(order.status);
+
+  const handlePrint = () => {
+    window.open(`/dashboard/print-receipt/${order.id}?type=order`, '_blank');
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -71,12 +76,22 @@ const OrderReceiptModal: FC<OrderReceiptModalProps> = ({ order, isOpen, onClose 
 
             <section>
               <h3 className="font-semibold text-md mb-2 flex items-center"><ShoppingBag className="mr-2 h-4 w-4 text-primary" />Items ({order.itemCount}):</h3>
-              <div className="space-y-1.5 text-xs">
-                {order.items.map((item) => (
-                  <div key={item.id || item.name} className="grid grid-cols-[1fr_auto_auto] gap-x-2 items-center py-1.5 border-b border-border/60 last:border-b-0">
-                    <span className="truncate">{item.name} (x{item.qty})</span>
-                    <span className="text-right text-muted-foreground">${item.price.toFixed(2)} ea.</span>
-                    <span className="text-right font-medium">${(item.price * item.qty).toFixed(2)}</span>
+              <div className="space-y-2 text-xs">
+                {order.items.map((item: CartItem) => ( // Specify item as CartItem
+                  <div key={item.id} className="flex items-center gap-3 py-1.5 border-b border-border/60 last:border-b-0">
+                    <Image
+                        src={item.image}
+                        alt={item.name}
+                        width={40}
+                        height={40}
+                        className="rounded object-cover"
+                        data-ai-hint={item.dataAiHint || item.category.toLowerCase()}
+                      />
+                    <div className="flex-grow">
+                      <span className="block font-medium text-sm">{item.name} (x{item.quantity})</span>
+                      <span className="text-muted-foreground">${parseFloat(item.price).toFixed(2)} ea.</span>
+                    </div>
+                    <span className="font-semibold text-sm">${(parseFloat(item.price) * item.quantity).toFixed(2)}</span>
                   </div>
                 ))}
                 {order.items.length === 0 && <p className="text-muted-foreground text-center py-2">No items in this order.</p>}
@@ -95,15 +110,13 @@ const OrderReceiptModal: FC<OrderReceiptModalProps> = ({ order, isOpen, onClose 
           </div>
         </ScrollArea>
         
-        <DialogFooter className="p-6 bg-muted/30">
-          <Button variant="outline" onClick={onClose} className="w-full sm:w-auto">
+        <DialogFooter className="p-6 bg-muted/30 flex-col sm:flex-row justify-between">
+          <Button variant="outline" onClick={onClose} className="w-full sm:w-auto mb-2 sm:mb-0">
              <X className="mr-2 h-4 w-4" /> Close
           </Button>
-          {/* Optional: Add a print button here later if needed
-           <Button onClick={() => window.open(`/dashboard/print-receipt/${order.id}?type=order`, '_blank')} className="w-full sm:w-auto">
+           <Button onClick={handlePrint} className="w-full sm:w-auto">
             <Printer className="mr-2 h-4 w-4" /> Print Receipt
           </Button> 
-          */}
         </DialogFooter>
       </DialogContent>
     </Dialog>

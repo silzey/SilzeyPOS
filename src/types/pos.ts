@@ -29,33 +29,40 @@ export interface UserProfile {
   lastName: string;
   email: string;
   avatarUrl: string;
+  dataAiHint?: string; // Added for avatars
   bio?: string;
   memberSince: string;
   rewardsPoints?: number;
 }
 
-export type OrderStatus = "In-Store" | "Online"; // For actual orders
-export type TransactionStatus = "Completed" | "Pending" | "Failed"; // For point-of-sale transactions
+export type OrderStatus = "In-Store" | "Online";
+export type TransactionStatus = "Completed" | "Pending" | "Failed";
 
-export interface TransactionItem { id?: string; name: string; qty: number; price: number }; // Added optional id to TransactionItem
+export interface TransactionItem { id?: string; name: string; qty: number; price: number };
 
 export interface Order {
   id: string;
-  customerName: string;
-  orderDate: string; 
+  customerName: string; // Could be customerId in a real system
+  orderDate: string;
   status: OrderStatus;
   totalAmount: number;
   itemCount: number;
-  items: TransactionItem[]; 
-  shippingAddress?: string; 
-  paymentMethod?: string; 
+  items: CartItem[]; // Changed from TransactionItem[] to CartItem[]
+  shippingAddress?: string;
+  paymentMethod?: string;
 }
 
 export interface TransactionType {
   id: string;
-  customer: string; 
+  customer: string;
   date: string;
-  amount: string; 
+  amount: string;
   status: TransactionStatus;
   items: TransactionItem[];
+}
+
+// New Customer type
+export interface Customer extends UserProfile {
+  orderHistory: Order[];
+  currentOrder?: Order;
 }

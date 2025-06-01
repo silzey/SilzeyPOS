@@ -1,0 +1,68 @@
+
+"use client";
+
+import Link from 'next/link';
+import Image from 'next/image';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { mockCustomers } from '@/lib/mockCustomers';
+import type { Customer } from '@/types/pos';
+import { Users, ChevronRight, Mail, Star } from 'lucide-react';
+
+export default function CustomersPage() {
+  return (
+    <div className="space-y-8">
+      <Card className="shadow-lg">
+        <CardHeader>
+          <CardTitle className="font-headline text-primary flex items-center">
+            <Users className="mr-2 h-6 w-6" /> Customer List
+          </CardTitle>
+          <CardDescription>Browse and manage your customer profiles.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {mockCustomers.length === 0 ? (
+            <p className="text-muted-foreground text-center py-8">No customers found.</p>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {mockCustomers.map((customer: Customer) => (
+                <Card key={customer.id} className="overflow-hidden shadow-md hover:shadow-xl transition-shadow duration-300">
+                  <CardHeader className="flex flex-row items-center gap-4 p-4 bg-muted/20">
+                    <Avatar className="h-16 w-16 border-2 border-primary">
+                      <AvatarImage src={customer.avatarUrl} alt={`${customer.firstName} ${customer.lastName}`} data-ai-hint={customer.dataAiHint || 'person'} />
+                      <AvatarFallback>{customer.firstName.charAt(0)}{customer.lastName.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <CardTitle className="text-lg font-semibold font-headline group-hover:text-primary">
+                        {customer.firstName} {customer.lastName}
+                      </CardTitle>
+                      <CardDescription className="text-xs flex items-center">
+                        <Mail className="mr-1 h-3 w-3" /> {customer.email}
+                      </CardDescription>
+                       <p className="text-xs text-muted-foreground mt-0.5">
+                        Member Since: {customer.memberSince}
+                      </p>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="p-4">
+                    <div className="flex justify-between items-center text-sm mb-3">
+                      <span className="text-muted-foreground flex items-center">
+                        <Star className="mr-1 h-4 w-4 text-yellow-500 fill-yellow-500" /> Rewards:
+                      </span>
+                      <span className="font-semibold text-primary">{customer.rewardsPoints ?? 0} pts</span>
+                    </div>
+                    <Link href={`/dashboard/customers/${customer.id}`} passHref>
+                      <Button className="w-full" variant="outline">
+                        View Profile <ChevronRight className="ml-2 h-4 w-4" />
+                      </Button>
+                    </Link>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
