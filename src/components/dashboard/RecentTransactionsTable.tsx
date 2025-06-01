@@ -1,39 +1,57 @@
 
 "use client"
-import { useState, useEffect, useMemo } from 'react';
-// Removed Link import as it's no longer used directly for the action button
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Download, Eye, Printer } from 'lucide-react';
+import { Download, Eye, Printer, RefreshCw, Filter } from 'lucide-react'; // Added RefreshCw and Filter
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import type { TransactionType as Transaction, TransactionItem, TransactionStatus } from '@/types/pos';
-import { useRouter } from 'next/navigation'; // Added for programmatic navigation if needed
+import type { TransactionType, TransactionItem, TransactionStatus, Order, CartItem } from '@/types/pos'; // Added Order and CartItem
+import { ScrollArea } from '@/components/ui/scroll-area'; // Added ScrollArea
+import { Skeleton } from '@/components/ui/skeleton'; // Added Skeleton
 
-const transactionsData: Transaction[] = [
-  { id: 'TRX731', customer: 'Aisha Khan', date: '2024-07-28', amount: '$75.50', status: 'Completed', items: [{name: 'Flower Product A', qty: 1, price: 30.00}, {name: 'Edible Product B', qty: 2, price: 22.75}] },
-  { id: 'TRX732', customer: 'Ben Carter', date: '2024-07-28', amount: '$120.00', status: 'Completed', items: [{name: 'Vape Cartridge X', qty: 2, price: 60.00}] },
-  { id: 'TRX733', customer: 'Chloe Davis', date: '2024-07-27', amount: '$45.20', status: 'Pending', items: [{name: 'Concentrate Y', qty: 1, price: 45.20}] },
-  { id: 'TRX734', customer: 'Daniel Evans', date: '2024-07-27', amount: '$210.80', status: 'Completed', items: [{name: 'Premium Flower Z', qty: 1, price: 70.00}, {name: 'Accessory Pack', qty: 1, price: 140.80}] },
-  { id: 'TRX735', customer: 'Elena Foster', date: '2024-07-26', amount: '$99.99', status: 'Failed', items: [{name: 'Specialty Edible', qty: 3, price: 33.33}] },
-  { id: 'TRX736', customer: 'Finn Green', date: '2024-07-26', amount: '$32.00', status: 'Completed', items: [{name: 'Pre-roll Pack', qty: 1, price: 32.00}] },
-];
+const DASHBOARD_COMPLETED_ORDERS_STORAGE_KEY = 'dashboardCompletedOrdersSilzey';
+
+// Function to convert Orders to Transactions
+const convertOrdersToTransactions = (orders: Order[]): TransactionType[] => {
+  if (!orders || orders.length === 0) {
+    return [];
+  }
+  return orders.map(order => ({
+    id: `TRX-ORD-${order.id.substring(order.id.length - 7)}`, // Create a transaction-like ID
+    originalOrderId: order.id, // Keep original order ID
+    originalOrderType: 'order', // Mark as sourced from an Order
+    customer: order.customerName,
+    // Use processedAt for the date, fallback to orderDate. Ensure it's a format new Date() can parse well for sorting.
+    date: order.processedAt || order.orderDate,
+    amount: `$${order.totalAmount.toFixed(2)}`,
+    status: 'Completed', // All processed orders are 'Completed' transactions
+    items: order.items.map((item: CartItem) => ({ // Ensure item is treated as CartItem
+      id: item.id,
+      name: item.name,
+      qty: item.quantity,
+      price: parseFloat(item.price),
+    })),
+  }));
+};
 
 
-const convertToCSV = (data: Transaction[]) => {
-  const headers = ['ID', 'Customer', 'Date', 'Amount', 'Status'];
+const convertToCSV = (data: TransactionType[]) => {
+  const headers = ['Transaction ID', 'Original Order ID', 'Customer', 'Date', 'Amount', 'Status', 'Items (Name|Qty|Price;...)'];
   const csvRows = [
     headers.join(','),
-    ...data.map(row =>
+    ...data.map(transaction =>
       [
-        row.id,
-        `"${row.customer.replace(/"/g, '""')}"`,
-        row.date,
-        row.amount.replace('$', ''),
-        row.status
+        transaction.id,
+        transaction.originalOrderId || '',
+        `"${transaction.customer.replace(/"/g, '""')}"`,
+        new Date(transaction.date).toLocaleDateString(),
+        transaction.amount.replace('$', ''),
+        transaction.status,
+        `"${transaction.items.map(item => `${item.name}|${item.qty}|${item.price}`).join(';')}"`
       ].join(',')
     )
   ];
@@ -60,39 +78,97 @@ const downloadCSV = (csvString: string, filename: string) => {
 const getStatusBadgeClassName = (status: TransactionStatus): string => {
   switch (status) {
     case 'Completed': return 'bg-green-500/20 text-green-700 border-green-500/30';
-    case 'Pending': return 'bg-yellow-500/20 text-yellow-700 border-yellow-500/30';
-    case 'Failed': return 'bg-red-500/20 text-red-700 border-red-500/30';
+    case 'Pending': return 'bg-yellow-500/20 text-yellow-700 border-yellow-500/30'; // Should not appear here
+    case 'Failed': return 'bg-red-500/20 text-red-700 border-red-500/30'; // Should not appear here
     default: return 'border-muted-foreground';
   }
 };
 
 export const RecentTransactionsTable = () => {
+  const [allTransactions, setAllTransactions] = useState<TransactionType[]>([]);
   const [filterCustomer, setFilterCustomer] = useState('');
-  const [filterStatus, setFilterStatus] = useState<TransactionStatus | 'All'>('All');
-  const router = useRouter(); // Initialize router
+  // Status filter is less relevant here as all are "Completed"
+  // const [filterStatus, setFilterStatus] = useState<TransactionStatus | 'All'>('All');
+  const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const loadTransactions = useCallback(async () => {
+    setIsRefreshing(true); // Indicate refresh is in progress
+    // Simulate async operation if needed, or just proceed
+    await new Promise(resolve => setTimeout(resolve, 300)); 
+
+    let completedOrdersFromStorage: Order[] = [];
+    try {
+      const completedOrdersRaw = localStorage.getItem(DASHBOARD_COMPLETED_ORDERS_STORAGE_KEY);
+      if (completedOrdersRaw) {
+        completedOrdersFromStorage = JSON.parse(completedOrdersRaw);
+      }
+    } catch (e) {
+      console.error("Error parsing completed dashboard orders from localStorage in RTT:", e);
+    }
+
+    if (completedOrdersFromStorage && completedOrdersFromStorage.length > 0) {
+      const converted = convertOrdersToTransactions(completedOrdersFromStorage);
+      setAllTransactions(converted.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
+    } else {
+      setAllTransactions([]);
+    }
+    setIsLoading(false);
+    setIsRefreshing(false);
+  }, []);
+
+  useEffect(() => {
+    setIsLoading(true);
+    loadTransactions();
+  }, [loadTransactions]);
+
 
   const filteredTransactions = useMemo(() => {
-    return transactionsData.filter(transaction => {
+    return allTransactions.filter(transaction => {
       const customerMatch = filterCustomer ? transaction.customer.toLowerCase().includes(filterCustomer.toLowerCase()) : true;
-      const statusMatch = filterStatus === 'All' || transaction.status === filterStatus;
-      return customerMatch && statusMatch;
+      // const statusMatch = filterStatus === 'All' || transaction.status === filterStatus; // Status is always "Completed"
+      return customerMatch;
     });
-  }, [filterCustomer, filterStatus]);
+  }, [allTransactions, filterCustomer]);
 
   const handleDownload = () => {
+    if (filteredTransactions.length === 0) {
+        alert("No transactions to download.");
+        return;
+    }
     const csvString = convertToCSV(filteredTransactions);
-    downloadCSV(csvString, 'recent_transactions.csv');
+    downloadCSV(csvString, 'recent_transactions_from_pos.csv');
   };
+  
+  if (isLoading) {
+    return (
+        <Card className="shadow-lg">
+            <CardHeader>
+                <Skeleton className="h-7 w-48" />
+                <Skeleton className="h-4 w-64 mt-1" />
+            </CardHeader>
+            <CardContent className="py-4 border-y border-border">
+                 <Skeleton className="h-9 w-full" />
+            </CardContent>
+            <CardContent className="pt-4">
+                 <div className="space-y-3">
+                    {[...Array(3)].map((_, i) => <Skeleton key={i} className="h-10 w-full" />)}
+                </div>
+            </CardContent>
+        </Card>
+    );
+  }
+
 
   return (
     <>
       <Card className="shadow-lg">
         <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
           <div>
-            <CardTitle className="font-headline text-primary">Recent Transactions</CardTitle>
-            <CardDescription>Latest transactions processed by the POS.</CardDescription>
+            <CardTitle className="font-headline text-primary">Recent POS Transactions</CardTitle>
+            <CardDescription>Transactions from completed POS checkouts. Refresh to see new ones.</CardDescription>
           </div>
-          <Button variant="outline" size="sm" onClick={handleDownload} className="w-full sm:w-auto">
+          <Button variant="outline" size="sm" onClick={handleDownload} className="w-full sm:w-auto" disabled={filteredTransactions.length === 0}>
             <Download className="mr-2 h-4 w-4" />
             Download CSV
           </Button>
@@ -110,29 +186,20 @@ export const RecentTransactionsTable = () => {
                 className="h-9"
               />
             </div>
-            <div className="flex-grow sm:flex-1 min-w-[150px] sm:min-w-[180px]">
-              <Label htmlFor="filterStatus" className="text-xs text-muted-foreground block mb-1">Filter by Status</Label>
-              <Select value={filterStatus} onValueChange={(value) => setFilterStatus(value as TransactionStatus | 'All')}>
-                <SelectTrigger id="filterStatus" className="h-9">
-                  <SelectValue placeholder="Select status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="All">All Statuses</SelectItem>
-                  <SelectItem value="Completed">Completed</SelectItem>
-                  <SelectItem value="Pending">Pending</SelectItem>
-                  <SelectItem value="Failed">Failed</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            {/* Status filter removed as all transactions here are "Completed" */}
+            <Button variant="outline" size="sm" onClick={loadTransactions} className="h-9 md:self-end w-full md:w-auto" disabled={isRefreshing}>
+                <RefreshCw className={`mr-2 h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} /> 
+                {isRefreshing ? 'Refreshing...' : 'Refresh List'}
+            </Button>
           </div>
         </CardContent>
 
         <CardContent className="pt-4">
-          <div className="overflow-x-auto">
+          <ScrollArea className="h-[300px] w-full"> {/* Added ScrollArea for limited height */}
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[100px]">ID</TableHead>
+                  <TableHead className="w-[150px]">Transaction ID</TableHead>
                   <TableHead>Customer</TableHead>
                   <TableHead>Date</TableHead>
                   <TableHead className="text-right">Amount</TableHead>
@@ -144,32 +211,39 @@ export const RecentTransactionsTable = () => {
                 {filteredTransactions.length > 0 ? (
                   filteredTransactions.map((transaction) => (
                     <TableRow key={transaction.id} className="hover:bg-muted/50">
-                      <TableCell className="font-medium">{transaction.id}</TableCell>
+                      <TableCell className="font-medium" title={transaction.originalOrderId ? `Orig. Order: ${transaction.originalOrderId}` : ''}>
+                        {transaction.id}
+                      </TableCell>
                       <TableCell>{transaction.customer}</TableCell>
-                      <TableCell>{transaction.date}</TableCell>
+                      <TableCell>{new Date(transaction.date).toLocaleString()}</TableCell>
                       <TableCell className="text-right">{transaction.amount}</TableCell>
                       <TableCell className="text-center">
                         <Badge
-                          variant={transaction.status === 'Completed' ? 'default' : transaction.status === 'Pending' ? 'secondary' : 'destructive'}
+                          variant={'default'} // Always 'Completed'
                           className={`capitalize ${getStatusBadgeClassName(transaction.status)}`}
                         >
                           {transaction.status}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right space-x-1">
-                        <Button variant="ghost" size="icon" onClick={() => alert('Viewing details for ' + transaction.id + ' (mock)')} aria-label="View transaction details (legacy)">
+                        {/* The Eye icon might be less relevant here as details are in the table or for a full order view */}
+                        {/* <Button variant="ghost" size="icon" onClick={() => alert('Viewing details for ' + transaction.id + ' (mock)')} aria-label="View transaction details">
                           <Eye className="h-4 w-4" />
-                        </Button>
+                        </Button> */}
                         <Button
                           variant="ghost"
                           size="icon"
-                          aria-label={`Print receipt for ${transaction.id}`}
+                          title={`Print Receipt for Order ${transaction.originalOrderId}`}
+                          aria-label={`Print receipt for order ${transaction.originalOrderId}`}
                           onClick={() => {
-                            const url = `/dashboard/print-receipt/${transaction.id}?type=transaction`;
-                            console.log(`DEBUG_RTT: Print icon clicked for ${transaction.id}. Attempting to navigate to: ${url}`);
-                            alert(`DEBUG_RTT: Print icon clicked for ${transaction.id}. Attempting to navigate to: ${url}`);
-                            window.open(url, '_blank');
+                            if (transaction.originalOrderId && transaction.originalOrderType === 'order') {
+                              const url = `/dashboard/print-receipt/${transaction.originalOrderId}?type=order`;
+                              window.open(url, '_blank');
+                            } else {
+                               alert('Cannot print receipt: Original order ID not found.');
+                            }
                           }}
+                          disabled={!transaction.originalOrderId}
                         >
                           <Printer className="h-4 w-4" />
                         </Button>
@@ -179,16 +253,15 @@ export const RecentTransactionsTable = () => {
                 ) : (
                   <TableRow>
                     <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
-                      No transactions match your filters.
+                      No transactions found. Process orders from the Live POS Queue to see them here.
                     </TableCell>
                   </TableRow>
                 )}
               </TableBody>
             </Table>
-          </div>
+          </ScrollArea>
         </CardContent>
       </Card>
     </>
   );
 };
-
