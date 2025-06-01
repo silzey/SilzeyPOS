@@ -1,7 +1,7 @@
 
 import type { Metadata } from 'next';
 import './globals.css';
-import { Toaster } from "@/components/ui/toaster";
+// import { Toaster } from "@/components/ui/toaster"; // Toaster temporarily removed
 import { AuthProvider } from '@/contexts/AuthContext';
 import { ThemeProvider } from '@/contexts/ThemeContext'; // Import ThemeProvider
 
@@ -26,7 +26,7 @@ export default function RootLayout({
         <ThemeProvider> {/* Wrap AuthProvider and children with ThemeProvider */}
           <AuthProvider>
             {children}
-            <Toaster />
+            {/* <Toaster /> */} {/* Toaster temporarily removed */}
           </AuthProvider>
         </ThemeProvider>
       </body>
