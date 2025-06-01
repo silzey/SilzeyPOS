@@ -17,15 +17,16 @@ interface ReceiptModalProps {
 const ReceiptModal: FC<ReceiptModalProps> = ({ transaction, isOpen, onClose }) => {
   if (!transaction) return null;
 
-  const handlePrint = () => {
-    console.log('handlePrint function called');
-    alert('Print button clicked. Check browser console. Attempting to print...');
+  // Inline handler for the print button for direct testing
+  const handleDirectPrint = () => {
+    alert('Print button was clicked! Attempting to call window.print() now.');
+    console.log('Print button onClick handler fired. Calling window.print()...');
     try {
       window.print();
-      console.log('window.print() executed successfully.');
-    } catch (e) {
-      console.error('Error calling window.print():', e);
-      alert('An error occurred while trying to print. Please check the browser console for details.');
+      console.log('window.print() was executed.');
+    } catch (error) {
+      console.error('Error during window.print():', error);
+      alert('An error occurred while trying to print. Please check the browser console.');
     }
   };
 
@@ -33,7 +34,7 @@ const ReceiptModal: FC<ReceiptModalProps> = ({ transaction, isOpen, onClose }) =
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-sm p-0 shadow-xl rounded-lg">
         <div className="p-6">
-          <DialogHeader className="mb-2"> {/* Removed custom flex, relying on DialogHeader's default flex-col */}
+          <DialogHeader className="mb-2">
             <div className="flex flex-row justify-between items-center">
               <h1 className="text-3xl font-cursive text-primary">Silzey POS</h1>
               <DialogClose asChild>
@@ -42,7 +43,7 @@ const ReceiptModal: FC<ReceiptModalProps> = ({ transaction, isOpen, onClose }) =
                 </Button>
               </DialogClose>
             </div>
-            <DialogTitle className="text-xl font-semibold text-center pt-2 font-headline"> {/* Added pt-2 for spacing */}
+            <DialogTitle className="text-xl font-semibold text-center pt-2 font-headline">
               RECEIPT
             </DialogTitle>
           </DialogHeader>
@@ -57,9 +58,8 @@ const ReceiptModal: FC<ReceiptModalProps> = ({ transaction, isOpen, onClose }) =
           
           <Separator className="my-3" />
 
-          {/* Mock Items - In a real app, you'd loop through actual itemized data */}
-          <div className="space-y-1 text-sm mb-3">
-            <h4 className="font-semibold mb-1">Items:</h4>
+          <h4 className="font-semibold mb-1 text-sm">Items:</h4>
+          <div className="space-y-1 text-sm mb-3 max-h-32 overflow-y-auto">
             {transaction.items && transaction.items.length > 0 ? (
               transaction.items.map((item, index) => (
                  <div key={index} className="flex justify-between">
@@ -94,7 +94,7 @@ const ReceiptModal: FC<ReceiptModalProps> = ({ transaction, isOpen, onClose }) =
           <Button variant="outline" onClick={onClose} className="w-full sm:w-auto">
             Close
           </Button>
-          <Button onClick={handlePrint} className="w-full sm:w-auto">
+          <Button onClick={handleDirectPrint} className="w-full sm:w-auto">
             <Printer className="mr-2 h-4 w-4" /> Print
           </Button>
         </DialogFooter>
