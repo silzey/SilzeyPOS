@@ -2,7 +2,6 @@
 "use client";
 
 import { useState, useMemo } from 'react';
-// Removed Link import as it's no longer used directly for the action button
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -13,7 +12,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { Order, OrderStatus, TransactionItem } from '@/types/pos';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { useRouter } from 'next/navigation'; // Added for programmatic navigation if needed
+import { useRouter } from 'next/navigation';
 
 const ORDER_STATUSES: OrderStatus[] = ["In-Store", "Online"];
 
@@ -113,7 +112,7 @@ export default function OrdersPage() {
   const [filterOrderId, setFilterOrderId] = useState('');
   const [filterCustomerName, setFilterCustomerName] = useState('');
   const [filterStatus, setFilterStatus] = useState<OrderStatus | 'All'>('All');
-  const router = useRouter(); // Initialize router
+  const router = useRouter();
 
   const filteredOrders = useMemo(() => {
     return mockOrders.filter(order => {
@@ -222,15 +221,13 @@ export default function OrdersPage() {
                         <Button
                           variant="ghost"
                           size="icon"
-                          aria-label={`View details for order ${order.id}`}
+                          className="bg-pink-200 hover:bg-pink-300 border-2 border-fuchsia-500"
+                          aria-label={`TEST View details for order ${order.id}`}
                           onClick={() => {
-                            const url = `/dashboard/print-receipt/${order.id}?type=order`;
-                            console.log(`DEBUG_ORDERS_PAGE: View icon clicked for ${order.id}. Attempting to navigate to: ${url}`);
-                            alert(`DEBUG_ORDERS_PAGE: View icon clicked for ${order.id}. Attempting to navigate to: ${url}`);
-                            window.open(url, '_blank');
+                            alert('Orders page - View icon CLICKED for ' + order.id);
                           }}
                         >
-                          <Eye className="h-4 w-4" />
+                          <Eye className="h-4 w-4 text-fuchsia-700" />
                         </Button>
                         <Button variant="ghost" size="icon" onClick={() => alert('Editing order ' + order.id + ' (mock)')} aria-label="Edit order">
                           <Edit className="h-4 w-4" />
