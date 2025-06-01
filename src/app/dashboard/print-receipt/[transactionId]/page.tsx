@@ -2,7 +2,7 @@
 // The route /dashboard/print-receipt/[transactionId] was deprecated.
 // The active route is /dashboard/print-receipt/[id]?type=...
 //
-// To fully remove this route, this file could be deleted, but for now,
-// not exporting a default component resolves the startup error.
+// Exporting 'default null' to explicitly mark this as not a valid page component.
+// This should prevent Next.js from treating it as a page and resolve the slug name conflict.
 
-export {}; // Ensures this is treated as a module but exports nothing that Next.js would use as a page.
+export default null;
