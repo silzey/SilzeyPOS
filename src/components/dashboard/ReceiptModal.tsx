@@ -2,7 +2,7 @@
 "use client";
 
 import type { FC } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogFooter, DialogClose } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import type { TransactionType } from './RecentTransactionsTable';
@@ -33,17 +33,20 @@ const ReceiptModal: FC<ReceiptModalProps> = ({ transaction, isOpen, onClose }) =
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-sm p-0 shadow-xl rounded-lg">
         <div className="p-6">
-          <DialogHeader className="flex flex-row justify-between items-center mb-4">
-            <h1 className="text-3xl font-cursive text-primary">Silzey POS</h1>
-            <DialogClose asChild>
-              <Button variant="ghost" size="icon" className="rounded-full">
-                <X className="h-5 w-5" />
-              </Button>
-            </DialogClose>
+          <DialogHeader className="mb-2"> {/* Removed custom flex, relying on DialogHeader's default flex-col */}
+            <div className="flex flex-row justify-between items-center">
+              <h1 className="text-3xl font-cursive text-primary">Silzey POS</h1>
+              <DialogClose asChild>
+                <Button variant="ghost" size="icon" className="rounded-full">
+                  <X className="h-5 w-5" />
+                </Button>
+              </DialogClose>
+            </div>
+            <DialogTitle className="text-xl font-semibold text-center pt-2 font-headline"> {/* Added pt-2 for spacing */}
+              RECEIPT
+            </DialogTitle>
           </DialogHeader>
           
-          <Separator className="my-3 border-dashed" />
-          <h2 className="text-xl font-semibold text-center mb-3 font-headline">RECEIPT</h2>
           <Separator className="my-3 border-dashed" />
 
           <div className="space-y-1.5 text-sm mb-4">
