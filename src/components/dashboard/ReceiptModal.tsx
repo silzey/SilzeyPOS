@@ -17,19 +17,6 @@ interface ReceiptModalProps {
 const ReceiptModal: FC<ReceiptModalProps> = ({ transaction, isOpen, onClose }) => {
   if (!transaction) return null;
 
-  // Inline handler for the print button for direct testing
-  const handleDirectPrint = () => {
-    alert('Print button was clicked! Attempting to call window.print() now.');
-    console.log('Print button onClick handler fired. Calling window.print()...');
-    try {
-      window.print();
-      console.log('window.print() was executed.');
-    } catch (error) {
-      console.error('Error during window.print():', error);
-      alert('An error occurred while trying to print. Please check the browser console.');
-    }
-  };
-
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-sm p-0 shadow-xl rounded-lg">
@@ -94,7 +81,20 @@ const ReceiptModal: FC<ReceiptModalProps> = ({ transaction, isOpen, onClose }) =
           <Button variant="outline" onClick={onClose} className="w-full sm:w-auto">
             Close
           </Button>
-          <Button onClick={handleDirectPrint} className="w-full sm:w-auto">
+          <Button 
+            onClick={() => {
+              alert('Inline alert: Print button clicked!');
+              console.log('Inline console: Print button onClick handler fired. Attempting window.print()...');
+              try {
+                window.print();
+                console.log('Inline console: window.print() was executed.');
+              } catch (error) {
+                console.error('Inline console: Error during window.print():', error);
+                alert('Inline alert: An error occurred while trying to print. Please check the browser console.');
+              }
+            }} 
+            className="w-full sm:w-auto"
+          >
             <Printer className="mr-2 h-4 w-4" /> Print
           </Button>
         </DialogFooter>
