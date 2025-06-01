@@ -106,6 +106,7 @@ const generateMockOrdersForCustomer = (orderCount: number, customerId: string): 
         orders.push({
             id: `ORD-${customerId.slice(-3)}-${String(101 + i).padStart(3, '0')}`,
             customerName: customerId, 
+            customerId: customerId, // Ensure customerId is present for linking
             orderDate: new Date(Date.now() - Math.random() * 365 * 24 * 60 * 60 * 1000).toISOString(), // Within last year
             status: Math.random() > 0.3 ? "In-Store" : "Online",
             totalAmount: parseFloat(totalAmount.toFixed(2)),
@@ -122,25 +123,38 @@ const generateMockOrdersForCustomer = (orderCount: number, customerId: string): 
 export const mockCustomers: Customer[] = Array.from({ length: 50 }, (_, i) => {
   const firstName = firstNames[i % firstNames.length];
   const lastName = lastNames[i % lastNames.length];
-  const customerId = `cust-${String(i + 1).padStart(3, '0')}`;
+  // Ensure the special "Kim Lunaris" mock customer retains their specific email and details
+  let email, specificBio, specificRewards, specificMemberSince, specificId;
+  if (i === 0) { // Designate index 0 for Kim Lunaris for consistency
+    email = 'kim.l@silzeypos.com';
+    specificBio = 'Enthusiastic budtender with a passion for quality cannabis products and customer education. Helping people find the perfect strain since 2020.';
+    specificRewards = 1250;
+    specificMemberSince = new Date(2023, 0, 15); // Jan 15, 2023
+    specificId = 'user-kim-123';
+  } else {
+    email = `${firstName.toLowerCase()}.${lastName.toLowerCase()}${i + 1}@example.com`;
+    specificBio = bios[i % bios.length];
+    specificRewards = Math.floor(Math.random() * 3000) + 50;
+    specificMemberSince = new Date(Date.now() - Math.random() * 2 * 365 * 24 * 60 * 60 * 1000); // Within last 2 years
+    specificId = `cust-${String(i + 1).padStart(3, '0')}`;
+  }
   
-  const memberSinceDate = new Date(Date.now() - Math.random() * 2 * 365 * 24 * 60 * 60 * 1000); // Within last 2 years
-
   return {
-    id: customerId,
+    id: specificId,
     firstName: firstName,
-    lastName: `${lastName}${i < lastNames.length ? '' : Math.floor(i / lastNames.length)}`, // Add a number if we run out of unique last names
-    email: `${firstName.toLowerCase()}.${lastName.toLowerCase()}${i + 1}@example.com`,
+    lastName: `${lastName}${i < lastNames.length || i === 0 ? '' : Math.floor(i / lastNames.length)}`, 
+    email: email,
     avatarUrl: customerAvatars[i % customerAvatars.length],
     dataAiHint: customerDataHints[i % customerDataHints.length],
-    memberSince: memberSinceDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
-    rewardsPoints: Math.floor(Math.random() * 3000) + 50,
-    bio: bios[i % bios.length],
-    orderHistory: generateMockOrdersForCustomer(Math.floor(Math.random() * 8) + 1, customerId), // 1 to 8 orders
-    currentOrder: Math.random() > 0.7 ? { // 30% chance of having a current order
-        id: `CUR-ORD-${customerId.slice(-3)}-${String(Math.floor(Math.random()*99)+1).padStart(2,'0')}`,
+    memberSince: specificMemberSince.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
+    rewardsPoints: specificRewards,
+    bio: specificBio,
+    orderHistory: generateMockOrdersForCustomer(Math.floor(Math.random() * 8) + 1, specificId), // 1 to 8 orders
+    currentOrder: Math.random() > 0.7 ? { 
+        id: `CUR-ORD-${specificId.slice(-3)}-${String(Math.floor(Math.random()*99)+1).padStart(2,'0')}`,
         customerName: `${firstName} ${lastName}`,
-        orderDate: new Date(Date.now() - Math.random() * 5 * 60 * 60 * 1000).toISOString(), // Within last 5 hours
+        customerId: specificId,
+        orderDate: new Date(Date.now() - Math.random() * 5 * 60 * 60 * 1000).toISOString(), 
         status: Math.random() > 0.5 ? "In-Store" : "Online", 
         totalAmount: parseFloat((Math.random() * 150 + 20).toFixed(2)),
         itemCount: Math.floor(Math.random() * 3) + 1,
@@ -151,6 +165,34 @@ export const mockCustomers: Customer[] = Array.from({ length: 50 }, (_, i) => {
   };
 });
 
+const NEWLY_REGISTERED_USERS_STORAGE_KEY = 'newlyRegisteredUsersSilzey';
+
 export const getCustomerById = (id: string): Customer | undefined => {
-    return mockCustomers.find(customer => customer.id === id);
+    const staticCustomer = mockCustomers.find(customer => customer.id === id);
+    if (staticCustomer) {
+        return staticCustomer;
+    }
+
+    // Try to find in localStorage
+    if (typeof window !== 'undefined') {
+        const newlyRegisteredUsersRaw = localStorage.getItem(NEWLY_REGISTERED_USERS_STORAGE_KEY);
+        if (newlyRegisteredUsersRaw) {
+            try {
+                const newlyRegisteredProfiles: UserProfile[] = JSON.parse(newlyRegisteredUsersRaw);
+                const foundProfile = newlyRegisteredProfiles.find(profile => profile.id === id);
+                if (foundProfile) {
+                    // Convert UserProfile to Customer
+                    return {
+                        ...foundProfile,
+                        orderHistory: [], // New users from signup won't have order history this way
+                        currentOrder: undefined,
+                        rewardsPoints: foundProfile.rewardsPoints !== undefined ? foundProfile.rewardsPoints : 0,
+                    };
+                }
+            } catch (e) {
+                console.error("Error parsing newly registered users from localStorage:", e);
+            }
+        }
+    }
+    return undefined;
 };

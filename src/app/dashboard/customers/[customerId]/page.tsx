@@ -11,7 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { getCustomerById } from '@/lib/mockCustomers';
+import { getCustomerById } from '@/lib/mockCustomers'; // This function will be updated
 import type { Customer, Order, CartItem } from '@/types/pos';
 import { ArrowLeft, Mail, CalendarDays, Gift, ShoppingCart, Star, Edit, Info } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -43,12 +43,12 @@ const OrderCard: React.FC<{ order: Order; title: string }> = ({ order, title }) 
       </CardTitle>
       <div className="text-xs text-muted-foreground space-x-3">
         <span>Date: {new Date(order.orderDate).toLocaleDateString()}</span>
-        <Badge variant={order.status === "In-Store" ? "default" : "secondary"} className="capitalize">{order.status}</Badge>
+        <Badge variant={order.status === "In-Store" ? "default" : (order.status === "Online" ? "secondary" : "outline" )} className="capitalize">{order.status}</Badge>
       </div>
     </CardHeader>
     <CardContent>
       <p className="text-sm font-semibold mb-2">Items ({order.itemCount}):</p>
-      <ScrollArea className="h-48 pr-3"> {/* Max height for item list */}
+      <ScrollArea className="h-48 pr-3"> 
         <div className="space-y-2">
           {order.items.map(item => <OrderItemCard key={item.id} item={item} />)}
         </div>
@@ -67,19 +67,20 @@ export default function CustomerProfilePage() {
   const params = useParams();
   const router = useRouter();
   const customerId = params.customerId as string;
-  const [customer, setCustomer] = useState<Customer | null | undefined>(undefined); // undefined for loading state
+  const [customer, setCustomer] = useState<Customer | null | undefined>(undefined); 
 
   useEffect(() => {
     if (customerId) {
+      // getCustomerById will now also check localStorage
       const foundCustomer = getCustomerById(customerId);
       setCustomer(foundCustomer);
     }
   }, [customerId]);
 
-  if (customer === undefined) { // Loading state
+  if (customer === undefined) { 
     return (
         <div className="space-y-6">
-            <Skeleton className="h-10 w-48" /> {/* Back button and Edit button */}
+            <Skeleton className="h-10 w-48" /> 
             <Card className="shadow-lg">
                 <CardHeader className="flex flex-row items-center gap-6 p-6">
                     <Skeleton className="h-24 w-24 rounded-full" />
@@ -93,8 +94,8 @@ export default function CustomerProfilePage() {
                     <Skeleton className="h-5 w-32" />
                     <Skeleton className="h-12 w-full" />
                     <div className="grid md:grid-cols-2 gap-6 mt-4">
-                         <Skeleton className="h-72 w-full" /> {/* Order History Card */}
-                         <Skeleton className="h-72 w-full" /> {/* Current Order Card */}
+                         <Skeleton className="h-72 w-full" /> 
+                         <Skeleton className="h-72 w-full" /> 
                     </div>
                 </CardContent>
             </Card>
@@ -107,7 +108,7 @@ export default function CustomerProfilePage() {
       <div className="text-center py-10">
         <Info className="mx-auto h-12 w-12 text-destructive mb-4" />
         <h1 className="text-2xl font-bold text-destructive">Customer Not Found</h1>
-        <p className="text-muted-foreground mb-6">The customer profile with ID "{customerId}" could not be found.</p>
+        <p className="text-muted-foreground mb-6">The customer profile with ID "{customerId}" could not be found in static mocks or new sign-ups.</p>
         <Button onClick={() => router.push('/dashboard/customers')} variant="outline">
           <ArrowLeft className="mr-2 h-4 w-4" /> Back to Customer List
         </Button>
@@ -121,7 +122,7 @@ export default function CustomerProfilePage() {
         <Button variant="outline" onClick={() => router.push('/dashboard/customers')}>
           <ArrowLeft className="mr-2 h-4 w-4" /> Back to Customer List
         </Button>
-         <Button variant="outline" disabled> {/* Future feature */}
+         <Button variant="outline" disabled> 
           <Edit className="mr-2 h-4 w-4" /> Edit Profile
         </Button>
       </div>
@@ -159,7 +160,7 @@ export default function CustomerProfilePage() {
             <div>
               <h3 className="text-xl font-semibold font-headline mb-3 text-foreground">Order History</h3>
               {customer.orderHistory && customer.orderHistory.length > 0 ? (
-                 <ScrollArea className="h-[500px] pr-3 space-y-4"> {/* Max height for order history list */}
+                 <ScrollArea className="h-[500px] pr-3 space-y-4"> 
                     {customer.orderHistory.map(order => (
                         <OrderCard key={order.id} order={order} title="Past Order" />
                     ))}
