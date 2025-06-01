@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/ui/button'; // Keep for "Download CSV" and "View details"
 import { Download, Eye, Printer } from 'lucide-react';
 import ReceiptModal from './ReceiptModal';
 
@@ -68,7 +68,7 @@ export const RecentTransactionsTable = () => {
   };
 
   const handleShowReceipt = (transaction: TransactionType) => {
-    alert(`ALERT_RTT: handleShowReceipt CALLED for TXN ID: ${transaction.id}`);
+    alert(`ALERT_RTT: handleShowReceipt CALLED for TXN ID: ${transaction.id}`); // Alert to confirm function call
     console.log(`%cDEBUG_RTT: handleShowReceipt CALLED for TXN ID: ${transaction.id}. Current isReceiptModalOpen: ${isReceiptModalOpen}`, "color: green; font-weight: bold;");
     
     console.log(`%cDEBUG_RTT: BEFORE setSelectedTransactionForReceipt. Current selectedTXN ID: ${selectedTransactionForReceipt?.id || 'null'}`, "color: green;");
@@ -83,7 +83,7 @@ export const RecentTransactionsTable = () => {
   };
 
   const handleCloseReceiptModal = () => {
-    alert('ALERT_RTT: handleCloseReceiptModal CALLED.');
+    alert('ALERT_RTT: handleCloseReceiptModal CALLED.'); // Alert to confirm function call
     console.log('%cDEBUG_RTT: handleCloseReceiptModal CALLED. Setting isReceiptModalOpen to false and selectedTransaction to null.', "color: orange; font-weight: bold;");
     setIsReceiptModalOpen(false);
     setSelectedTransactionForReceipt(null);
@@ -141,18 +141,26 @@ export const RecentTransactionsTable = () => {
                       <Button variant="ghost" size="icon" onClick={() => alert('Viewing details for ' + transaction.id + ' (mock)')} aria-label="View transaction details">
                         <Eye className="h-4 w-4" />
                       </Button>
-                      <Button 
-                        variant="outline" 
-                        size="icon" 
+                      <button
                         onClick={() => {
-                          alert(`TABLE ROW PRINT ICON CLICKED for ID: ${transaction.id}. This does NOT call handleShowReceipt yet.`);
-                          console.log(`%cDEBUG_RTT_ROW_CLICK: Table row print icon directly clicked for TXN ID: ${transaction.id}. This onClick does NOT call handleShowReceipt in this test.`, "color: magenta; font-weight: bold; background-color: yellow;");
-                        }} 
-                        aria-label="Test Print Icon Click"
-                        style={{ border: '2px solid magenta', backgroundColor: 'pink' }}
+                          alert(`HTML BUTTON CLICKED in table row for ID: ${transaction.id}. This test does NOT call handleShowReceipt.`);
+                          console.log(`%cDEBUG_RTT_HTML_BUTTON_CLICK: HTML button in table row clicked for TXN ID: ${transaction.id}. This test does NOT call handleShowReceipt.`, "color: purple; font-weight: bold; background-color: lightcyan;");
+                        }}
+                        aria-label={`Test HTML Print Icon Click for ${transaction.id}`}
+                        style={{
+                          border: '3px solid darkorchid',
+                          backgroundColor: 'plum',
+                          padding: '6px', // Adjusted padding
+                          cursor: 'pointer',
+                          borderRadius: '4px', // Added some rounding
+                          display: 'inline-flex', // For icon centering
+                          alignItems: 'center', // For icon centering
+                          justifyContent: 'center' // For icon centering
+                        }}
+                        title="Test HTML Button Click"
                       >
-                        <Printer className="h-4 w-4" />
-                      </Button>
+                        <Printer className="h-5 w-5 text-black" />
+                      </button>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -171,3 +179,4 @@ export const RecentTransactionsTable = () => {
     </>
   );
 };
+
