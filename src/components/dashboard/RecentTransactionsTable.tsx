@@ -68,17 +68,22 @@ export const RecentTransactionsTable = () => {
   };
 
   const handleShowReceipt = (transaction: TransactionType) => {
-    console.log(`%cDEBUG_RTT: handleShowReceipt called for TXN ID: ${transaction.id}. Current isReceiptModalOpen: ${isReceiptModalOpen}`, "color: green;");
+    console.log(`%cDEBUG_RTT: handleShowReceipt CALLED for TXN ID: ${transaction.id}. Current isReceiptModalOpen: ${isReceiptModalOpen}`, "color: green; font-weight: bold;");
+    console.log(`%cDEBUG_RTT: BEFORE setSelectedTransactionForReceipt. Current selectedTXN ID: ${selectedTransactionForReceipt?.id || 'null'}`, "color: green;");
     setSelectedTransactionForReceipt(transaction);
+    console.log(`%cDEBUG_RTT: AFTER setSelectedTransactionForReceipt. Target selectedTXN ID: ${transaction.id}`, "color: green;");
+
+    console.log(`%cDEBUG_RTT: BEFORE setIsReceiptModalOpen(true). Current isReceiptModalOpen: ${isReceiptModalOpen}`, "color: green;");
     setIsReceiptModalOpen(true);
-    console.log(`%cDEBUG_RTT: handleShowReceipt - AFTER setting state. Expect re-render. selectedTXN should be ${transaction.id}, isReceiptModalOpen should be true.`, "color: green;");
+    console.log(`%cDEBUG_RTT: AFTER setIsReceiptModalOpen(true). isReceiptModalOpen should now be true.`, "color: green;");
+    console.log(`%cDEBUG_RTT: handleShowReceipt - FINISHED. Expect re-render. selectedTXN should be ${transaction.id}, isReceiptModalOpen should be true.`, "color: green; font-weight: bold;");
   };
 
   const handleCloseReceiptModal = () => {
-    console.log('%cDEBUG_RTT: handleCloseReceiptModal called. Setting isReceiptModalOpen to false and selectedTransaction to null.', "color: orange;");
+    console.log('%cDEBUG_RTT: handleCloseReceiptModal CALLED. Setting isReceiptModalOpen to false and selectedTransaction to null.', "color: orange; font-weight: bold;");
     setIsReceiptModalOpen(false);
     setSelectedTransactionForReceipt(null);
-    console.log('%cDEBUG_RTT: handleCloseReceiptModal - AFTER setting state. Expect re-render.', "color: orange;");
+    console.log('%cDEBUG_RTT: handleCloseReceiptModal - FINISHED. Expect re-render.', "color: orange; font-weight: bold;");
   };
 
   return (
