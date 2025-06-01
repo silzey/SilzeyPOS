@@ -5,40 +5,40 @@ export const CATEGORIES: Category[] = ["Flower", "Concentrates", "Vapes", "Edibl
 export const TAGS: string[] = ["Organic", "Hybrid", "Indica", "Sativa"];
 
 const CATEGORY_IMAGES: Record<Category, { urls: string[], hint: string }> = {
-  Flower: { 
+  Flower: {
     urls: [
       "https://images.pexels.com/photos/7667726/pexels-photo-7667726.jpeg?auto=compress&cs=tinysrgb&h=225&w=300",
       "https://images.pexels.com/photos/7667760/pexels-photo-7667760.jpeg?auto=compress&cs=tinysrgb&h=225&w=300",
-    ], 
-    hint: "cannabis flower" 
+    ],
+    hint: "cannabis flower"
   },
-  Concentrates: { 
+  Concentrates: {
     urls: [
       "https://images.pexels.com/photos/7667727/pexels-photo-7667727.jpeg?auto=compress&cs=tinysrgb&h=225&w=300",
       "https://images.pexels.com/photos/7667723/pexels-photo-7667723.jpeg?auto=compress&cs=tinysrgb&h=225&w=300",
-    ], 
-    hint: "cannabis concentrate" 
+    ],
+    hint: "cannabis concentrate"
   },
-  Vapes: { 
+  Vapes: {
     urls: [
       "https://images.pexels.com/photos/4041323/pexels-photo-4041323.jpeg?auto=compress&cs=tinysrgb&h=225&w=300",
       "https://images.pexels.com/photos/3738934/pexels-photo-3738934.jpeg?auto=compress&cs=tinysrgb&h=225&w=300",
-    ], 
-    hint: "vape pen" 
+    ],
+    hint: "vape pen"
   },
-  Edibles: { 
+  Edibles: {
     urls: [
       // The provided edible links were not very cannabis-specific, using generic food images for now.
       // Consider updating these with more relevant edible images if available.
       "https://images.pexels.com/photos/106343/pexels-photo-106343.jpeg?auto=compress&cs=tinysrgb&h=225&w=300", // pancakes
       "https://images.pexels.com/photos/70497/pexels-photo-70497.jpeg?auto=compress&cs=tinysrgb&h=225&w=300",   // burger
-    ], 
-    hint: "food edible" 
+    ],
+    hint: "food edible"
   },
 };
 
 export const generateProducts = (category: Category): Product[] =>
-  Array.from({ length: 20 }, (_, i) => {
+  Array.from({ length: 50 }, (_, i) => { // Changed from 20 to 50
     const imageInfo = CATEGORY_IMAGES[category];
     return {
       id: `${category}-${i + 1}`,
@@ -51,3 +51,4 @@ export const generateProducts = (category: Category): Product[] =>
       category: category,
     };
 });
+
