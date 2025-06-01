@@ -3,7 +3,7 @@
 
 import type { FC } from 'react';
 import Image from 'next/image';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'; // Removed DialogDescription from imports
 import { Button } from '@/components/ui/button';
 import StarRating from '@/components/pos/StarRating';
 import type { Product } from '@/types/pos';
@@ -39,10 +39,11 @@ const ProductDetailModal: FC<ProductDetailModalProps> = ({ product, onClose, onA
             />
           </div>
           <DialogTitle className="text-xl sm:text-2xl font-headline text-primary">{product.name}</DialogTitle>
-          <DialogDescription className="flex justify-between items-center pt-1">
+          {/* Replaced DialogDescription with a div to prevent p > div nesting */}
+          <div className="flex justify-between items-center pt-1 text-sm text-muted-foreground"> {/* Added text-sm text-muted-foreground to mimic DialogDescription's typical text styling */}
             <Badge variant="secondary">{product.tags}</Badge>
             <StarRating rating={product.rating} />
-          </DialogDescription>
+          </div>
         </DialogHeader>
         
         <div className="p-6 pt-2">
