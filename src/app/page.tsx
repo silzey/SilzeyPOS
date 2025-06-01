@@ -18,7 +18,6 @@ import CheckoutDialog from '@/components/pos/CheckoutDialog';
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from '@/contexts/AuthContext'; // Import useAuth
 
-const INITIAL_VISIBLE_COUNT = 12;
 const POS_PENDING_ORDERS_STORAGE_KEY = 'posPendingOrdersSilzey';
 
 export default function PosPage() {
@@ -29,7 +28,6 @@ export default function PosPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [cart, setCart] = useState<CartItem[]>([]);
-  const [visibleCount, setVisibleCount] = useState(INITIAL_VISIBLE_COUNT);
   const [viewCart, setViewCart] = useState(false);
   const [viewCheckout, setViewCheckout] = useState(false);
   const [showThankYouCard, setShowThankYouCard] = useState(false);
@@ -38,12 +36,12 @@ export default function PosPage() {
   const [customerInfo, setCustomerInfo] = useState<CustomerInfo>({
     firstName: "", lastName: "", dob: "", phoneNumber: ""
   });
-  const [rewardsPoints, setRewardsPoints] = useState(0); // This seems to be for display in checkout
+  const [rewardsPoints, setRewardsPoints] = useState(0);
   const [upsellData, setUpsellData] = useState<UpsellSuggestionsOutput | null>(null);
   const [isLoadingUpsell, setIsLoadingUpsell] = useState(false);
 
   const { toast } = useToast();
-  const { user } = useAuth(); // Get authenticated user
+  const { user } = useAuth();
 
   useEffect(() => {
     const timer = setTimeout(() => setShowSplash(false), 3000); 
@@ -56,16 +54,13 @@ export default function PosPage() {
         ...prev,
         firstName: user.firstName || "",
         lastName: user.lastName || "",
-        // DOB and phone number are not typically part of UserProfile, so keep them from form or empty
       }));
       setRewardsPoints(user.rewardsPoints || 0);
     } else {
-      // Reset if user logs out or is not logged in
       setCustomerInfo({ firstName: "", lastName: "", dob: "", phoneNumber: "" });
       setRewardsPoints(0);
     }
   }, [user]);
-
 
   const allProductsForCategory = useMemo(() => generateProducts(activeCategory), [activeCategory]);
 
@@ -91,7 +86,6 @@ export default function PosPage() {
 
   const handleSelectCategory = useCallback((category: Category) => {
     setActiveCategory(category);
-    setVisibleCount(INITIAL_VISIBLE_COUNT);
     setSelectedTag("");
     setSearchTerm("");
   }, []);
@@ -124,10 +118,6 @@ export default function PosPage() {
     toast({ title: "Item removed", description: "Product removed from cart.", variant: "destructive", duration: 3000 });
   }, [toast]);
 
-  const handleLoadMore = useCallback(() => {
-    setVisibleCount((prev) => prev + INITIAL_VISIBLE_COUNT);
-  }, []);
-
   const totalPrice = useMemo(() =>
     cart.reduce((acc, item) => acc + parseFloat(item.price) * item.quantity, 0),
   [cart]);
@@ -141,7 +131,6 @@ export default function PosPage() {
     }
     if (!user) {
         toast({ title: "Please Sign In", description: "You need to be signed in to place an order.", variant: "destructive" });
-        // Optionally, redirect to sign-in or open sign-in modal
         return;
     }
     setCheckoutMessage("");
@@ -187,7 +176,6 @@ export default function PosPage() {
       itemCount: cartItemCount,
       items: cart,
       submittedByPOS: true,
-      // paymentMethod and shippingAddress can be added if collected
     };
 
     try {
@@ -196,21 +184,18 @@ export default function PosPage() {
       existingPendingOrders.push(newOrder);
       localStorage.setItem(POS_PENDING_ORDERS_STORAGE_KEY, JSON.stringify(existingPendingOrders));
       
-      setCheckoutMessage(""); // Clear any previous messages
+      setCheckoutMessage(""); 
       setThankYouMessage(`Order ${newOrder.id} submitted! A budtender will process it shortly.`);
       setShowThankYouCard(true);
       setViewCheckout(false); 
       
       setCart([]);
-      // Customer info reset might be optional if they are logged in and it pre-fills,
-      // but DOB and Phone might be per-transaction.
       setCustomerInfo({ firstName: user.firstName || "", lastName: user.lastName || "", dob: "", phoneNumber: "" });
       
       toast({ title: "Order Submitted!", description: `Your order ${newOrder.id} is pending processing.`, duration: 5000 });
 
       setTimeout(() => {
         setShowThankYouCard(false);
-        // No reload, user stays on POS page.
       }, 5000);
 
     } catch (error) {
@@ -220,7 +205,6 @@ export default function PosPage() {
     }
 
   }, [user, customerInfo, cart, totalPrice, cartItemCount, toast]);
-
 
   if (showSplash) return <SplashScreen isVisible={showSplash} />;
   if (showThankYouCard) return <ThankYouCard isVisible={showThankYouCard} message={thankYouMessage} />;
@@ -244,10 +228,8 @@ export default function PosPage() {
           onSearchChange={(e) => setSearchTerm(e.target.value)}
         />
         <ProductGrid
-          products={filteredAndSortedProducts.slice(0, visibleCount)}
+          products={filteredAndSortedProducts}
           onProductSelect={setSelectedProduct}
-          onLoadMore={handleLoadMore}
-          canLoadMore={visibleCount < filteredAndSortedProducts.length}
         />
       </main>
 
@@ -275,7 +257,7 @@ export default function PosPage() {
           onClose={() => setViewCheckout(false)}
           cart={cart}
           totalPrice={totalPrice.toFixed(2)}
-          rewardsPoints={rewardsPoints} // This is current user's points, not points from this sale
+          rewardsPoints={rewardsPoints}
           onFinalizeSale={finalizeSale}
           customerInfo={customerInfo}
           onCustomerInfoChange={handleCustomerInfoChange}
