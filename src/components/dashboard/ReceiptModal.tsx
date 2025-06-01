@@ -18,8 +18,6 @@ const ReceiptModal: FC<ReceiptModalProps> = ({ transaction, isOpen, onClose }) =
   console.log(`%cDEBUG_MODAL: Component Rendered. Props -> isOpen: ${isOpen}, TXN ID: ${transaction?.id || 'null'}`, "color: purple; font-weight: bold;");
 
   if (!isOpen || !transaction) {
-    // This log is fine, it just means the modal isn't supposed to be open.
-    // console.log(`%cDEBUG_MODAL: Not rendering Dialog body. isOpen: ${isOpen}, TXN: ${transaction ? 'present' : 'absent'}. Returning null.`, "color: purple;");
     return null;
   }
   
@@ -42,19 +40,18 @@ const ReceiptModal: FC<ReceiptModalProps> = ({ transaction, isOpen, onClose }) =
           <DialogHeader className="mb-2">
             <div className="flex flex-row justify-between items-center">
               <h1 className="text-3xl font-cursive text-primary">Silzey POS</h1>
-              {/* Explicit Close Button for the Dialog */}
+              <DialogTitle className="text-xl font-semibold text-center pt-2 font-headline">
+                RECEIPT
+              </DialogTitle>
               <DialogClose asChild>
                 <Button variant="ghost" size="icon" className="rounded-full" aria-label="Close receipt" onClick={() => {
                     console.log('%cDEBUG_MODAL: Manual DialogClose X button clicked. Calling onClose().', "color: orange;");
-                    onClose(); // This explicit close button WILL call the parent's onClose
+                    onClose(); 
                 }}>
                   <X className="h-5 w-5" />
                 </Button>
               </DialogClose>
             </div>
-            <DialogTitle className="text-xl font-semibold text-center pt-2 font-headline">
-              RECEIPT
-            </DialogTitle>
           </DialogHeader>
           
           <Separator className="my-3 border-dashed" />
@@ -102,7 +99,7 @@ const ReceiptModal: FC<ReceiptModalProps> = ({ transaction, isOpen, onClose }) =
         <DialogFooter className="p-4 bg-muted/10 border-t flex-col sm:flex-row gap-2">
           <Button variant="outline" onClick={() => {
             console.log('%cDEBUG_MODAL: Footer Close button clicked. Calling onClose().', "color: orange;");
-            onClose(); // This explicit close button WILL call the parent's onClose
+            onClose();
           }} className="w-full sm:w-auto">
             Close
           </Button>

@@ -68,20 +68,22 @@ export const RecentTransactionsTable = () => {
   };
 
   const handleShowReceipt = (transaction: TransactionType) => {
+    alert(`ALERT_RTT: handleShowReceipt CALLED for TXN ID: ${transaction.id}`);
     console.log(`%cDEBUG_RTT: handleShowReceipt CALLED for TXN ID: ${transaction.id}. Current isReceiptModalOpen: ${isReceiptModalOpen}`, "color: green; font-weight: bold;");
     
     console.log(`%cDEBUG_RTT: BEFORE setSelectedTransactionForReceipt. Current selectedTXN ID: ${selectedTransactionForReceipt?.id || 'null'}`, "color: green;");
     setSelectedTransactionForReceipt(transaction);
-    console.log(`%cDEBUG_RTT: AFTER setSelectedTransactionForReceipt. Target selectedTXN ID: ${transaction.id}. Current state variable selectedTransactionForReceipt is now: ${transaction.id}`, "color: green; font-style: italic;"); // Log immediate effect
+    console.log(`%cDEBUG_RTT: AFTER setSelectedTransactionForReceipt. Target selectedTXN ID: ${transaction.id}.`, "color: green; font-style: italic;");
 
     console.log(`%cDEBUG_RTT: BEFORE setIsReceiptModalOpen(true). Current isReceiptModalOpen: ${isReceiptModalOpen}`, "color: green;");
     setIsReceiptModalOpen(true);
-    console.log(`%cDEBUG_RTT: AFTER setIsReceiptModalOpen(true). Current state variable isReceiptModalOpen is now: true`, "color: green; font-style: italic;"); // Log immediate effect
+    console.log(`%cDEBUG_RTT: AFTER setIsReceiptModalOpen(true).`, "color: green; font-style: italic;");
     
     console.log(`%cDEBUG_RTT: handleShowReceipt - FINISHED. Expect re-render. selectedTXN should be ${transaction.id}, isReceiptModalOpen should be true.`, "color: green; font-weight: bold;");
   };
 
   const handleCloseReceiptModal = () => {
+    alert('ALERT_RTT: handleCloseReceiptModal CALLED.');
     console.log('%cDEBUG_RTT: handleCloseReceiptModal CALLED. Setting isReceiptModalOpen to false and selectedTransaction to null.', "color: orange; font-weight: bold;");
     setIsReceiptModalOpen(false);
     setSelectedTransactionForReceipt(null);
@@ -139,7 +141,16 @@ export const RecentTransactionsTable = () => {
                       <Button variant="ghost" size="icon" onClick={() => alert('Viewing details for ' + transaction.id + ' (mock)')} aria-label="View transaction details">
                         <Eye className="h-4 w-4" />
                       </Button>
-                      <Button variant="ghost" size="icon" onClick={() => handleShowReceipt(transaction)} aria-label="Print receipt">
+                      <Button 
+                        variant="outline" 
+                        size="icon" 
+                        onClick={() => {
+                          alert(`TABLE ROW PRINT ICON CLICKED for ID: ${transaction.id}. This does NOT call handleShowReceipt yet.`);
+                          console.log(`%cDEBUG_RTT_ROW_CLICK: Table row print icon directly clicked for TXN ID: ${transaction.id}. This onClick does NOT call handleShowReceipt in this test.`, "color: magenta; font-weight: bold; background-color: yellow;");
+                        }} 
+                        aria-label="Test Print Icon Click"
+                        style={{ border: '2px solid magenta', backgroundColor: 'pink' }}
+                      >
                         <Printer className="h-4 w-4" />
                       </Button>
                     </TableCell>
@@ -150,7 +161,6 @@ export const RecentTransactionsTable = () => {
           </div>
         </CardContent>
       </Card>
-      {/* Conditional rendering of ReceiptModal based on selectedTransactionForReceipt being non-null first, then its isOpen state */}
       {selectedTransactionForReceipt && (
         <ReceiptModal
           transaction={selectedTransactionForReceipt}
@@ -161,4 +171,3 @@ export const RecentTransactionsTable = () => {
     </>
   );
 };
-
