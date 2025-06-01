@@ -34,8 +34,8 @@ export interface UserProfile {
   rewardsPoints?: number;
 }
 
-// New types for Orders page
-export type OrderStatus = "Pending Payment" | "Processing" | "Shipped" | "Delivered" | "Cancelled" | "Refunded";
+// Updated OrderStatus type
+export type OrderStatus = "In-Store" | "Online";
 
 export interface Order {
   id: string;
@@ -57,3 +57,4 @@ export interface TransactionType {
   status: string;
   items: TransactionItem[];
 }
+

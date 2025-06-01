@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import type { Order, OrderStatus } from '@/types/pos';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
-const ORDER_STATUSES: OrderStatus[] = ["Pending Payment", "Processing", "Shipped", "Delivered", "Cancelled", "Refunded"];
+const ORDER_STATUSES: OrderStatus[] = ["In-Store", "Online"];
 
 const mockOrders: Order[] = Array.from({ length: 50 }, (_, i) => {
   const statusIndex = i % ORDER_STATUSES.length;
@@ -26,7 +26,7 @@ const mockOrders: Order[] = Array.from({ length: 50 }, (_, i) => {
     totalAmount: parseFloat((Math.random() * 200 + 20).toFixed(2)),
     itemCount: Math.floor(Math.random() * 5) + 1,
     shippingAddress: `${123 + i} Main St, Anytown, USA`,
-    paymentMethod: ['Credit Card', 'PayPal', 'Stripe'][i % 3]
+    paymentMethod: ['Credit Card', 'PayPal', 'Stripe', 'Cash'][i % 4]
   };
 });
 
@@ -67,28 +67,18 @@ const downloadCSV = (csvString: string, filename: string) => {
   }
 };
 
-const getStatusBadgeVariant = (status: OrderStatus): "default" | "secondary" | "destructive" | "outline" => {
+const getStatusBadgeVariant = (status: OrderStatus): "default" | "secondary" | "outline" => {
   switch (status) {
-    case "Delivered": return "default"; // Typically green, but using primary for 'default'
-    case "Pending Payment":
-    case "Processing":
-      return "secondary"; // Typically yellow or blue
-    case "Shipped": return "outline"; // Typically purple/blue
-    case "Cancelled":
-    case "Refunded":
-      return "destructive"; // Red or gray
+    case "In-Store": return "default"; 
+    case "Online": return "secondary"; 
     default: return "outline";
   }
 };
 
 const getStatusBadgeClassName = (status: OrderStatus): string => {
   switch (status) {
-    case "Delivered": return "bg-green-500/20 text-green-700 border-green-500/30";
-    case "Pending Payment": return "bg-yellow-500/20 text-yellow-700 border-yellow-500/30";
-    case "Processing": return "bg-blue-500/20 text-blue-700 border-blue-500/30";
-    case "Shipped": return "bg-purple-500/20 text-purple-700 border-purple-500/30";
-    case "Cancelled": return "bg-red-500/20 text-red-700 border-red-500/30";
-    case "Refunded": return "bg-gray-500/20 text-gray-700 border-gray-500/30";
+    case "In-Store": return "bg-blue-500/20 text-blue-700 border-blue-500/30";
+    case "Online": return "bg-green-500/20 text-green-700 border-green-500/30";
     default: return "border-muted-foreground";
   }
 };
@@ -227,3 +217,4 @@ export default function OrdersPage() {
     </div>
   );
 }
+
