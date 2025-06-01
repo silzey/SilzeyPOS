@@ -5,7 +5,7 @@ import type { FC } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import type { TransactionType } from './RecentTransactionsTable'; // Assuming type export from table
+import type { TransactionType } from './RecentTransactionsTable';
 import { Printer, X } from 'lucide-react';
 
 interface ReceiptModalProps {
@@ -49,15 +49,16 @@ const ReceiptModal: FC<ReceiptModalProps> = ({ transaction, isOpen, onClose }) =
           {/* Mock Items - In a real app, you'd loop through actual itemized data */}
           <div className="space-y-1 text-sm mb-3">
             <h4 className="font-semibold mb-1">Items:</h4>
-            {transaction.items && transaction.items.map((item, index) => (
+            {transaction.items && transaction.items.length > 0 ? (
+              transaction.items.map((item, index) => (
                  <div key={index} className="flex justify-between">
                     <span>{item.name} (x{item.qty})</span>
                     <span>{typeof item.price === 'number' ? `$${item.price.toFixed(2)}` : item.price}</span>
                  </div>
-            ))}
-            {!transaction.items && (
+              ))
+            ) : (
                  <div className="flex justify-between">
-                    <span>Total Purchase</span>
+                    <span>Total Purchase (No itemization)</span>
                     <span>{transaction.amount}</span>
                  </div>
             )}
