@@ -15,31 +15,29 @@ interface ReceiptModalProps {
 }
 
 const ReceiptModal: FC<ReceiptModalProps> = ({ transaction, isOpen, onClose }) => {
-  // CRUCIAL: Check browser console for this log when you expect the modal to open.
-  console.log(`DEBUG: ReceiptModal rendering. isOpen: ${isOpen}, Transaction ID: ${transaction?.id}`);
+  console.log(`DEBUG: ReceiptModal COMPONENT RENDER props -> isOpen: ${isOpen}, Transaction ID: ${transaction?.id}`);
 
-  if (!transaction) {
-    // This check ensures we don't try to render without a transaction.
-    // If the modal isn't opening, this might not even be reached.
-    console.log('DEBUG: ReceiptModal - No transaction provided, returning null.');
-    return null;
+  if (!isOpen || !transaction) {
+    // This log helps confirm if the modal is simply not being told to open, or lacks data.
+    console.log(`DEBUG: ReceiptModal not rendering Dialog body because isOpen is ${isOpen} or transaction is ${transaction ? 'present' : 'absent'}.`);
+    return null; // Don't render the Dialog if not open or no transaction
   }
   
-  // If isOpen is false, Radix Dialog won't render its content visibly.
-  // This is mostly for clarity, as Dialog handles its own open state.
-  if (!isOpen) {
-    console.log('DEBUG: ReceiptModal - isOpen is false, Dialog will not be visible.');
-    // The Dialog component itself handles not rendering content if open is false,
-    // but we'll keep the log for clarity.
-  }
+  // If we reach here, isOpen is true and transaction exists.
+  console.log(`DEBUG: ReceiptModal rendering Dialog body for Transaction ID: ${transaction.id}`);
 
   return (
-    <Dialog open={isOpen} onOpenChange={(openState) => {
-      // This function is called by Radix when the dialog's open state changes (e.g., by pressing Esc or clicking overlay)
-      console.log(`DEBUG: ReceiptModal Dialog onOpenChange called. New openState: ${openState}`);
-      if (!openState) {
-        onClose(); // Call the passed onClose handler
-      }
+    <Dialog 
+      open={isOpen} // Controlled by the isOpen prop
+      onOpenChange={(openState) => {
+        // This callback is triggered by Radix Dialog when its open state *would* change (e.g. Esc, overlay click)
+        console.log(`DEBUG: ReceiptModal Dialog onOpenChange CALLED. Radix wants to set openState to: ${openState}. Current "isOpen" prop from parent: ${isOpen}. Transaction ID: ${transaction?.id}`);
+        if (!openState) {
+          console.log(`DEBUG: ReceiptModal onOpenChange -> Radix wants to close. Calling parent's onClose() handler.`);
+          onClose(); // Inform parent to update its state (which controls this Dialog's 'open' prop)
+        } else {
+          console.log(`DEBUG: ReceiptModal onOpenChange -> Radix wants to open. This is unusual for a fully controlled dialog unless it's the initial mount with open=true.`);
+        }
     }}>
       <DialogContent className="sm:max-w-sm p-0 shadow-xl rounded-lg">
         <div className="p-6">
@@ -47,7 +45,7 @@ const ReceiptModal: FC<ReceiptModalProps> = ({ transaction, isOpen, onClose }) =
             <div className="flex flex-row justify-between items-center">
               <h1 className="text-3xl font-cursive text-primary">Silzey POS</h1>
               <DialogClose asChild>
-                <Button variant="ghost" size="icon" className="rounded-full">
+                <Button variant="ghost" size="icon" className="rounded-full" aria-label="Close receipt">
                   <X className="h-5 w-5" />
                 </Button>
               </DialogClose>
@@ -73,7 +71,7 @@ const ReceiptModal: FC<ReceiptModalProps> = ({ transaction, isOpen, onClose }) =
               transaction.items.map((item, index) => (
                  <div key={index} className="flex justify-between">
                     <span>{item.name} (x{item.qty})</span>
-                    <span>{typeof item.price === 'number' ? `$${item.price.toFixed(2)}` : item.price}</span>
+                    <span>${typeof item.price === 'number' ? item.price.toFixed(2) : 'N/A'}</span>
                  </div>
               ))
             ) : (
@@ -101,28 +99,26 @@ const ReceiptModal: FC<ReceiptModalProps> = ({ transaction, isOpen, onClose }) =
 
         <DialogFooter className="p-4 bg-muted/10 border-t flex-col sm:flex-row gap-2">
           <Button variant="outline" onClick={() => {
-            console.log('DEBUG: Close button in ReceiptModal clicked.');
+            console.log('DEBUG: Close button in ReceiptModal footer clicked. Calling onClose().');
             onClose();
           }} className="w-full sm:w-auto">
             Close
           </Button>
           <Button
-            id="diagnostic-print-button"
+            id="diagnostic-print-button" 
             onClick={() => {
-              // THIS IS THE MOST BASIC TEST FOR A CLICK
-              alert('Button in Modal CLICKED!');
+              alert('Button in Modal CLICKED!'); // Basic alert to confirm click registration
               console.log('CONSOLE LOG: Button in Modal CLICKED - logged!');
-              // We can add window.print() back later if the alert fires.
-              // try {
-              //   window.print();
-              //   console.log('CONSOLE LOG: window.print() was executed.');
-              // } catch (error) {
-              //   console.error('CONSOLE LOG: Error during window.print():', error);
-              //   alert('ALERT: An error occurred while trying to print. Check console.');
-              // }
+              try {
+                window.print();
+                console.log('CONSOLE LOG: window.print() was executed.');
+              } catch (error) {
+                console.error('CONSOLE LOG: Error during window.print():', error);
+                alert('ALERT: An error occurred while trying to print. Check console.');
+              }
             }}
             className="w-full sm:w-auto"
-            style={{ border: '5px solid red', padding: '15px', fontSize: '18px', fontWeight: 'bold', backgroundColor: 'pink' }}
+            style={{ border: '5px solid deeppink', padding: '15px', fontSize: '18px', fontWeight: 'bold', backgroundColor: 'lightpink' }}
           >
             <Printer className="mr-2 h-5 w-5" /> CLICK ME!
           </Button>
@@ -133,3 +129,4 @@ const ReceiptModal: FC<ReceiptModalProps> = ({ transaction, isOpen, onClose }) =
 };
 
 export default ReceiptModal;
+

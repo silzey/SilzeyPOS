@@ -1,6 +1,6 @@
 
 "use client"
-import { useState, useEffect } from 'react'; // Added useEffect for debugging if needed
+import { useState, useEffect } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -9,12 +9,12 @@ import { Download, Eye, Printer } from 'lucide-react';
 import ReceiptModal from './ReceiptModal';
 
 const transactions = [
-  { id: 'TRX731', customer: 'Aisha Khan', date: '2024-07-28', amount: '$75.50', status: 'Completed', items: [{name: 'Flower Product A', qty: 1, price: '$30.00'}, {name: 'Edible Product B', qty: 2, price: '$22.75'}] },
-  { id: 'TRX732', customer: 'Ben Carter', date: '2024-07-28', amount: '$120.00', status: 'Completed', items: [{name: 'Vape Cartridge X', qty: 2, price: '$60.00'}] },
-  { id: 'TRX733', customer: 'Chloe Davis', date: '2024-07-27', amount: '$45.20', status: 'Pending', items: [{name: 'Concentrate Y', qty: 1, price: '$45.20'}] },
-  { id: 'TRX734', customer: 'Daniel Evans', date: '2024-07-27', amount: '$210.80', status: 'Completed', items: [{name: 'Premium Flower Z', qty: 1, price: '$70.00'}, {name: 'Accessory Pack', qty: 1, price: '$140.80'}] },
-  { id: 'TRX735', customer: 'Elena Foster', date: '2024-07-26', amount: '$99.99', status: 'Failed', items: [{name: 'Specialty Edible', qty: 3, price: '$33.33'}] },
-  { id: 'TRX736', customer: 'Finn Green', date: '2024-07-26', amount: '$32.00', status: 'Completed', items: [{name: 'Pre-roll Pack', qty: 1, price: '$32.00'}] },
+  { id: 'TRX731', customer: 'Aisha Khan', date: '2024-07-28', amount: '$75.50', status: 'Completed', items: [{name: 'Flower Product A', qty: 1, price: 30.00}, {name: 'Edible Product B', qty: 2, price: 22.75}] },
+  { id: 'TRX732', customer: 'Ben Carter', date: '2024-07-28', amount: '$120.00', status: 'Completed', items: [{name: 'Vape Cartridge X', qty: 2, price: 60.00}] },
+  { id: 'TRX733', customer: 'Chloe Davis', date: '2024-07-27', amount: '$45.20', status: 'Pending', items: [{name: 'Concentrate Y', qty: 1, price: 45.20}] },
+  { id: 'TRX734', customer: 'Daniel Evans', date: '2024-07-27', amount: '$210.80', status: 'Completed', items: [{name: 'Premium Flower Z', qty: 1, price: 70.00}, {name: 'Accessory Pack', qty: 1, price: 140.80}] },
+  { id: 'TRX735', customer: 'Elena Foster', date: '2024-07-26', amount: '$99.99', status: 'Failed', items: [{name: 'Specialty Edible', qty: 3, price: 33.33}] },
+  { id: 'TRX736', customer: 'Finn Green', date: '2024-07-26', amount: '$32.00', status: 'Completed', items: [{name: 'Pre-roll Pack', qty: 1, price: 32.00}] },
 ];
 
 export type TransactionType = typeof transactions[0];
@@ -57,9 +57,8 @@ export const RecentTransactionsTable = () => {
   const [isReceiptModalOpen, setIsReceiptModalOpen] = useState(false);
   const [selectedTransactionForReceipt, setSelectedTransactionForReceipt] = useState<TransactionType | null>(null);
 
-  // For debugging UI
   useEffect(() => {
-    console.log(`DEBUG: RecentTransactionsTable - isReceiptModalOpen: ${isReceiptModalOpen}, selectedTransactionId: ${selectedTransactionForReceipt?.id}`);
+    console.log(`DEBUG: RecentTransactionsTable RENDERED/UPDATED. isReceiptModalOpen: ${isReceiptModalOpen}, selectedTransactionId: ${selectedTransactionForReceipt?.id}`);
   }, [isReceiptModalOpen, selectedTransactionForReceipt]);
 
 
@@ -69,21 +68,24 @@ export const RecentTransactionsTable = () => {
   };
 
   const handleShowReceipt = (transaction: TransactionType) => {
-    console.log(`DEBUG: handleShowReceipt called for transaction ID: ${transaction.id}`);
+    console.log(`DEBUG: handleShowReceipt called for transaction ID: ${transaction.id}. Attempting to open modal.`);
     setSelectedTransactionForReceipt(transaction);
     setIsReceiptModalOpen(true);
-    console.log(`DEBUG: After setting state - isReceiptModalOpen: true, selectedTransactionId: ${transaction.id}`);
+  };
+
+  const handleCloseReceiptModal = () => {
+    console.log('DEBUG: handleCloseReceiptModal called from onClose. Setting isReceiptModalOpen to false and selectedTransaction to null.');
+    setIsReceiptModalOpen(false);
+    setSelectedTransactionForReceipt(null);
   };
 
   return (
     <>
-      {/* DEBUGGING UI ELEMENT - REMOVE LATER */}
       <div style={{ border: '2px solid red', padding: '10px', margin: '10px', backgroundColor: 'lightyellow' }}>
         <p style={{ fontWeight: 'bold', color: 'red' }}>DEBUG INFO (RecentTransactionsTable):</p>
         <p>isReceiptModalOpen: {isReceiptModalOpen ? 'true' : 'false'}</p>
         <p>Selected Transaction ID: {selectedTransactionForReceipt ? selectedTransactionForReceipt.id : 'null'}</p>
       </div>
-      {/* END DEBUGGING UI ELEMENT */}
 
       <Card className="shadow-lg">
         <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
@@ -143,12 +145,7 @@ export const RecentTransactionsTable = () => {
         <ReceiptModal
           transaction={selectedTransactionForReceipt}
           isOpen={isReceiptModalOpen}
-          onClose={() => {
-            console.log('DEBUG: ReceiptModal onClose called. Setting isReceiptModalOpen to false.');
-            setIsReceiptModalOpen(false);
-            // Optionally reset selected transaction:
-            // setSelectedTransactionForReceipt(null); 
-          }}
+          onClose={handleCloseReceiptModal}
         />
       )}
     </>
