@@ -74,12 +74,34 @@ function PrintableInventoryContent() {
     <div className="min-h-screen bg-gray-100 p-2 sm:p-4 print:bg-white print:p-0">
       <style jsx global>{`
         @media print {
-          body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-          .no-print { display: none !important; }
-          @page { margin: 0.5in; size: landscape; }
-          table { width: 100%; border-collapse: collapse; }
-          th, td { border: 1px solid #ccc; padding: 4px; text-align: left; font-size: 9pt; } /* Reduced font size */
-          th { background-color: #f0f0f0 !important; /* Ensure background prints */ }
+          body { 
+            -webkit-print-color-adjust: exact; 
+            print-color-adjust: exact; 
+          }
+          .no-print { 
+            display: none !important; 
+          }
+          @page { 
+            margin: 0.5in; 
+            size: landscape; 
+          }
+          table { 
+            width: 100%; 
+            border-collapse: collapse; 
+          }
+          th, td { 
+            border: 1px solid #ccc; 
+            padding: 4px; 
+            text-align: left; 
+            font-size: 9pt; 
+          }
+          th { 
+            background-color: #f0f0f0 !important; 
+          }
+          /* Ensure all text is black for printing */
+          body, h1, p, th, td, span, div, strong, em, li, a {
+            color: #000000 !important;
+          }
         }
         .print-table-container { font-family: Arial, sans-serif; }
       `}</style>
