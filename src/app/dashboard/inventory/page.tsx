@@ -14,9 +14,10 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
 import { StatCard } from '@/components/dashboard/StatCard';
 import type { InventoryItem, Category } from '@/types/pos';
-import { Package, PackagePlus, PrinterIcon, Search, Filter, Edit, AlertTriangle, Boxes, DollarSign, TrendingDown, TrendingUp } from 'lucide-react'; // Changed Download to PrinterIcon
+import { Package, PackagePlus, PrinterIcon, Search, Filter, Edit, AlertTriangle, Boxes, DollarSign, TrendingDown, TrendingUp, Eye } from 'lucide-react';
 import { CATEGORIES as PRODUCT_CATEGORIES_LIST } from '@/lib/data';
-import { generateMockInventory } from '@/lib/mockInventory'; // Import from new location
+import { generateMockInventory } from '@/lib/mockInventory';
+import InventoryItemDetailModal from '@/components/dashboard/InventoryItemDetailModal'; // Import the new modal
 
 type StockStatusFilter = "All" | "In Stock" | "Low Stock" | "Out of Stock";
 
@@ -26,10 +27,12 @@ export default function InventoryPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<Category | 'All'>('All');
   const [stockStatusFilter, setStockStatusFilter] = useState<StockStatusFilter>('All');
+  const [selectedItemForModal, setSelectedItemForModal] = useState<InventoryItem | null>(null);
+  const [isItemModalOpen, setIsItemModalOpen] = useState(false);
+
 
   useEffect(() => {
     setIsLoading(true);
-    // Simulate API call
     setTimeout(() => {
       setInventoryItems(generateMockInventory());
       setIsLoading(false);
@@ -54,6 +57,16 @@ export default function InventoryPage() {
     if (stock === 0) return <Badge variant="destructive" className="bg-red-500/20 text-red-700 border-red-500/30">Out of Stock</Badge>;
     if (stock <= threshold) return <Badge variant="destructive" className="bg-yellow-500/20 text-yellow-700 border-yellow-500/30">Low Stock</Badge>;
     return <Badge variant="default" className="bg-green-500/20 text-green-700 border-green-500/30">In Stock</Badge>;
+  };
+
+  const handleViewItemDetails = (item: InventoryItem) => {
+    setSelectedItemForModal(item);
+    setIsItemModalOpen(true);
+  };
+
+  const handleCloseItemModal = () => {
+    setIsItemModalOpen(false);
+    setSelectedItemForModal(null);
   };
 
   const totalProducts = inventoryItems.length;
@@ -90,8 +103,8 @@ export default function InventoryPage() {
   }
 
   return (
+    <>
     <div className="space-y-6">
-      {/* Stats Grid */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         <StatCard title="Total Products" value={totalProducts.toString()} icon={Boxes} description={`${inventoryItems.filter(item => item.stock > 0).length} in stock`} />
         <StatCard title="Low Stock Items" value={lowStockCount.toString()} icon={TrendingDown} description="Needs reordering soon" />
@@ -208,8 +221,8 @@ export default function InventoryPage() {
                       <TableCell className="text-right">${item.salePrice.toFixed(2)}</TableCell>
                       <TableCell>{new Date(item.lastRestockDate).toLocaleDateString()}</TableCell>
                       <TableCell className="text-right">
-                        <Button variant="ghost" size="icon" onClick={() => alert(`Editing ${item.name} (mock)...`)} aria-label={`Edit ${item.name}`}>
-                          <Edit className="h-4 w-4" />
+                        <Button variant="ghost" size="icon" onClick={() => handleViewItemDetails(item)} aria-label={`View details for ${item.name}`}>
+                          <Eye className="h-4 w-4" />
                         </Button>
                       </TableCell>
                     </TableRow>
@@ -227,5 +240,11 @@ export default function InventoryPage() {
         </CardContent>
       </Card>
     </div>
+    <InventoryItemDetailModal
+        item={selectedItemForModal}
+        isOpen={isItemModalOpen}
+        onClose={handleCloseItemModal}
+    />
+    </>
   );
 }
