@@ -89,7 +89,7 @@ export default function ProfilePage() {
                 {user.firstName} {user.lastName}
               </CardTitle>
               <CardDescription className="text-md text-muted-foreground">{user.email}</CardDescription>
-              <p className="text-sm text-muted-foreground mt-1">Member Since: {user.memberSince}</p>
+              <p className="text-sm text-muted-foreground mt-1">Member Since: {new Date(user.memberSince).toLocaleDateString()}</p>
             </div>
           </CardHeader>
           <CardContent className="p-6 space-y-6">
@@ -110,7 +110,7 @@ export default function ProfilePage() {
                   <li>Purchased 'Blue Dream' (Flower) - 2 days ago</li>
                   <li>Redeemed 100 loyalty points - 1 week ago</li>
                   <li>Viewed 'Concentrates' category - 1 week ago</li>
-                  <li>First purchase: 'Sour Diesel' (Flower) on {user.memberSince}</li>
+                  <li>First purchase: 'Sour Diesel' (Flower) on {new Date(user.memberSince).toLocaleDateString()}</li>
                 </ul>
               </Card>
             </div>

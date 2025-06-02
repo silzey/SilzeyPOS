@@ -31,7 +31,7 @@ export interface UserProfile {
   avatarUrl: string;
   dataAiHint?: string; // Added for avatars
   bio?: string;
-  memberSince: string;
+  memberSince: string; // ISO date string
   rewardsPoints?: number;
 }
 

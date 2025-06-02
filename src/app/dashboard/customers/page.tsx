@@ -112,7 +112,7 @@ export default function CustomersPage() {
                         <Mail className="mr-1 h-3 w-3" /> {customer.email}
                       </CardDescription>
                        <p className="text-xs text-muted-foreground mt-0.5">
-                        Member Since: {customer.memberSince}
+                        Member Since: {new Date(customer.memberSince).toLocaleDateString()}
                       </p>
                     </div>
                   </CardHeader>

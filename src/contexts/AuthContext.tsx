@@ -57,7 +57,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         avatarUrl: 'https://placehold.co/150x150.png?text=KL',
         dataAiHint: 'person face',
         bio: 'Enthusiastic budtender with a passion for quality cannabis products and customer education. Helping people find the perfect strain since 2020.',
-        memberSince: 'January 15, 2023',
+        memberSince: new Date(2023, 0, 15).toISOString(), // Jan 15, 2023 as ISO string
         rewardsPoints: 1250,
       };
       setUser(kimUser);
@@ -91,7 +91,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       email,
       firstName,
       lastName,
-      memberSince: new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
+      memberSince: new Date().toISOString(), // Store as ISO string
       rewardsPoints: 0, // New users start with 0 points
     };
 

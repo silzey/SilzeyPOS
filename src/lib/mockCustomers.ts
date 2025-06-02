@@ -103,11 +103,13 @@ const generateMockOrdersForCustomer = (orderCount: number, customerId: string): 
     for (let i = 0; i < orderCount; i++) {
         const items = generateMockCartItemsForCustomer(Math.floor(Math.random() * 4) + 1); // 1 to 4 items per order
         const totalAmount = items.reduce((sum, item) => sum + parseFloat(item.price) * item.quantity, 0);
+        const orderDate = new Date(Date.now() - Math.random() * 365 * 24 * 60 * 60 * 1000); // Within last year
         orders.push({
             id: `ORD-${customerId.slice(-3)}-${String(101 + i).padStart(3, '0')}`,
             customerName: customerId, 
             customerId: customerId, // Ensure customerId is present for linking
-            orderDate: new Date(Date.now() - Math.random() * 365 * 24 * 60 * 60 * 1000).toISOString(), // Within last year
+            orderDate: orderDate.toISOString(),
+            processedAt: Math.random() > 0.1 ? new Date(orderDate.getTime() + Math.random() * 10 * 60 * 1000).toISOString() : undefined, // Most orders processed shortly after
             status: Math.random() > 0.3 ? "In-Store" : "Online",
             totalAmount: parseFloat(totalAmount.toFixed(2)),
             itemCount: items.reduce((sum, item) => sum + item.quantity, 0),
@@ -123,19 +125,19 @@ const generateMockOrdersForCustomer = (orderCount: number, customerId: string): 
 export const mockCustomers: Customer[] = Array.from({ length: 50 }, (_, i) => {
   const firstName = firstNames[i % firstNames.length];
   const lastName = lastNames[i % lastNames.length];
-  // Ensure the special "Kim Lunaris" mock customer retains their specific email and details
   let email, specificBio, specificRewards, specificMemberSince, specificId;
-  if (i === 0) { // Designate index 0 for Kim Lunaris for consistency
+
+  if (i === 0) { 
     email = 'kim.l@silzeypos.com';
     specificBio = 'Enthusiastic budtender with a passion for quality cannabis products and customer education. Helping people find the perfect strain since 2020.';
     specificRewards = 1250;
-    specificMemberSince = new Date(2023, 0, 15); // Jan 15, 2023
+    specificMemberSince = new Date(2023, 0, 15).toISOString(); // Jan 15, 2023 as ISO
     specificId = 'user-kim-123';
   } else {
     email = `${firstName.toLowerCase()}.${lastName.toLowerCase()}${i + 1}@example.com`;
     specificBio = bios[i % bios.length];
     specificRewards = Math.floor(Math.random() * 3000) + 50;
-    specificMemberSince = new Date(Date.now() - Math.random() * 2 * 365 * 24 * 60 * 60 * 1000); // Within last 2 years
+    specificMemberSince = new Date(Date.now() - Math.random() * 2 * 365 * 24 * 60 * 60 * 1000).toISOString(); // Within last 2 years as ISO
     specificId = `cust-${String(i + 1).padStart(3, '0')}`;
   }
   
@@ -146,10 +148,10 @@ export const mockCustomers: Customer[] = Array.from({ length: 50 }, (_, i) => {
     email: email,
     avatarUrl: customerAvatars[i % customerAvatars.length],
     dataAiHint: customerDataHints[i % customerDataHints.length],
-    memberSince: specificMemberSince.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
+    memberSince: specificMemberSince,
     rewardsPoints: specificRewards,
     bio: specificBio,
-    orderHistory: generateMockOrdersForCustomer(Math.floor(Math.random() * 8) + 1, specificId), // 1 to 8 orders
+    orderHistory: generateMockOrdersForCustomer(Math.floor(Math.random() * 8) + 1, specificId),
     currentOrder: Math.random() > 0.7 ? { 
         id: `CUR-ORD-${specificId.slice(-3)}-${String(Math.floor(Math.random()*99)+1).padStart(2,'0')}`,
         customerName: `${firstName} ${lastName}`,
@@ -173,7 +175,6 @@ export const getCustomerById = (id: string): Customer | undefined => {
         return staticCustomer;
     }
 
-    // Try to find in localStorage
     if (typeof window !== 'undefined') {
         const newlyRegisteredUsersRaw = localStorage.getItem(NEWLY_REGISTERED_USERS_STORAGE_KEY);
         if (newlyRegisteredUsersRaw) {
@@ -181,10 +182,9 @@ export const getCustomerById = (id: string): Customer | undefined => {
                 const newlyRegisteredProfiles: UserProfile[] = JSON.parse(newlyRegisteredUsersRaw);
                 const foundProfile = newlyRegisteredProfiles.find(profile => profile.id === id);
                 if (foundProfile) {
-                    // Convert UserProfile to Customer
                     return {
                         ...foundProfile,
-                        orderHistory: [], // New users from signup won't have order history this way
+                        orderHistory: [], 
                         currentOrder: undefined,
                         rewardsPoints: foundProfile.rewardsPoints !== undefined ? foundProfile.rewardsPoints : 0,
                     };

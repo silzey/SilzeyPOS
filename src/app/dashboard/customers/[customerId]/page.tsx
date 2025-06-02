@@ -71,7 +71,6 @@ export default function CustomerProfilePage() {
 
   useEffect(() => {
     if (customerId) {
-      // getCustomerById will now also check localStorage
       const foundCustomer = getCustomerById(customerId);
       setCustomer(foundCustomer);
     }
@@ -139,7 +138,7 @@ export default function CustomerProfilePage() {
             </CardTitle>
             <div className="text-muted-foreground mt-1 space-y-0.5 text-sm">
                 <p className="flex items-center justify-center md:justify-start"><Mail className="mr-2 h-4 w-4"/>{customer.email}</p>
-                <p className="flex items-center justify-center md:justify-start"><CalendarDays className="mr-2 h-4 w-4"/>Member Since: {customer.memberSince}</p>
+                <p className="flex items-center justify-center md:justify-start"><CalendarDays className="mr-2 h-4 w-4"/>Member Since: {new Date(customer.memberSince).toLocaleDateString()}</p>
             </div>
             <div className="mt-2 flex items-center justify-center md:justify-start gap-2 bg-accent/20 text-accent-foreground p-2 rounded-md max-w-xs mx-auto md:mx-0">
               <Gift className="h-5 w-5 text-accent" />
