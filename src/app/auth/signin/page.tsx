@@ -1,13 +1,18 @@
 
 "use client";
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { useAuth } from '@/contexts/AuthContext';
 import { Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { Separator } from '@/components/ui/separator';
+import { useToast } from "@/hooks/use-toast";
+
 
 // Simple SVG for Google icon
 const GoogleIcon = () => (
@@ -21,14 +26,33 @@ const GoogleIcon = () => (
 );
 
 export default function SignInPage() {
-  const { signInWithGoogle, user, loading } = useAuth();
+  const { signInWithGoogle, signInWithEmail, user, loading } = useAuth();
   const router = useRouter();
+  const { toast } = useToast();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (!loading && user) {
       router.replace('/'); // Redirect to home if already logged in
     }
   }, [user, loading, router]);
+
+  const handleEmailSignIn = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    const success = await signInWithEmail(email, password);
+    if (!success) {
+      toast({
+        title: "Sign In Failed",
+        description: "Invalid email or password. (Hint: test@example.com / password123)",
+        variant: "destructive",
+      });
+    }
+    // If successful, useEffect will redirect.
+    setIsSubmitting(false);
+  };
 
   return (
     <Card className="w-full max-w-md shadow-xl">
@@ -37,13 +61,58 @@ export default function SignInPage() {
         <CardDescription>Sign in to access your account.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
+        <form onSubmit={handleEmailSignIn} className="space-y-4">
+          <div>
+            <Label htmlFor="email">Email</Label>
+            <Input 
+              id="email" 
+              type="email" 
+              placeholder="you@example.com" 
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required 
+              disabled={loading || isSubmitting}
+            />
+          </div>
+          <div>
+            <Label htmlFor="password">Password</Label>
+            <Input 
+              id="password" 
+              type="password" 
+              placeholder="••••••••" 
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required 
+              disabled={loading || isSubmitting}
+            />
+          </div>
+          <Button type="submit" className="w-full py-3" disabled={loading || isSubmitting}>
+            {isSubmitting && !loading ? ( // Show loader only if this form is submitting
+              <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+            ) : (
+              'Sign In'
+            )}
+          </Button>
+        </form>
+
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center">
+            <Separator />
+          </div>
+          <div className="relative flex justify-center text-xs uppercase">
+            <span className="bg-card px-2 text-muted-foreground">
+              Or continue with
+            </span>
+          </div>
+        </div>
+
         <Button 
           onClick={signInWithGoogle} 
-          className="w-full py-6 text-lg" 
+          className="w-full py-3 text-base" 
           variant="outline"
-          disabled={loading}
+          disabled={loading || isSubmitting}
         >
-          {loading ? (
+          {loading && !isSubmitting ? ( // Show loader if Google Sign-In is loading
             <Loader2 className="mr-2 h-5 w-5 animate-spin" />
           ) : (
             <GoogleIcon />
@@ -51,11 +120,16 @@ export default function SignInPage() {
           Sign In with Google
         </Button>
       </CardContent>
-       <CardFooter className="flex justify-center text-sm">
+       <CardFooter className="flex flex-col items-center justify-center text-sm space-y-1">
         <p className="text-muted-foreground">
-          New user? Signing in with Google will create an account for you.
+          Signing in with Google will create an account if you're new.
+        </p>
+         <p className="text-xs text-muted-foreground">
+          (Mock email login: <code className="bg-muted p-0.5 rounded">test@example.com</code> / <code className="bg-muted p-0.5 rounded">password123</code>)
         </p>
       </CardFooter>
     </Card>
   );
 }
+
+    

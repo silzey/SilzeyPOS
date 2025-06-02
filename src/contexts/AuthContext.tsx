@@ -11,21 +11,34 @@ interface AuthContextType {
   user: UserProfile | null;
   loading: boolean;
   signInWithGoogle: () => Promise<void>;
+  signInWithEmail: (email: string, pass: string) => Promise<boolean>; // Added for email/password
   signOut: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const ACTIVE_USER_STORAGE_KEY = 'activeUserSilzeyPOS';
-const ALL_USERS_STORAGE_KEY = 'allUserProfilesSilzeyPOS'; // Stores all known user profiles
+const ALL_USERS_STORAGE_KEY = 'allUserProfilesSilzeyPOS';
 
-// Helper to parse display name
 const parseName = (displayName: string | null): { firstName: string; lastName: string } => {
   if (!displayName) return { firstName: 'User', lastName: '' };
   const parts = displayName.split(' ');
   const firstName = parts[0];
   const lastName = parts.slice(1).join(' ');
   return { firstName, lastName };
+};
+
+// Mock user for email/password sign-in
+const MOCK_EMAIL_USER: UserProfile = {
+  id: 'mock-email-user-123',
+  firstName: 'Mock',
+  lastName: 'User',
+  email: 'test@example.com',
+  avatarUrl: 'https://placehold.co/150x150.png?text=MU',
+  dataAiHint: 'user avatar',
+  bio: 'A mock user for email/password testing.',
+  memberSince: new Date(2023, 0, 1).toISOString(),
+  rewardsPoints: 100,
 };
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
@@ -43,7 +56,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         let userProfile = allUsers.find(u => u.id === firebaseUser.uid || u.email === firebaseUser.email);
 
         if (!userProfile) {
-          // New user or existing user not yet in our local store with UID
           const { firstName, lastName } = parseName(firebaseUser.displayName);
           userProfile = {
             id: firebaseUser.uid,
@@ -56,10 +68,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             memberSince: new Date().toISOString(),
             rewardsPoints: 0,
           };
-          // Add or update user in allUsers list
           const existingUserIndex = allUsers.findIndex(u => u.email === userProfile!.email);
           if (existingUserIndex > -1) {
-            allUsers[existingUserIndex] = { ...allUsers[existingUserIndex], ...userProfile }; // Merge if email matched but ID didn't (e.g. old record)
+            allUsers[existingUserIndex] = { ...allUsers[existingUserIndex], ...userProfile };
           } else {
             allUsers.push(userProfile);
           }
@@ -68,24 +79,36 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         
         setUser(userProfile);
         localStorage.setItem(ACTIVE_USER_STORAGE_KEY, JSON.stringify(userProfile));
-        // Only redirect if they are on an auth page
         if (router.pathname?.startsWith('/auth')) {
           router.push('/');
         }
 
       } else {
-        setUser(null);
-        localStorage.removeItem(ACTIVE_USER_STORAGE_KEY);
+        // Only clear user if not handling mock login
+        const activeUser = localStorage.getItem(ACTIVE_USER_STORAGE_KEY);
+        if (activeUser) {
+            try {
+                const parsedActiveUser = JSON.parse(activeUser);
+                if (parsedActiveUser.id !== MOCK_EMAIL_USER.id) { // Don't clear if it's the mock user
+                    setUser(null);
+                    localStorage.removeItem(ACTIVE_USER_STORAGE_KEY);
+                }
+            } catch (e) {
+                setUser(null);
+                localStorage.removeItem(ACTIVE_USER_STORAGE_KEY);
+            }
+        } else {
+            setUser(null);
+        }
       }
       setLoading(false);
     });
 
-    // Attempt to load from active user storage on initial mount for faster UI update
-    // while onAuthStateChanged initializes
     const storedActiveUser = localStorage.getItem(ACTIVE_USER_STORAGE_KEY);
-    if (storedActiveUser && !auth.currentUser) {
+    if (storedActiveUser && !auth.currentUser) { // Check !auth.currentUser here
         try {
-            setUser(JSON.parse(storedActiveUser));
+            const parsedUser = JSON.parse(storedActiveUser);
+            setUser(parsedUser);
         } catch (e) {
             localStorage.removeItem(ACTIVE_USER_STORAGE_KEY);
         }
@@ -99,7 +122,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setLoading(true);
     try {
       await signInWithPopup(auth, googleProvider);
-      // onAuthStateChanged will handle setting the user and redirecting
+      // onAuthStateChanged will handle the rest
     } catch (error) {
       console.error("Error during Google sign-in:", error);
       alert("Google Sign-In Failed. Please try again.");
@@ -107,20 +130,62 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const signInWithEmail = async (email: string, pass: string): Promise<boolean> => {
+    setLoading(true);
+    // This is a MOCK sign-in.
+    if (email === MOCK_EMAIL_USER.email && pass === "password123") {
+      setUser(MOCK_EMAIL_USER);
+      localStorage.setItem(ACTIVE_USER_STORAGE_KEY, JSON.stringify(MOCK_EMAIL_USER));
+      
+      // Add/update mock user in all users list if not present or different
+      const allUsersRaw = localStorage.getItem(ALL_USERS_STORAGE_KEY);
+      let allUsers: UserProfile[] = allUsersRaw ? JSON.parse(allUsersRaw) : [];
+      const existingMockUserIndex = allUsers.findIndex(u => u.id === MOCK_EMAIL_USER.id || u.email === MOCK_EMAIL_USER.email);
+      if (existingMockUserIndex > -1) {
+        allUsers[existingMockUserIndex] = { ...allUsers[existingMockUserIndex], ...MOCK_EMAIL_USER};
+      } else {
+        allUsers.push(MOCK_EMAIL_USER);
+      }
+      localStorage.setItem(ALL_USERS_STORAGE_KEY, JSON.stringify(allUsers));
+
+      setLoading(false);
+      if (router.pathname?.startsWith('/auth')) {
+        router.push('/');
+      }
+      return true;
+    }
+    setLoading(false);
+    return false;
+  };
+
   const signOut = async () => {
     setLoading(true);
-    await firebaseSignOut(auth);
+    const activeUserRaw = localStorage.getItem(ACTIVE_USER_STORAGE_KEY);
+    let isMockUser = false;
+    if (activeUserRaw) {
+        try {
+            const activeUser = JSON.parse(activeUserRaw);
+            if (activeUser.id === MOCK_EMAIL_USER.id) {
+                isMockUser = true;
+            }
+        } catch(e) { /* ignore */ }
+    }
+
+    if (!isMockUser && auth.currentUser) {
+      await firebaseSignOut(auth);
+    }
+    // For both Firebase and mock users, clear local state
     setUser(null);
     localStorage.removeItem(ACTIVE_USER_STORAGE_KEY);
     router.push('/auth/signin');
     setLoading(false);
   };
 
-  // Remove signIn and signUp as they are replaced by signInWithGoogle
   const contextValue: AuthContextType = {
     user,
     loading,
     signInWithGoogle,
+    signInWithEmail,
     signOut,
   };
 
@@ -138,3 +203,5 @@ export const useAuth = () => {
   }
   return context;
 };
+
+    
