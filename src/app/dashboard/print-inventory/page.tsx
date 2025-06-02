@@ -82,18 +82,23 @@ function PrintableInventoryContent() {
             display: none !important; 
           }
           @page { 
-            margin: 0.5in; 
-            size: landscape; 
+            size: letter portrait; /* Target US Letter, portrait orientation */
+            margin: 1in 0.75in; /* Top/Bottom 1in, Left/Right 0.75in. Content area: ~7in x 9in */
           }
           table { 
             width: 100%; 
             border-collapse: collapse; 
+            table-layout: fixed; /* Helps with predictable column widths */
+          }
+          tr, td, th { /* Apply to all table elements for page breaks */
+            page-break-inside: auto;
           }
           th, td { 
             border: 1px solid #ccc; 
-            padding: 4px; 
+            padding: 4px; /* Reduced padding slightly */
             text-align: left; 
-            font-size: 9pt; 
+            font-size: 9pt; /* Small font size for printing */
+            word-wrap: break-word; /* Ensure long text wraps */
           }
           th { 
             background-color: #f0f0f0 !important; 
@@ -114,12 +119,12 @@ function PrintableInventoryContent() {
         <Table className="text-xs"> {/* Base class for screen, print styles override */}
           <TableHeader>
             <TableRow>
-              <TableHead className="w-[30%] print:w-auto">Product Name</TableHead>
-              <TableHead className="w-[15%] print:w-auto">SKU</TableHead>
-              <TableHead className="w-[15%] print:w-auto">Category</TableHead>
-              <TableHead className="w-[20%] print:w-auto">Supplier</TableHead>
-              <TableHead className="text-center w-[10%] print:w-auto">Stock</TableHead>
-              <TableHead className="text-right w-[10%] print:w-auto">Sale Price</TableHead>
+              <TableHead className="w-[30%]">Product Name</TableHead>
+              <TableHead className="w-[15%]">SKU</TableHead>
+              <TableHead className="w-[15%]">Category</TableHead>
+              <TableHead className="w-[20%]">Supplier</TableHead>
+              <TableHead className="text-center w-[10%]">Stock</TableHead>
+              <TableHead className="text-right w-[10%]">Sale Price</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
