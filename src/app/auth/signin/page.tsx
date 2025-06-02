@@ -46,7 +46,7 @@ export default function SignInPage() {
     if (!success) {
       toast({
         title: "Sign In Failed",
-        description: "Invalid email or password. (Hint: test@example.com / superSecure123)",
+        description: "Invalid email or password. (Hint: kim.l@silzeypos.com / passwordDancer$1976)",
         variant: "destructive",
       });
     }
@@ -87,7 +87,7 @@ export default function SignInPage() {
             />
           </div>
           <Button type="submit" className="w-full py-3" disabled={loading || isSubmitting}>
-            {isSubmitting && !loading ? ( // Show loader only if this form is submitting
+            {isSubmitting && !loading ? ( 
               <Loader2 className="mr-2 h-5 w-5 animate-spin" />
             ) : (
               'Sign In'
@@ -112,7 +112,7 @@ export default function SignInPage() {
           variant="outline"
           disabled={loading || isSubmitting}
         >
-          {loading && !isSubmitting ? ( // Show loader if Google Sign-In is loading
+          {loading && !isSubmitting ? ( 
             <Loader2 className="mr-2 h-5 w-5 animate-spin" />
           ) : (
             <GoogleIcon />
@@ -125,7 +125,7 @@ export default function SignInPage() {
           Signing in with Google will create an account if you're new.
         </p>
          <p className="text-xs text-muted-foreground">
-          (Mock email login: <code className="bg-muted p-0.5 rounded">test@example.com</code> / <code className="bg-muted p-0.5 rounded">superSecure123</code>)
+          (Mock email login: <code className="bg-muted p-0.5 rounded">kim.l@silzeypos.com</code> / <code className="bg-muted p-0.5 rounded">passwordDancer$1976</code>)
         </p>
       </CardFooter>
     </Card>

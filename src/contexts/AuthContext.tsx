@@ -11,7 +11,7 @@ interface AuthContextType {
   user: UserProfile | null;
   loading: boolean;
   signInWithGoogle: () => Promise<void>;
-  signInWithEmail: (email: string, pass: string) => Promise<boolean>; // Added for email/password
+  signInWithEmail: (email: string, pass: string) => Promise<boolean>;
   signOut: () => Promise<void>;
 }
 
@@ -30,15 +30,15 @@ const parseName = (displayName: string | null): { firstName: string; lastName: s
 
 // Mock user for email/password sign-in
 const MOCK_EMAIL_USER: UserProfile = {
-  id: 'mock-email-user-123',
-  firstName: 'Mock',
-  lastName: 'User',
-  email: 'test@example.com',
-  avatarUrl: 'https://placehold.co/150x150.png?text=MU',
+  id: 'mock-kim-l-789',
+  firstName: 'Kim',
+  lastName: 'Lunaris',
+  email: 'kim.l@silzeypos.com',
+  avatarUrl: 'https://placehold.co/150x150.png?text=KL',
   dataAiHint: 'user avatar',
-  bio: 'A mock user for email/password testing.',
-  memberSince: new Date(2023, 0, 1).toISOString(),
-  rewardsPoints: 100,
+  bio: 'The original mock user for Silzey POS.',
+  memberSince: new Date(2022, 5, 15).toISOString(), // Example date
+  rewardsPoints: 1500,
 };
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
@@ -84,12 +84,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
 
       } else {
-        // Only clear user if not handling mock login
         const activeUser = localStorage.getItem(ACTIVE_USER_STORAGE_KEY);
         if (activeUser) {
             try {
                 const parsedActiveUser = JSON.parse(activeUser);
-                if (parsedActiveUser.id !== MOCK_EMAIL_USER.id) { // Don't clear if it's the mock user
+                if (parsedActiveUser.id !== MOCK_EMAIL_USER.id) { 
                     setUser(null);
                     localStorage.removeItem(ACTIVE_USER_STORAGE_KEY);
                 }
@@ -105,7 +104,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     });
 
     const storedActiveUser = localStorage.getItem(ACTIVE_USER_STORAGE_KEY);
-    if (storedActiveUser && !auth.currentUser) { // Check !auth.currentUser here
+    if (storedActiveUser && !auth.currentUser) { 
         try {
             const parsedUser = JSON.parse(storedActiveUser);
             setUser(parsedUser);
@@ -114,7 +113,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
     }
 
-
     return () => unsubscribe();
   }, [router]);
 
@@ -122,7 +120,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setLoading(true);
     try {
       await signInWithPopup(auth, googleProvider);
-      // onAuthStateChanged will handle the rest
     } catch (error) {
       console.error("Error during Google sign-in:", error);
       alert("Google Sign-In Failed. Please try again.");
@@ -132,12 +129,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signInWithEmail = async (email: string, pass: string): Promise<boolean> => {
     setLoading(true);
-    // This is a MOCK sign-in.
-    if (email === MOCK_EMAIL_USER.email && pass === "superSecure123") { // Changed password here
+    if (email.toLowerCase() === MOCK_EMAIL_USER.email.toLowerCase() && pass === "passwordDancer$1976") {
       setUser(MOCK_EMAIL_USER);
       localStorage.setItem(ACTIVE_USER_STORAGE_KEY, JSON.stringify(MOCK_EMAIL_USER));
       
-      // Add/update mock user in all users list if not present or different
       const allUsersRaw = localStorage.getItem(ALL_USERS_STORAGE_KEY);
       let allUsers: UserProfile[] = allUsersRaw ? JSON.parse(allUsersRaw) : [];
       const existingMockUserIndex = allUsers.findIndex(u => u.id === MOCK_EMAIL_USER.id || u.email === MOCK_EMAIL_USER.email);
@@ -174,7 +169,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (!isMockUser && auth.currentUser) {
       await firebaseSignOut(auth);
     }
-    // For both Firebase and mock users, clear local state
     setUser(null);
     localStorage.removeItem(ACTIVE_USER_STORAGE_KEY);
     router.push('/auth/signin');
