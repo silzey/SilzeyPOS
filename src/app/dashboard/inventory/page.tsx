@@ -25,7 +25,26 @@ type StockStatusFilter = "All" | "In Stock" | "Low Stock" | "Out of Stock";
 // Helper to check for valid image URLs that next/image can handle
 const isValidNextImageUrl = (url?: string): boolean => {
   if (!url || typeof url !== 'string') return false;
-  return url.startsWith('http://') || url.startsWith('https:') || url.startsWith('data:') || url.startsWith('/');
+  if (url.startsWith('data:')) return true; // Data URLs are fine
+  if (url.startsWith('/')) return true; // Relative paths are fine
+
+  if (url.startsWith('http://') || url.startsWith('https:')) {
+    try {
+      const parsedUrl = new URL(url);
+      const imageExtensions = ['.png', '.jpg', '.jpeg', '.gif', '.webp', '.svg'];
+      const pathname = parsedUrl.pathname.toLowerCase();
+      // Allow if placehold.co 
+      if (parsedUrl.hostname === 'placehold.co') return true;
+      // For other http/https, check for common image extensions
+      if (imageExtensions.some(ext => pathname.endsWith(ext))) {
+        return true;
+      }
+      return false; // If http/https and no recognized image extension
+    } catch (e) {
+      return false; // Invalid URL structure
+    }
+  }
+  return false; // Not a data URL, relative path, or valid http/https with image extension
 };
 
 
@@ -276,4 +295,3 @@ export default function InventoryPage() {
     </>
   );
 }
-

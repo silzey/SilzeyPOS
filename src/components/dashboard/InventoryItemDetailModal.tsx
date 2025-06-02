@@ -29,11 +29,28 @@ const getStockBadgeInfo = (stock: number, threshold: number): { text: string; cl
 };
 
 const isValidImageUrl = (url?: string): boolean => {
-  if (!url) {
-    return false;
+  if (!url || typeof url !== 'string') return false;
+  if (url.startsWith('data:')) return true; // Data URLs are fine
+  if (url.startsWith('/')) return true; // Relative paths are fine
+
+  if (url.startsWith('http://') || url.startsWith('https:')) {
+    try {
+      const parsedUrl = new URL(url);
+      const imageExtensions = ['.png', '.jpg', '.jpeg', '.gif', '.webp', '.svg'];
+      const pathname = parsedUrl.pathname.toLowerCase();
+      // Allow if placehold.co (as they might not always have extensions in a predictable way in the future, though current ones do)
+      if (parsedUrl.hostname === 'placehold.co') return true; 
+      // For other http/https, check for common image extensions
+      if (imageExtensions.some(ext => pathname.endsWith(ext))) {
+        return true;
+      }
+      return false; // If http/https and no recognized image extension, assume it's not a direct image link.
+    } catch (e) {
+      // Invalid URL structure
+      return false;
+    }
   }
-  // Basic check for common valid URL schemes for next/image
-  return url.startsWith('http://') || url.startsWith('https:') || url.startsWith('data:') || url.startsWith('/');
+  return false; // Not a data URL, relative path, or valid http/https with image extension
 };
 
 
@@ -45,7 +62,7 @@ const InventoryItemDetailModal: FC<InventoryItemDetailModalProps> = ({ item, isO
   useEffect(() => {
     if (item) {
       setEditableItem({ ...item });
-      setIsEditing(false);
+      setIsEditing(false); // Reset editing state when item changes
     } else {
       setEditableItem(null);
     }
@@ -66,6 +83,7 @@ const InventoryItemDetailModal: FC<InventoryItemDetailModalProps> = ({ item, isO
     let processedValue: string | number = value;
     const numericFields = ['stock', 'lowStockThreshold', 'purchasePrice', 'salePrice', 'rating'];
     if (numericFields.includes(name)) {
+      // Allow empty string for temporary input clearing, validation happens on save
       processedValue = value === '' ? '' : parseFloat(value); 
     }
     setEditableItem(prev => prev ? { ...prev, [name]: processedValue } : null);
@@ -73,6 +91,7 @@ const InventoryItemDetailModal: FC<InventoryItemDetailModalProps> = ({ item, isO
 
   const handleSaveClick = () => {
     if (editableItem) {
+      // Validate and convert numeric fields
       const fieldsToValidateAsNumbers = {
         stock: editableItem.stock,
         lowStockThreshold: editableItem.lowStockThreshold,
@@ -82,12 +101,14 @@ const InventoryItemDetailModal: FC<InventoryItemDetailModalProps> = ({ item, isO
       };
 
       for (const [fieldName, fieldValue] of Object.entries(fieldsToValidateAsNumbers)) {
-        const numValue = parseFloat(String(fieldValue));
+        const numValue = parseFloat(String(fieldValue)); // Ensure fieldValue is treated as string before parseFloat
         if (isNaN(numValue) || numValue < 0) {
-          alert(`${fieldName.replace(/([A-Z])/g, ' $1').toLowerCase()} must be a valid non-negative number.`);
+          // Capitalize first letter of fieldName for user-friendly message
+          const userFriendlyFieldName = fieldName.charAt(0).toUpperCase() + fieldName.slice(1).replace(/([A-Z])/g, ' $1').toLowerCase();
+          alert(`${userFriendlyFieldName} must be a valid non-negative number.`);
           return;
         }
-        (editableItem as any)[fieldName] = numValue;
+        (editableItem as any)[fieldName] = numValue; // Assign the validated number
       }
       
       if (editableItem.rating > 5) {
@@ -101,7 +122,7 @@ const InventoryItemDetailModal: FC<InventoryItemDetailModalProps> = ({ item, isO
   };
   
   const handleCancelEdit = () => {
-    if (item) setEditableItem({...item});
+    if (item) setEditableItem({...item}); // Revert to original item details
     setIsEditing(false);
   }
 
@@ -173,7 +194,7 @@ const InventoryItemDetailModal: FC<InventoryItemDetailModalProps> = ({ item, isO
                       objectFit="contain"
                       className="rounded-sm" 
                       data-ai-hint={editableItem.dataAiHint || editableItem.category.toLowerCase()}
-                      key={editableItem.imageUrl} // Force re-render on URL change
+                      key={editableItem.imageUrl} 
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center bg-muted rounded-sm">
@@ -186,8 +207,8 @@ const InventoryItemDetailModal: FC<InventoryItemDetailModalProps> = ({ item, isO
               {isEditing && (
                 <div className="space-y-3 pt-2">
                   <div>
-                    <Label htmlFor="itemImageUrl" className="text-xs text-muted-foreground">Image URL</Label>
-                    <Input id="itemImageUrl" name="imageUrl" value={editableItem.imageUrl} onChange={handleInputChange} placeholder="https://example.com/image.png" className="h-9"/>
+                    <Label htmlFor="itemImageUrl" className="text-xs text-muted-foreground">Image URL (must be a direct link to an image file, e.g., .png, .jpg)</Label>
+                    <Input id="itemImageUrl" name="imageUrl" value={editableItem.imageUrl || ''} onChange={handleInputChange} placeholder="https://example.com/image.png" className="h-9"/>
                   </div>
                   <div
                     onDragOver={handleDragOver}
