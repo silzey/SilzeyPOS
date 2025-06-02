@@ -11,7 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { getCustomerById } from '@/lib/mockCustomers'; // This function will be updated
+import { getCustomerById } from '@/lib/mockCustomers'; 
 import type { Customer, Order, CartItem } from '@/types/pos';
 import { ArrowLeft, Mail, CalendarDays, Gift, ShoppingCart, Star, Edit, Info } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -107,7 +107,7 @@ export default function CustomerProfilePage() {
       <div className="text-center py-10">
         <Info className="mx-auto h-12 w-12 text-destructive mb-4" />
         <h1 className="text-2xl font-bold text-destructive">Customer Not Found</h1>
-        <p className="text-muted-foreground mb-6">The customer profile with ID "{customerId}" could not be found in static mocks or new sign-ups.</p>
+        <p className="text-muted-foreground mb-6">The customer profile with ID "{customerId}" could not be found.</p>
         <Button onClick={() => router.push('/dashboard/customers')} variant="outline">
           <ArrowLeft className="mr-2 h-4 w-4" /> Back to Customer List
         </Button>
@@ -165,7 +165,7 @@ export default function CustomerProfilePage() {
                     ))}
                 </ScrollArea>
               ) : (
-                <p className="text-muted-foreground text-sm">No past orders found.</p>
+                <p className="text-muted-foreground text-sm">No past orders found for this user.</p>
               )}
             </div>
             <div>
@@ -173,7 +173,7 @@ export default function CustomerProfilePage() {
               {customer.currentOrder ? (
                 <OrderCard order={customer.currentOrder} title="Current Order" />
               ) : (
-                <p className="text-muted-foreground text-sm">No current order.</p>
+                <p className="text-muted-foreground text-sm">No current order for this user.</p>
               )}
             </div>
           </div>

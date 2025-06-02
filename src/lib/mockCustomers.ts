@@ -122,29 +122,19 @@ const generateMockOrdersForCustomer = (orderCount: number, customerId: string): 
 };
 
 
-export const mockCustomers: Customer[] = Array.from({ length: 50 }, (_, i) => {
+export const mockCustomers: Customer[] = Array.from({ length: 10 }, (_, i) => { // Reduced static mock count
   const firstName = firstNames[i % firstNames.length];
   const lastName = lastNames[i % lastNames.length];
-  let email, specificBio, specificRewards, specificMemberSince, specificId;
-
-  if (i === 0) { 
-    email = 'kim.l@silzeypos.com';
-    specificBio = 'Enthusiastic budtender with a passion for quality cannabis products and customer education. Helping people find the perfect strain since 2020.';
-    specificRewards = 1250;
-    specificMemberSince = new Date(2023, 0, 15).toISOString(); // Jan 15, 2023 as ISO
-    specificId = 'user-kim-123';
-  } else {
-    email = `${firstName.toLowerCase()}.${lastName.toLowerCase()}${i + 1}@example.com`;
-    specificBio = bios[i % bios.length];
-    specificRewards = Math.floor(Math.random() * 3000) + 50;
-    specificMemberSince = new Date(Date.now() - Math.random() * 2 * 365 * 24 * 60 * 60 * 1000).toISOString(); // Within last 2 years as ISO
-    specificId = `cust-${String(i + 1).padStart(3, '0')}`;
-  }
+  const email = `${firstName.toLowerCase()}.${lastName.toLowerCase()}${i + 1}@example.com`;
+  const specificBio = bios[i % bios.length];
+  const specificRewards = Math.floor(Math.random() * 3000) + 50;
+  const specificMemberSince = new Date(Date.now() - Math.random() * 2 * 365 * 24 * 60 * 60 * 1000).toISOString();
+  const specificId = `static-cust-${String(i + 1).padStart(3, '0')}`;
   
   return {
     id: specificId,
     firstName: firstName,
-    lastName: `${lastName}${i < lastNames.length || i === 0 ? '' : Math.floor(i / lastNames.length)}`, 
+    lastName: `${lastName}${i < lastNames.length ? '' : Math.floor(i / lastNames.length)}`, 
     email: email,
     avatarUrl: customerAvatars[i % customerAvatars.length],
     dataAiHint: customerDataHints[i % customerDataHints.length],
@@ -167,30 +157,34 @@ export const mockCustomers: Customer[] = Array.from({ length: 50 }, (_, i) => {
   };
 });
 
-const NEWLY_REGISTERED_USERS_STORAGE_KEY = 'newlyRegisteredUsersSilzey';
+const ALL_USERS_STORAGE_KEY = 'allUserProfilesSilzeyPOS'; // Updated key
 
 export const getCustomerById = (id: string): Customer | undefined => {
+    // First, check static mock customers
     const staticCustomer = mockCustomers.find(customer => customer.id === id);
     if (staticCustomer) {
         return staticCustomer;
     }
 
+    // Then, check localStorage for all users (which includes Google-signed-in users)
     if (typeof window !== 'undefined') {
-        const newlyRegisteredUsersRaw = localStorage.getItem(NEWLY_REGISTERED_USERS_STORAGE_KEY);
-        if (newlyRegisteredUsersRaw) {
+        const allUsersRaw = localStorage.getItem(ALL_USERS_STORAGE_KEY);
+        if (allUsersRaw) {
             try {
-                const newlyRegisteredProfiles: UserProfile[] = JSON.parse(newlyRegisteredUsersRaw);
-                const foundProfile = newlyRegisteredProfiles.find(profile => profile.id === id);
+                const allUserProfiles: UserProfile[] = JSON.parse(allUsersRaw);
+                const foundProfile = allUserProfiles.find(profile => profile.id === id);
                 if (foundProfile) {
+                    // Adapt UserProfile to Customer type. For simplicity, new users from Google
+                    // won't have pre-existing order history in this mock setup.
                     return {
                         ...foundProfile,
                         orderHistory: [], 
                         currentOrder: undefined,
-                        rewardsPoints: foundProfile.rewardsPoints !== undefined ? foundProfile.rewardsPoints : 0,
+                        // rewardsPoints should be part of UserProfile from AuthContext
                     };
                 }
             } catch (e) {
-                console.error("Error parsing newly registered users from localStorage:", e);
+                console.error("Error parsing all user profiles from localStorage in getCustomerById:", e);
             }
         }
     }

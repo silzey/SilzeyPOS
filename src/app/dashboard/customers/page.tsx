@@ -12,39 +12,51 @@ import type { Customer, UserProfile } from '@/types/pos';
 import { Users, ChevronRight, Mail, Star } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
-const NEWLY_REGISTERED_USERS_STORAGE_KEY = 'newlyRegisteredUsersSilzey';
+const ALL_USERS_STORAGE_KEY = 'allUserProfilesSilzeyPOS'; // Updated key
 
 export default function CustomersPage() {
   const [displayCustomers, setDisplayCustomers] = useState<Customer[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    let combinedCustomers: Customer[] = [...mockCustomers];
-    let newlyRegisteredProfiles: UserProfile[] = [];
+    let combinedCustomers: Customer[] = [...mockCustomers]; // Start with static mocks
+    let allUserProfilesFromStorage: UserProfile[] = [];
 
     if (typeof window !== 'undefined') {
-      const newlyRegisteredUsersRaw = localStorage.getItem(NEWLY_REGISTERED_USERS_STORAGE_KEY);
-      if (newlyRegisteredUsersRaw) {
+      const allUsersRaw = localStorage.getItem(ALL_USERS_STORAGE_KEY);
+      if (allUsersRaw) {
         try {
-          newlyRegisteredProfiles = JSON.parse(newlyRegisteredUsersRaw);
+          allUserProfilesFromStorage = JSON.parse(allUsersRaw);
         } catch (e) {
-          console.error("Error parsing newly registered users from localStorage:", e);
+          console.error("Error parsing all user profiles from localStorage:", e);
         }
       }
     }
 
-    const newCustomersFromStorage: Customer[] = newlyRegisteredProfiles
+    const customersFromStorage: Customer[] = allUserProfilesFromStorage
       .filter(profile => !mockCustomers.some(mc => mc.email === profile.email)) // Avoid duplicates if email exists in mocks
       .map(profile => ({
         ...profile,
+        // For users from storage, assume no order history/current order unless explicitly fetched/set elsewhere
         orderHistory: [], 
         currentOrder: undefined,
         rewardsPoints: profile.rewardsPoints !== undefined ? profile.rewardsPoints : 0,
       }));
 
-    combinedCustomers = [...newCustomersFromStorage, ...combinedCustomers];
-    // Simple deduplication by ID just in case, preferring the first one encountered (localStorage ones come first)
-    const uniqueCustomers = Array.from(new Map(combinedCustomers.map(c => [c.id, c])).values());
+    // Combine, ensuring profiles from storage (which might include Google users) take precedence if email matches
+    const profileMap = new Map<string, Customer>();
+    
+    // Add profiles from storage first
+    customersFromStorage.forEach(c => profileMap.set(c.email, c));
+    
+    // Add mock customers only if their email isn't already in the map
+    mockCustomers.forEach(mc => {
+      if (!profileMap.has(mc.email)) {
+        profileMap.set(mc.email, mc);
+      }
+    });
+
+    const uniqueCustomers = Array.from(profileMap.values());
 
     setDisplayCustomers(uniqueCustomers.sort((a,b) => (a.lastName.localeCompare(b.lastName) || a.firstName.localeCompare(b.firstName)) ));
     setIsLoading(false);
@@ -90,7 +102,7 @@ export default function CustomersPage() {
           <CardTitle className="font-headline text-primary flex items-center">
             <Users className="mr-2 h-6 w-6" /> Customer List
           </CardTitle>
-          <CardDescription>Browse and manage customer profiles. New sign-ups appear here.</CardDescription>
+          <CardDescription>Browse and manage customer profiles. Includes Google Sign-In users.</CardDescription>
         </CardHeader>
         <CardContent>
           {displayCustomers.length === 0 ? (
