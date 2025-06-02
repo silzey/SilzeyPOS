@@ -16,8 +16,8 @@ import { StatCard } from '@/components/dashboard/StatCard';
 import type { InventoryItem, Category } from '@/types/pos';
 import { Package, PackagePlus, PrinterIcon, Search, Filter, Edit, AlertTriangle, Boxes, DollarSign, TrendingDown, TrendingUp, Eye } from 'lucide-react';
 import { CATEGORIES as PRODUCT_CATEGORIES_LIST } from '@/lib/data';
-import { generateMockInventory } from '@/lib/mockInventory';
-import InventoryItemDetailModal from '@/components/dashboard/InventoryItemDetailModal'; // Import the new modal
+import { generateMockInventory, saveInventory } from '@/lib/mockInventory'; // Updated import
+import InventoryItemDetailModal from '@/components/dashboard/InventoryItemDetailModal';
 
 type StockStatusFilter = "All" | "In Stock" | "Low Stock" | "Out of Stock";
 
@@ -30,14 +30,16 @@ export default function InventoryPage() {
   const [selectedItemForModal, setSelectedItemForModal] = useState<InventoryItem | null>(null);
   const [isItemModalOpen, setIsItemModalOpen] = useState(false);
 
+  const loadInventory = useCallback(() => {
+    setIsLoading(true);
+    // Simulate async loading if needed, but generateMockInventory now handles localStorage
+    setInventoryItems(generateMockInventory());
+    setIsLoading(false);
+  }, []);
 
   useEffect(() => {
-    setIsLoading(true);
-    setTimeout(() => {
-      setInventoryItems(generateMockInventory());
-      setIsLoading(false);
-    }, 1000);
-  }, []);
+    loadInventory();
+  }, [loadInventory]);
 
   const filteredItems = useMemo(() => {
     return inventoryItems.filter(item => {
@@ -68,6 +70,18 @@ export default function InventoryPage() {
     setIsItemModalOpen(false);
     setSelectedItemForModal(null);
   };
+
+  // This function will be passed to the modal to handle saving edited item
+  const handleSaveItem = (editedItem: InventoryItem) => {
+    const updatedInventory = inventoryItems.map(item =>
+      item.id === editedItem.id ? editedItem : item
+    );
+    setInventoryItems(updatedInventory);
+    saveInventory(updatedInventory); // Save to localStorage
+    handleCloseItemModal();
+    // Optionally, show a toast notification for successful save
+  };
+
 
   const totalProducts = inventoryItems.length;
   const lowStockCount = inventoryItems.filter(item => item.stock > 0 && item.stock <= item.lowStockThreshold).length;
@@ -244,6 +258,7 @@ export default function InventoryPage() {
         item={selectedItemForModal}
         isOpen={isItemModalOpen}
         onClose={handleCloseItemModal}
+        onSave={handleSaveItem} // Pass the save handler
     />
     </>
   );

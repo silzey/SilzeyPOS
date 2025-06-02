@@ -2,8 +2,9 @@
 "use client";
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import type { Product, CartItem, Category, CustomerInfo, Order, UserProfile } from '@/types/pos';
-import { CATEGORIES, TAGS, generateProducts } from '@/lib/data';
+import type { Product, CartItem, Category, CustomerInfo, Order, UserProfile, InventoryItem } from '@/types/pos'; // Added InventoryItem
+import { CATEGORIES, TAGS } from '@/lib/data'; // generateProducts removed from here
+import { generateMockInventory } from '@/lib/mockInventory'; // Import from mockInventory
 import { getUpsellSuggestions, type UpsellSuggestionsOutput } from '@/ai/flows/upsell-suggestions';
 
 import SplashScreen from '@/components/pos/SplashScreen';
@@ -16,9 +17,21 @@ import ProductDetailModal from '@/components/pos/ProductDetailModal';
 import CartSheet from '@/components/pos/CartSheet';
 import CheckoutDialog from '@/components/pos/CheckoutDialog';
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from '@/contexts/AuthContext'; // Import useAuth
+import { useAuth } from '@/contexts/AuthContext';
 
 const POS_PENDING_ORDERS_STORAGE_KEY = 'posPendingOrdersSilzey';
+
+// Helper to map InventoryItem to Product for POS display
+const mapInventoryItemToProduct = (item: InventoryItem): Product => ({
+  id: item.id,
+  name: item.name,
+  image: item.imageUrl,
+  price: item.salePrice.toFixed(2),
+  tags: item.tags,
+  rating: item.rating,
+  category: item.category,
+  dataAiHint: item.dataAiHint,
+});
 
 export default function PosPage() {
   const [showSplash, setShowSplash] = useState(true);
@@ -39,12 +52,15 @@ export default function PosPage() {
   const [rewardsPoints, setRewardsPoints] = useState(0);
   const [upsellData, setUpsellData] = useState<UpsellSuggestionsOutput | null>(null);
   const [isLoadingUpsell, setIsLoadingUpsell] = useState(false);
+  const [masterInventory, setMasterInventory] = useState<InventoryItem[]>([]);
 
   const { toast } = useToast();
   const { user } = useAuth();
 
   useEffect(() => {
-    const timer = setTimeout(() => setShowSplash(false), 3000); 
+    const timer = setTimeout(() => setShowSplash(false), 3000);
+    // Load master inventory on mount
+    setMasterInventory(generateMockInventory());
     return () => clearTimeout(timer);
   }, []);
 
@@ -62,10 +78,16 @@ export default function PosPage() {
     }
   }, [user]);
 
-  const allProductsForCategory = useMemo(() => generateProducts(activeCategory), [activeCategory]);
+
+  const productsForCategory = useMemo(() => {
+    // Filter master inventory by active category and map to Product type
+    return masterInventory
+      .filter(item => item.category === activeCategory && item.stock > 0) // Only show in-stock items
+      .map(mapInventoryItemToProduct);
+  }, [masterInventory, activeCategory]);
 
   const filteredAndSortedProducts = useMemo(() => {
-    let products = [...allProductsForCategory];
+    let products = [...productsForCategory]; // Use products derived from inventory
     if (selectedTag) {
       products = products.filter((p) => p.tags === selectedTag);
     }
@@ -82,15 +104,31 @@ export default function PosPage() {
       return 0;
     });
     return products;
-  }, [allProductsForCategory, selectedTag, searchTerm, sortOption]);
+  }, [productsForCategory, selectedTag, searchTerm, sortOption]);
 
   const handleSelectCategory = useCallback((category: Category) => {
     setActiveCategory(category);
     setSelectedTag("");
     setSearchTerm("");
+    // Master inventory is already loaded, so changing category will re-trigger memos
   }, []);
 
   const addToCart = useCallback((product: Product) => {
+    // Find the corresponding inventory item to check stock
+    const inventoryItem = masterInventory.find(item => item.id === product.id);
+    if (!inventoryItem) {
+        toast({ title: "Error", description: "Product not found in inventory.", variant: "destructive" });
+        return;
+    }
+
+    const existingCartItem = cart.find(item => item.id === product.id);
+    const currentQuantityInCart = existingCartItem ? existingCartItem.quantity : 0;
+
+    if (inventoryItem.stock <= currentQuantityInCart) {
+        toast({ title: "Out of Stock", description: `Cannot add more ${product.name}. Max stock reached.`, variant: "destructive", duration: 3000 });
+        return;
+    }
+
     setCart((prev) => {
       const found = prev.find((item) => item.id === product.id);
       if (found) {
@@ -101,17 +139,27 @@ export default function PosPage() {
       return [...prev, { ...product, quantity: 1 }];
     });
     toast({ title: `${product.name} added to cart`, description: "Quantity updated.", duration: 3000 });
-  }, [toast]);
+  }, [toast, masterInventory, cart]);
 
   const updateQuantity = useCallback((productId: string, delta: number) => {
-    setCart((prev) =>
-      prev
-        .map((item) =>
-          item.id === productId ? { ...item, quantity: Math.max(0, item.quantity + delta) } : item
-        )
-        .filter((item) => item.quantity > 0) 
-    );
-  }, []);
+    const inventoryItem = masterInventory.find(item => item.id === productId);
+    if (!inventoryItem) return; // Should not happen
+
+    setCart((prev) => {
+        const updatedCart = prev.map((item) => {
+            if (item.id === productId) {
+                const newQuantity = Math.max(0, item.quantity + delta);
+                if (newQuantity > inventoryItem.stock) {
+                    toast({ title: "Stock Limit", description: `Only ${inventoryItem.stock} units of ${item.name} available.`, variant: "destructive" });
+                    return { ...item, quantity: inventoryItem.stock };
+                }
+                return { ...item, quantity: newQuantity };
+            }
+            return item;
+        });
+        return updatedCart.filter((item) => item.quantity > 0);
+    });
+  }, [masterInventory, toast]);
 
   const removeFromCart = useCallback((productId: string) => {
     setCart((prev) => prev.filter((item) => item.id !== productId));
@@ -154,7 +202,7 @@ export default function PosPage() {
   const handleCustomerInfoChange = useCallback((field: keyof CustomerInfo, value: string) => {
     setCustomerInfo(prev => ({ ...prev, [field]: value }));
   }, []);
-  
+
   const finalizeSale = useCallback(() => {
     if (!user) {
       setCheckoutMessage("Error: No user signed in. Please sign in to complete the order.");
@@ -165,6 +213,41 @@ export default function PosPage() {
       setCheckoutMessage("Please fill in all customer information fields.");
       return;
     }
+
+    // Decrement stock for items in cart
+    const currentInventory = generateMockInventory(); // Get latest from localStorage
+    const updatedInventory = [...currentInventory];
+    let possibleToFinalize = true;
+
+    for (const cartItem of cart) {
+        const inventoryIndex = updatedInventory.findIndex(invItem => invItem.id === cartItem.id);
+        if (inventoryIndex !== -1) {
+            if (updatedInventory[inventoryIndex].stock >= cartItem.quantity) {
+                updatedInventory[inventoryIndex].stock -= cartItem.quantity;
+            } else {
+                toast({ title: "Stock Issue", description: `Not enough stock for ${cartItem.name}. Only ${updatedInventory[inventoryIndex].stock} available.`, variant: "destructive" });
+                possibleToFinalize = false;
+                break;
+            }
+        } else {
+             toast({ title: "Error", description: `Item ${cartItem.name} not found in inventory for stock update.`, variant: "destructive" });
+             possibleToFinalize = false;
+             break;
+        }
+    }
+
+    if (!possibleToFinalize) {
+        setCheckoutMessage("Could not finalize sale due to stock issues. Please review cart or inventory.");
+        // Refresh master inventory on POS page to reflect any potential discrepancies immediately
+        setMasterInventory(generateMockInventory());
+        return;
+    }
+
+    // Save updated inventory to localStorage
+    if (typeof window !== 'undefined') {
+        localStorage.setItem('silzeyAppInventory', JSON.stringify(updatedInventory));
+    }
+    setMasterInventory(updatedInventory); // Update POS page's local master inventory state
 
     const newOrder: Order = {
       id: `POS-ORD-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
@@ -183,15 +266,15 @@ export default function PosPage() {
       const existingPendingOrders: Order[] = existingPendingOrdersRaw ? JSON.parse(existingPendingOrdersRaw) : [];
       existingPendingOrders.push(newOrder);
       localStorage.setItem(POS_PENDING_ORDERS_STORAGE_KEY, JSON.stringify(existingPendingOrders));
-      
-      setCheckoutMessage(""); 
+
+      setCheckoutMessage("");
       setThankYouMessage(`Order ${newOrder.id} submitted! A budtender will process it shortly.`);
       setShowThankYouCard(true);
-      setViewCheckout(false); 
-      
+      setViewCheckout(false);
+
       setCart([]);
       setCustomerInfo({ firstName: user.firstName || "", lastName: user.lastName || "", dob: "", phoneNumber: "" });
-      
+
       toast({ title: "Order Submitted!", description: `Your order ${newOrder.id} is pending processing.`, duration: 5000 });
 
       setTimeout(() => {
@@ -202,9 +285,12 @@ export default function PosPage() {
       console.error("Error saving pending order to localStorage:", error);
       setCheckoutMessage("An error occurred while submitting your order. Please try again.");
       toast({ title: "Submission Error", description: "Could not submit order to local queue.", variant: "destructive" });
+      // Rollback stock changes if order submission fails (simplified for mock)
+       localStorage.setItem('silzeyAppInventory', JSON.stringify(currentInventory));
+       setMasterInventory(currentInventory);
     }
 
-  }, [user, customerInfo, cart, totalPrice, cartItemCount, toast]);
+  }, [user, customerInfo, cart, totalPrice, cartItemCount, toast, masterInventory]);
 
   if (showSplash) return <SplashScreen isVisible={showSplash} />;
   if (showThankYouCard) return <ThankYouCard isVisible={showThankYouCard} message={thankYouMessage} />;
@@ -250,7 +336,7 @@ export default function PosPage() {
         onCheckout={handleOpenCheckout}
         totalPrice={totalPrice.toFixed(2)}
       />
-      
+
       {viewCheckout && (
         <CheckoutDialog
           isOpen={viewCheckout}

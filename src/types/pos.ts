@@ -2,10 +2,10 @@
 export type Category = "Flower" | "Concentrates" | "Vapes" | "Edibles";
 
 export interface Product {
-  id: string;
+  id: string; // Will correspond to InventoryItem.id
   name: string;
   image: string;
-  price: string;
+  price: string; // Will correspond to InventoryItem.salePrice
   tags: string;
   rating: string;
   category: Category;
@@ -43,13 +43,13 @@ export interface TransactionItem { id?: string; name: string; qty: number; price
 
 export interface Order {
   id: string;
-  customerName: string; 
+  customerName: string;
   customerId?: string;
   orderDate: string; // ISO string
   status: OrderStatus;
   totalAmount: number;
   itemCount: number;
-  items: CartItem[]; 
+  items: CartItem[];
   shippingAddress?: string;
   paymentMethod?: string;
   submittedByPOS?: boolean;
@@ -73,7 +73,7 @@ export interface Customer extends UserProfile {
   currentOrder?: Order;
 }
 
-// New InventoryItem type
+// Updated InventoryItem type to include fields needed for Product display
 export interface InventoryItem {
   id: string;          // Unique product identifier
   name: string;
@@ -83,10 +83,12 @@ export interface InventoryItem {
   stock: number;       // Current stock quantity
   lowStockThreshold: number;
   purchasePrice: number; // Cost to acquire the item
-  salePrice: number;    // Price to the customer
+  salePrice: number;    // Price to the customer (will be 'price' for Product)
   lastRestockDate: string; // ISO date string
-  imageUrl: string;
+  imageUrl: string;     // Will be 'image' for Product
   dataAiHint?: string;
   notes?: string;
+  tags: string;         // Added from Product
+  rating: string;       // Added from Product
 }
 
