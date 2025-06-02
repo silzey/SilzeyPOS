@@ -14,10 +14,11 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
 import { StatCard } from '@/components/dashboard/StatCard';
 import type { InventoryItem, Category } from '@/types/pos';
-import { Package, PackagePlus, PrinterIcon, Search, Filter, Edit, AlertTriangle, Boxes, DollarSign, TrendingDown, TrendingUp, Eye } from 'lucide-react';
+import { Package, PackagePlus, PrinterIcon, Search, Filter, AlertTriangle, Boxes, DollarSign, TrendingDown, TrendingUp, Eye } from 'lucide-react';
 import { CATEGORIES as PRODUCT_CATEGORIES_LIST } from '@/lib/data';
-import { generateMockInventory, saveInventory } from '@/lib/mockInventory'; // Updated import
+import { generateMockInventory, saveInventory } from '@/lib/mockInventory';
 import InventoryItemDetailModal from '@/components/dashboard/InventoryItemDetailModal';
+import { useToast } from "@/hooks/use-toast"; // Import useToast
 
 type StockStatusFilter = "All" | "In Stock" | "Low Stock" | "Out of Stock";
 
@@ -29,10 +30,10 @@ export default function InventoryPage() {
   const [stockStatusFilter, setStockStatusFilter] = useState<StockStatusFilter>('All');
   const [selectedItemForModal, setSelectedItemForModal] = useState<InventoryItem | null>(null);
   const [isItemModalOpen, setIsItemModalOpen] = useState(false);
+  const { toast } = useToast(); // Initialize toast
 
   const loadInventory = useCallback(() => {
     setIsLoading(true);
-    // Simulate async loading if needed, but generateMockInventory now handles localStorage
     setInventoryItems(generateMockInventory());
     setIsLoading(false);
   }, []);
@@ -71,15 +72,14 @@ export default function InventoryPage() {
     setSelectedItemForModal(null);
   };
 
-  // This function will be passed to the modal to handle saving edited item
   const handleSaveItem = (editedItem: InventoryItem) => {
     const updatedInventory = inventoryItems.map(item =>
       item.id === editedItem.id ? editedItem : item
     );
     setInventoryItems(updatedInventory);
-    saveInventory(updatedInventory); // Save to localStorage
+    saveInventory(updatedInventory);
     handleCloseItemModal();
-    // Optionally, show a toast notification for successful save
+    toast({ title: "Item Saved!", description: `${editedItem.name} has been updated successfully.` });
   };
 
 
@@ -232,7 +232,7 @@ export default function InventoryPage() {
                            {getStockBadge(item.stock, item.lowStockThreshold)}
                         </div>
                       </TableCell>
-                      <TableCell className="text-right">${item.salePrice.toFixed(2)}</TableCell>
+                      <TableCell className="text-right">${Number(item.salePrice).toFixed(2)}</TableCell>
                       <TableCell>{new Date(item.lastRestockDate).toLocaleDateString()}</TableCell>
                       <TableCell className="text-right">
                         <Button variant="ghost" size="icon" onClick={() => handleViewItemDetails(item)} aria-label={`View details for ${item.name}`}>
@@ -258,8 +258,9 @@ export default function InventoryPage() {
         item={selectedItemForModal}
         isOpen={isItemModalOpen}
         onClose={handleCloseItemModal}
-        onSave={handleSaveItem} // Pass the save handler
+        onSave={handleSaveItem}
     />
     </>
   );
 }
+
