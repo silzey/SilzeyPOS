@@ -8,58 +8,62 @@ export const MOCK_SUPPLIERS = ["GreenLeaf Farms", "HighHarvest Co.", "BudBrother
 const INVENTORY_STORAGE_KEY = 'silzeyAppInventory';
 
 export const generateMockInventory = (): InventoryItem[] => {
+  const expectedTotalItems = PRODUCT_CATEGORIES_LIST.length * 50;
   if (typeof window !== 'undefined') {
     const storedInventory = localStorage.getItem(INVENTORY_STORAGE_KEY);
     if (storedInventory) {
       try {
         const parsedInventory = JSON.parse(storedInventory) as InventoryItem[];
-        // Basic validation: check if it's an array and has some expected properties
-        if (Array.isArray(parsedInventory) && parsedInventory.length > 0 && parsedInventory[0].hasOwnProperty('salePrice')) {
+        if (Array.isArray(parsedInventory) && parsedInventory.length === expectedTotalItems && parsedInventory[0]?.hasOwnProperty('salePrice')) {
             return parsedInventory;
         } else {
-            localStorage.removeItem(INVENTORY_STORAGE_KEY); // Clear invalid data
+            localStorage.removeItem(INVENTORY_STORAGE_KEY); 
         }
       } catch (e) {
         console.error("Error parsing inventory from localStorage:", e);
-        localStorage.removeItem(INVENTORY_STORAGE_KEY); // Clear corrupted data
+        localStorage.removeItem(INVENTORY_STORAGE_KEY); 
       }
     }
   }
 
   const items: InventoryItem[] = [];
   const baseNames: Record<Category, string[]> = {
-    "Flower": ["Aurora Haze", "Cosmic Bloom", "Lunar Kush", "Solar Flare OG", "Nebula Nugs"],
-    "Concentrates": ["Galaxy Gold Shatter", "Stardust Rosin", "Pulsar Diamonds", "Void Extract", "Comet Crumble"],
-    "Vapes": ["Orion Haze Pen", "Astro-Vape Cartridge", "Zero-G Disposable", "Celestial Cloud Pod", "Meteor Mist Kit"],
-    "Edibles": ["Lunar Lavender Gummies", "Cosmic Caramel Chews", "Stardust Swirl Brownies", "Nebula Nectar Cookies", "Planet Peach Pastries"],
+    "Flower": ["Aurora Haze", "Cosmic Bloom", "Lunar Kush", "Solar Flare OG", "Nebula Nugs", "Terra Bloom", "Zenith Flower", "Midnight Bloom", "Crystal Peak", "Emerald Fire"],
+    "Concentrates": ["Galaxy Gold Shatter", "Stardust Rosin", "Pulsar Diamonds", "Void Extract", "Comet Crumble", "Aether Wax", "Nova Oil", "Black Hole Batter", "Supernova Sap", "Quasar Crystals"],
+    "Vapes": ["Orion Haze Pen", "Astro-Vape Cartridge", "Zero-G Disposable", "Celestial Cloud Pod", "Meteor Mist Kit", "Photon Vape", "Quasar Cart", "Interstellar Inhaler", "Cosmic Cartridge", "Nebula Vape"],
+    "Edibles": ["Lunar Lavender Gummies", "Cosmic Caramel Chews", "Stardust Swirl Brownies", "Nebula Nectar Cookies", "Planet Peach Pastries", "Terra Taffy", "Zenith Zesties", "Milky Way Mints", "Galaxy Grape Bites", "Orion Orange Slices"],
   };
 
-  for (let i = 0; i < 50; i++) { // Generate 50 items to cover POS display needs
-    const category = PRODUCT_CATEGORIES_LIST[i % PRODUCT_CATEGORIES_LIST.length];
-    const nameBase = baseNames[category][Math.floor(Math.random() * baseNames[category].length)];
-    const stock = Math.floor(Math.random() * 200) + (i % 5 === 0 ? 0 : 5);
-    const lowStockThreshold = Math.floor(Math.random() * 20) + 10;
-    const purchasePrice = parseFloat((Math.random() * 20 + 5).toFixed(2));
-    const salePrice = parseFloat((purchasePrice * (1.5 + Math.random() * 0.8)).toFixed(2)); // Adjusted markup
+  let itemIndex = 0; 
 
-    items.push({
-      id: `INV-ITEM-${String(1001 + i).padStart(4, '0')}`,
-      name: `${nameBase} #${Math.floor(i/PRODUCT_CATEGORIES_LIST.length) + 1}`,
-      sku: `SKU-${category.substring(0,3).toUpperCase()}-${String(5001 + i).padStart(4, '0')}`,
-      category,
-      supplier: MOCK_SUPPLIERS[i % MOCK_SUPPLIERS.length],
-      stock,
-      lowStockThreshold,
-      purchasePrice,
-      salePrice,
-      lastRestockDate: new Date(Date.now() - Math.random() * 60 * 24 * 60 * 60 * 1000).toISOString(),
-      imageUrl: `https://placehold.co/300x225.png?text=${nameBase.substring(0,1)}${i+1}`, // Match ProductCard image aspect
-      dataAiHint: category.toLowerCase(),
-      notes: Math.random() > 0.7 ? "Handle with care. Check for seasonal availability." : undefined,
-      tags: PRODUCT_TAGS_LIST[i % PRODUCT_TAGS_LIST.length], // Added tags
-      rating: (Math.random() * 2.5 + 2.5).toFixed(1),   // Added rating (2.5 to 5.0)
-    });
-  }
+  PRODUCT_CATEGORIES_LIST.forEach((category) => {
+    for (let j = 0; j < 50; j++) { 
+      const nameBase = baseNames[category][j % baseNames[category].length]; 
+      const stock = Math.floor(Math.random() * 200) + (j % 10 === 0 ? 0 : 5); 
+      const lowStockThreshold = Math.floor(Math.random() * 20) + 10;
+      const purchasePrice = parseFloat((Math.random() * 20 + 5).toFixed(2));
+      const salePrice = parseFloat((purchasePrice * (1.5 + Math.random() * 0.8)).toFixed(2));
+
+      items.push({
+        id: `INV-ITEM-${category.substring(0,3).toUpperCase()}-${String(101 + j).padStart(3, '0')}`,
+        name: `${nameBase} #${j + 1}`,
+        sku: `SKU-${category.substring(0,3).toUpperCase()}-${String(5001 + itemIndex).padStart(4, '0')}`,
+        category,
+        supplier: MOCK_SUPPLIERS[itemIndex % MOCK_SUPPLIERS.length],
+        stock,
+        lowStockThreshold,
+        purchasePrice,
+        salePrice,
+        lastRestockDate: new Date(Date.now() - Math.random() * 60 * 24 * 60 * 60 * 1000).toISOString(),
+        imageUrl: `https://placehold.co/300x225.png?text=${nameBase.substring(0,1)}${j+1}`,
+        dataAiHint: category.toLowerCase(),
+        notes: Math.random() > 0.8 ? "Limited edition. High demand." : (Math.random() > 0.6 ? "Staff favorite. Recommend." : undefined),
+        tags: PRODUCT_TAGS_LIST[itemIndex % PRODUCT_TAGS_LIST.length],
+        rating: (Math.random() * 1.5 + 3.5).toFixed(1),
+      });
+      itemIndex++;
+    }
+  });
 
   if (typeof window !== 'undefined') {
     try {
@@ -80,3 +84,4 @@ export const saveInventory = (inventory: InventoryItem[]): void => {
     }
   }
 };
+
