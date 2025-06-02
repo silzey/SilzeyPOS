@@ -20,7 +20,7 @@ const ACTIVE_USER_STORAGE_KEY = 'activeUserSilzeyPOS';
 const ALL_USERS_STORAGE_KEY = 'allUserProfilesSilzeyPOS'; // Stores all known user profiles
 
 // Helper to parse display name
-constparseName = (displayName: string | null): { firstName: string; lastName: string } => {
+const parseName = (displayName: string | null): { firstName: string; lastName: string } => {
   if (!displayName) return { firstName: 'User', lastName: '' };
   const parts = displayName.split(' ');
   const firstName = parts[0];
@@ -44,7 +44,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
         if (!userProfile) {
           // New user or existing user not yet in our local store with UID
-          const { firstName, lastName } = constparseName(firebaseUser.displayName);
+          const { firstName, lastName } = parseName(firebaseUser.displayName);
           userProfile = {
             id: firebaseUser.uid,
             firstName,
