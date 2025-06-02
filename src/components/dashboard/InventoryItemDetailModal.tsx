@@ -1,7 +1,7 @@
 
 "use client";
 
-import type { FC, ChangeEvent } from 'react';
+import type { FC, ChangeEvent, DragEvent } from 'react'; // Added DragEvent
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
@@ -12,7 +12,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { X, Package, Tag, Building, BarChartBig, DollarSign, CalendarDays, Info, AlertTriangle, Save, Edit, StarIcon } from 'lucide-react';
+import { X, Package, Tag, Building, BarChartBig, DollarSign, CalendarDays, Info, AlertTriangle, Save, Edit, StarIcon, ImagePlus } from 'lucide-react'; // Added ImagePlus
 import type { InventoryItem } from '@/types/pos';
 
 interface InventoryItemDetailModalProps {
@@ -31,6 +31,7 @@ const getStockBadgeInfo = (stock: number, threshold: number): { text: string; cl
 const InventoryItemDetailModal: FC<InventoryItemDetailModalProps> = ({ item, isOpen, onClose, onSave }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editableItem, setEditableItem] = useState<InventoryItem | null>(null);
+  const [isDraggingOver, setIsDraggingOver] = useState(false); // For drag & drop visual feedback
 
   useEffect(() => {
     if (item) {
@@ -51,7 +52,6 @@ const InventoryItemDetailModal: FC<InventoryItemDetailModalProps> = ({ item, isO
 
     const numericFields = ['stock', 'lowStockThreshold', 'purchasePrice', 'salePrice', 'rating'];
     if (numericFields.includes(name)) {
-      // Allow empty string for easier editing, validation will happen on save
       processedValue = value === '' ? '' : parseFloat(value);
     }
     setEditableItem(prev => prev ? { ...prev, [name]: processedValue } : null);
@@ -59,7 +59,6 @@ const InventoryItemDetailModal: FC<InventoryItemDetailModalProps> = ({ item, isO
 
   const handleSaveClick = () => {
     if (editableItem) {
-      // Basic validation
       const fieldsToValidateAsNumbers = {
         stock: editableItem.stock,
         lowStockThreshold: editableItem.lowStockThreshold,
@@ -69,12 +68,11 @@ const InventoryItemDetailModal: FC<InventoryItemDetailModalProps> = ({ item, isO
       };
 
       for (const [fieldName, fieldValue] of Object.entries(fieldsToValidateAsNumbers)) {
-        const numValue = parseFloat(String(fieldValue)); // Ensure it's treated as number
+        const numValue = parseFloat(String(fieldValue));
         if (isNaN(numValue) || numValue < 0) {
           alert(`${fieldName.replace(/([A-Z])/g, ' $1').toLowerCase()} must be a valid non-negative number.`);
           return;
         }
-         // Update editableItem with parsed numbers to ensure correct type before saving
         (editableItem as any)[fieldName] = numValue;
       }
       
@@ -83,16 +81,45 @@ const InventoryItemDetailModal: FC<InventoryItemDetailModalProps> = ({ item, isO
          return;
       }
 
-
       onSave(editableItem);
       setIsEditing(false);
     }
   };
   
   const handleCancelEdit = () => {
-    if (item) setEditableItem({...item}); // Reset to original item data
+    if (item) setEditableItem({...item});
     setIsEditing(false);
   }
+
+  const handleDragOver = (e: DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDraggingOver(true);
+  };
+
+  const handleDragLeave = (e: DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDraggingOver(false);
+  };
+
+  const handleDrop = (e: DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDraggingOver(false);
+    const files = e.dataTransfer.files;
+    if (files && files[0]) {
+      const file = files[0];
+      if (file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = (loadEvent) => {
+          if (loadEvent.target?.result && editableItem) {
+            setEditableItem({ ...editableItem, imageUrl: loadEvent.target.result as string });
+          }
+        };
+        reader.readAsDataURL(file);
+      } else {
+        alert('Please drop an image file (e.g., PNG, JPG, GIF).');
+      }
+    }
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -117,19 +144,51 @@ const InventoryItemDetailModal: FC<InventoryItemDetailModalProps> = ({ item, isO
           )}
         </DialogHeader>
 
-        <ScrollArea className="max-h-[60vh]">
+        <ScrollArea className="max-h-[calc(80vh-180px)]"> {/* Adjusted max-h for more content */}
           <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
-            <div className="md:col-span-2 flex justify-center mb-2">
-                <Image
+            
+            {/* Image Display and Editing Section */}
+            <div className="md:col-span-2 space-y-3">
+              {isEditing && <Label className="mb-1 text-sm font-medium">Product Image</Label>}
+              <div className="w-full flex justify-center">
+                <div className="w-40 h-40 relative border-2 border-primary/30 rounded-lg overflow-hidden shadow-md bg-muted/10 p-1">
+                  <Image
                     src={editableItem.imageUrl}
                     alt={editableItem.name}
-                    width={128}
-                    height={128}
-                    className="rounded-lg object-cover border-2 border-primary shadow-md"
+                    layout="fill"
+                    objectFit="contain" // Ensures the entire photo fits
+                    className="rounded-sm" 
                     data-ai-hint={editableItem.dataAiHint || editableItem.category.toLowerCase()}
-                />
-            </div>
+                    key={editableItem.imageUrl} // Force re-render if URL changes
+                  />
+                </div>
+              </div>
 
+              {isEditing && (
+                <div className="space-y-3 pt-2">
+                  <div>
+                    <Label htmlFor="itemImageUrl" className="text-xs text-muted-foreground">Image URL</Label>
+                    <Input id="itemImageUrl" name="imageUrl" value={editableItem.imageUrl} onChange={handleInputChange} placeholder="https://example.com/image.png" className="h-9"/>
+                  </div>
+                  <div
+                    onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                    onDrop={handleDrop}
+                    className={`p-4 py-6 border-2 border-dashed rounded-md text-center cursor-pointer transition-colors
+                                ${isDraggingOver ? 'border-primary bg-primary/10 ring-2 ring-primary ring-offset-2' : 'border-border hover:border-muted-foreground/70'}`}
+                  >
+                    <ImagePlus className={`mx-auto h-8 w-8 mb-1 ${isDraggingOver ? 'text-primary' : 'text-muted-foreground/70'}`} />
+                    <p className="text-xs text-muted-foreground">
+                      {isDraggingOver ? 'Release to upload image' : 'Drag & drop image here, or use URL input'}
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+            
+            <Separator className="md:col-span-2 my-2" />
+
+            {/* Other Fields */}
             {isEditing ? (
               <>
                 <div className="md:col-span-2 space-y-1">
@@ -183,9 +242,9 @@ const InventoryItemDetailModal: FC<InventoryItemDetailModalProps> = ({ item, isO
                 <DetailItem icon={StarIcon} label="Rating:" value={`${editableItem.rating} / 5`} />
 
                 {editableItem.notes && (
-                    <div className="md:col-span-2 space-y-1">
-                        <h3 className="font-semibold text-md mb-1 flex items-center"><Info className="mr-2 h-4 w-4 text-primary" />Notes:</h3>
-                        <p className="text-sm text-muted-foreground bg-muted/50 p-2 rounded-md border border-border/70">{editableItem.notes}</p>
+                    <div className="md:col-span-2 space-y-1 pt-2">
+                        <h3 className="font-semibold text-sm mb-1 flex items-center"><Info className="mr-2 h-4 w-4 text-primary" />Notes:</h3>
+                        <p className="text-sm text-muted-foreground bg-muted/50 p-3 rounded-md border border-border/70 whitespace-pre-wrap">{editableItem.notes}</p>
                     </div>
                 )}
               </>
@@ -208,7 +267,6 @@ const InventoryItemDetailModal: FC<InventoryItemDetailModalProps> = ({ item, isO
   );
 };
 
-
 interface DetailItemProps {
     icon: React.ElementType | null;
     label: string;
@@ -218,13 +276,14 @@ interface DetailItemProps {
     className?: string;
 }
 
-const DetailItem: FC<DetailItemProps> = ({ icon: Icon, label, value, isBadge, isComponent, className }) => (
-    <div className={`flex items-center text-sm ${isComponent ? '' : 'py-1.5 border-b border-border/30 last:border-b-0'}`}>
-        {Icon && <Icon className={`mr-3 h-5 w-5 text-muted-foreground ${className || ''}`} />}
-        <span className="text-muted-foreground w-2/5">{label}</span>
-        {isComponent ? <div className="ml-auto">{value}</div> :
-         isBadge ? <Badge variant="secondary" className="ml-auto capitalize">{value}</Badge> :
-        <strong className={`ml-auto font-medium ${className || 'text-foreground'}`}>{value}</strong>}
+const DetailItem: FC<DetailItemProps> = ({ icon: IconComponent, label, value, isBadge, isComponent, className }) => (
+    <div className={`flex items-start text-sm ${isComponent ? '' : 'py-2 border-b border-border/30 last:border-b-0'}`}>
+        {IconComponent && <IconComponent className={`mr-3 h-5 w-5 text-muted-foreground shrink-0 mt-0.5 ${className || ''}`} />}
+        {!IconComponent && !isComponent && <div className="w-8 shrink-0"></div>} {/* Placeholder for alignment if no icon and not a component */}
+        <span className="text-muted-foreground w-2/5 shrink-0">{label}</span>
+        {isComponent ? <div className="ml-auto text-right">{value}</div> :
+         isBadge ? <Badge variant="secondary" className="ml-auto capitalize whitespace-nowrap">{String(value)}</Badge> :
+        <strong className={`ml-auto font-medium text-right ${className || 'text-foreground'}`}>{String(value)}</strong>}
     </div>
 );
 
