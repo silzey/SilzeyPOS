@@ -14,13 +14,20 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
 import { StatCard } from '@/components/dashboard/StatCard';
 import type { InventoryItem, Category } from '@/types/pos';
-import { Package, PackagePlus, PrinterIcon, Search, Filter, AlertTriangle, Boxes, DollarSign, TrendingDown, TrendingUp, Eye } from 'lucide-react';
+import { Package, PackagePlus, PrinterIcon, Search, Filter, AlertTriangle, Boxes, DollarSign, TrendingDown, TrendingUp, Eye, ImageOff } from 'lucide-react';
 import { CATEGORIES as PRODUCT_CATEGORIES_LIST } from '@/lib/data';
 import { generateMockInventory, saveInventory } from '@/lib/mockInventory';
 import InventoryItemDetailModal from '@/components/dashboard/InventoryItemDetailModal';
-import { useToast } from "@/hooks/use-toast"; // Import useToast
+import { useToast } from "@/hooks/use-toast";
 
 type StockStatusFilter = "All" | "In Stock" | "Low Stock" | "Out of Stock";
+
+// Helper to check for valid image URLs that next/image can handle
+const isValidNextImageUrl = (url?: string): boolean => {
+  if (!url || typeof url !== 'string') return false;
+  return url.startsWith('http://') || url.startsWith('https:') || url.startsWith('data:') || url.startsWith('/');
+};
+
 
 export default function InventoryPage() {
   const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>([]);
@@ -30,7 +37,7 @@ export default function InventoryPage() {
   const [stockStatusFilter, setStockStatusFilter] = useState<StockStatusFilter>('All');
   const [selectedItemForModal, setSelectedItemForModal] = useState<InventoryItem | null>(null);
   const [isItemModalOpen, setIsItemModalOpen] = useState(false);
-  const { toast } = useToast(); // Initialize toast
+  const { toast } = useToast();
 
   const loadInventory = useCallback(() => {
     setIsLoading(true);
@@ -210,14 +217,20 @@ export default function InventoryPage() {
                     <TableRow key={item.id} className="hover:bg-muted/50">
                       <TableCell>
                         <div className="flex items-center gap-3">
-                          <Image
-                            src={item.imageUrl}
-                            alt={item.name}
-                            width={40}
-                            height={40}
-                            className="rounded-md object-cover"
-                            data-ai-hint={item.dataAiHint || item.category.toLowerCase()}
-                          />
+                          {isValidNextImageUrl(item.imageUrl) ? (
+                            <Image
+                              src={item.imageUrl}
+                              alt={item.name}
+                              width={40}
+                              height={40}
+                              className="rounded-md object-cover"
+                              data-ai-hint={item.dataAiHint || item.category.toLowerCase()}
+                            />
+                          ) : (
+                            <div className="w-10 h-10 flex items-center justify-center bg-muted rounded-md">
+                              <ImageOff className="h-5 w-5 text-muted-foreground" />
+                            </div>
+                          )}
                           <div>
                             <div className="font-medium truncate max-w-[150px]" title={item.name}>{item.name}</div>
                             <div className="text-xs text-muted-foreground">{item.sku}</div>
