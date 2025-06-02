@@ -1,7 +1,7 @@
 
 "use client";
 
-import type { FC, ChangeEvent, DragEvent } from 'react'; // Added DragEvent
+import type { FC, ChangeEvent, DragEvent } from 'react';
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
@@ -12,7 +12,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { X, Package, Tag, Building, BarChartBig, DollarSign, CalendarDays, Info, AlertTriangle, Save, Edit, StarIcon, ImagePlus } from 'lucide-react'; // Added ImagePlus
+import { X, Package, Tag, Building, BarChartBig, DollarSign, CalendarDays, Info, AlertTriangle, Save, Edit, StarIcon, ImagePlus } from 'lucide-react';
 import type { InventoryItem } from '@/types/pos';
 
 interface InventoryItemDetailModalProps {
@@ -31,7 +31,7 @@ const getStockBadgeInfo = (stock: number, threshold: number): { text: string; cl
 const InventoryItemDetailModal: FC<InventoryItemDetailModalProps> = ({ item, isOpen, onClose, onSave }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editableItem, setEditableItem] = useState<InventoryItem | null>(null);
-  const [isDraggingOver, setIsDraggingOver] = useState(false); // For drag & drop visual feedback
+  const [isDraggingOver, setIsDraggingOver] = useState(false);
 
   useEffect(() => {
     if (item) {
@@ -52,7 +52,7 @@ const InventoryItemDetailModal: FC<InventoryItemDetailModalProps> = ({ item, isO
 
     const numericFields = ['stock', 'lowStockThreshold', 'purchasePrice', 'salePrice', 'rating'];
     if (numericFields.includes(name)) {
-      processedValue = value === '' ? '' : parseFloat(value);
+      processedValue = value === '' ? '' : parseFloat(value); // Keep empty string if user clears, validate on save
     }
     setEditableItem(prev => prev ? { ...prev, [name]: processedValue } : null);
   };
@@ -68,7 +68,7 @@ const InventoryItemDetailModal: FC<InventoryItemDetailModalProps> = ({ item, isO
       };
 
       for (const [fieldName, fieldValue] of Object.entries(fieldsToValidateAsNumbers)) {
-        const numValue = parseFloat(String(fieldValue));
+        const numValue = parseFloat(String(fieldValue)); // Convert possible empty string to number
         if (isNaN(numValue) || numValue < 0) {
           alert(`${fieldName.replace(/([A-Z])/g, ' $1').toLowerCase()} must be a valid non-negative number.`);
           return;
@@ -76,7 +76,7 @@ const InventoryItemDetailModal: FC<InventoryItemDetailModalProps> = ({ item, isO
         (editableItem as any)[fieldName] = numValue;
       }
       
-      if (parseFloat(editableItem.rating) > 5) {
+      if (editableItem.rating > 5) {
          alert("Rating cannot be more than 5.");
          return;
       }
@@ -144,23 +144,28 @@ const InventoryItemDetailModal: FC<InventoryItemDetailModalProps> = ({ item, isO
           )}
         </DialogHeader>
 
-        <ScrollArea className="max-h-[calc(80vh-180px)]"> {/* Adjusted max-h for more content */}
+        <ScrollArea className="max-h-[calc(80vh-180px)]">
           <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
             
-            {/* Image Display and Editing Section */}
             <div className="md:col-span-2 space-y-3">
               {isEditing && <Label className="mb-1 text-sm font-medium">Product Image</Label>}
               <div className="w-full flex justify-center">
                 <div className="w-40 h-40 relative border-2 border-primary/30 rounded-lg overflow-hidden shadow-md bg-muted/10 p-1">
-                  <Image
-                    src={editableItem.imageUrl}
-                    alt={editableItem.name}
-                    layout="fill"
-                    objectFit="contain" // Ensures the entire photo fits
-                    className="rounded-sm" 
-                    data-ai-hint={editableItem.dataAiHint || editableItem.category.toLowerCase()}
-                    key={editableItem.imageUrl} // Force re-render if URL changes
-                  />
+                  {editableItem.imageUrl ? (
+                    <Image
+                      src={editableItem.imageUrl}
+                      alt={editableItem.name}
+                      layout="fill"
+                      objectFit="contain"
+                      className="rounded-sm" 
+                      data-ai-hint={editableItem.dataAiHint || editableItem.category.toLowerCase()}
+                      key={editableItem.imageUrl}
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-muted rounded-sm">
+                      <ImagePlus className="h-16 w-16 text-muted-foreground/70" />
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -188,7 +193,6 @@ const InventoryItemDetailModal: FC<InventoryItemDetailModalProps> = ({ item, isO
             
             <Separator className="md:col-span-2 my-2" />
 
-            {/* Other Fields */}
             {isEditing ? (
               <>
                 <div className="md:col-span-2 space-y-1">
@@ -279,7 +283,7 @@ interface DetailItemProps {
 const DetailItem: FC<DetailItemProps> = ({ icon: IconComponent, label, value, isBadge, isComponent, className }) => (
     <div className={`flex items-start text-sm ${isComponent ? '' : 'py-2 border-b border-border/30 last:border-b-0'}`}>
         {IconComponent && <IconComponent className={`mr-3 h-5 w-5 text-muted-foreground shrink-0 mt-0.5 ${className || ''}`} />}
-        {!IconComponent && !isComponent && <div className="w-8 shrink-0"></div>} {/* Placeholder for alignment if no icon and not a component */}
+        {!IconComponent && !isComponent && <div className="w-8 shrink-0"></div>}
         <span className="text-muted-foreground w-2/5 shrink-0">{label}</span>
         {isComponent ? <div className="ml-auto text-right">{value}</div> :
          isBadge ? <Badge variant="secondary" className="ml-auto capitalize whitespace-nowrap">{String(value)}</Badge> :
@@ -288,3 +292,4 @@ const DetailItem: FC<DetailItemProps> = ({ icon: IconComponent, label, value, is
 );
 
 export default InventoryItemDetailModal;
+
