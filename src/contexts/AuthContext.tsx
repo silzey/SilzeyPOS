@@ -133,7 +133,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const signInWithEmail = async (email: string, pass: string): Promise<boolean> => {
     setLoading(true);
     // This is a MOCK sign-in.
-    if (email === MOCK_EMAIL_USER.email && pass === "password123") {
+    if (email === MOCK_EMAIL_USER.email && pass === "superSecure123") { // Changed password here
       setUser(MOCK_EMAIL_USER);
       localStorage.setItem(ACTIVE_USER_STORAGE_KEY, JSON.stringify(MOCK_EMAIL_USER));
       
@@ -203,5 +203,3 @@ export const useAuth = () => {
   }
   return context;
 };
-
-    
