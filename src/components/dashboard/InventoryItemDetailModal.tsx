@@ -28,6 +28,15 @@ const getStockBadgeInfo = (stock: number, threshold: number): { text: string; cl
   return { text: "In Stock", className: "bg-green-500/20 text-green-700 border-green-500/30" };
 };
 
+const isValidImageUrl = (url?: string): boolean => {
+  if (!url) {
+    return false;
+  }
+  // Basic check for common valid URL schemes for next/image
+  return url.startsWith('http://') || url.startsWith('https:') || url.startsWith('data:') || url.startsWith('/');
+};
+
+
 const InventoryItemDetailModal: FC<InventoryItemDetailModalProps> = ({ item, isOpen, onClose, onSave }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editableItem, setEditableItem] = useState<InventoryItem | null>(null);
@@ -35,8 +44,8 @@ const InventoryItemDetailModal: FC<InventoryItemDetailModalProps> = ({ item, isO
 
   useEffect(() => {
     if (item) {
-      setEditableItem({ ...item }); 
-      setIsEditing(false); 
+      setEditableItem({ ...item });
+      setIsEditing(false);
     } else {
       setEditableItem(null);
     }
@@ -48,11 +57,16 @@ const InventoryItemDetailModal: FC<InventoryItemDetailModalProps> = ({ item, isO
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    let processedValue: string | number = value;
+    
+    if (name === 'imageUrl') {
+      setEditableItem(prev => prev ? { ...prev, imageUrl: value } : null);
+      return; 
+    }
 
+    let processedValue: string | number = value;
     const numericFields = ['stock', 'lowStockThreshold', 'purchasePrice', 'salePrice', 'rating'];
     if (numericFields.includes(name)) {
-      processedValue = value === '' ? '' : parseFloat(value); // Keep empty string if user clears, validate on save
+      processedValue = value === '' ? '' : parseFloat(value); 
     }
     setEditableItem(prev => prev ? { ...prev, [name]: processedValue } : null);
   };
@@ -68,7 +82,7 @@ const InventoryItemDetailModal: FC<InventoryItemDetailModalProps> = ({ item, isO
       };
 
       for (const [fieldName, fieldValue] of Object.entries(fieldsToValidateAsNumbers)) {
-        const numValue = parseFloat(String(fieldValue)); // Convert possible empty string to number
+        const numValue = parseFloat(String(fieldValue));
         if (isNaN(numValue) || numValue < 0) {
           alert(`${fieldName.replace(/([A-Z])/g, ' $1').toLowerCase()} must be a valid non-negative number.`);
           return;
@@ -151,7 +165,7 @@ const InventoryItemDetailModal: FC<InventoryItemDetailModalProps> = ({ item, isO
               {isEditing && <Label className="mb-1 text-sm font-medium">Product Image</Label>}
               <div className="w-full flex justify-center">
                 <div className="w-40 h-40 relative border-2 border-primary/30 rounded-lg overflow-hidden shadow-md bg-muted/10 p-1">
-                  {editableItem.imageUrl ? (
+                  {isValidImageUrl(editableItem.imageUrl) ? (
                     <Image
                       src={editableItem.imageUrl}
                       alt={editableItem.name}
@@ -159,7 +173,7 @@ const InventoryItemDetailModal: FC<InventoryItemDetailModalProps> = ({ item, isO
                       objectFit="contain"
                       className="rounded-sm" 
                       data-ai-hint={editableItem.dataAiHint || editableItem.category.toLowerCase()}
-                      key={editableItem.imageUrl}
+                      key={editableItem.imageUrl} // Force re-render on URL change
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center bg-muted rounded-sm">
@@ -292,4 +306,3 @@ const DetailItem: FC<DetailItemProps> = ({ icon: IconComponent, label, value, is
 );
 
 export default InventoryItemDetailModal;
-
