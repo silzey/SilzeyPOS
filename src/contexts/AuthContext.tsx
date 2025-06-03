@@ -4,13 +4,14 @@
 import type { UserProfile } from '@/types/pos';
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { auth, googleProvider } from '@/lib/firebase';
+import { auth, googleProvider, appleProvider } from '@/lib/firebase'; // Added appleProvider
 import { onAuthStateChanged, signInWithPopup, signOut as firebaseSignOut, type User as FirebaseUser } from 'firebase/auth';
 
 interface AuthContextType {
   user: UserProfile | null;
   loading: boolean;
   signInWithGoogle: () => Promise<void>;
+  signInWithApple: () => Promise<void>; // Added signInWithApple
   signInWithEmail: (email: string, pass: string) => Promise<boolean>;
   signOut: () => Promise<void>;
 }
@@ -20,13 +21,20 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 const ACTIVE_USER_STORAGE_KEY = 'activeUserSilzeyPOS';
 const ALL_USERS_STORAGE_KEY = 'allUserProfilesSilzeyPOS';
 
-const parseName = (displayName: string | null): { firstName: string; lastName: string } => {
-  if (!displayName) return { firstName: 'User', lastName: '' };
-  const parts = displayName.split(' ');
-  const firstName = parts[0];
-  const lastName = parts.slice(1).join(' ');
-  return { firstName, lastName };
+const parseName = (displayName: string | null, email?: string | null): { firstName: string; lastName: string } => {
+  if (displayName) {
+    const parts = displayName.split(' ');
+    const firstName = parts[0];
+    const lastName = parts.slice(1).join(' ');
+    return { firstName, lastName: lastName || (parts.length > 1 ? '' : 'User') }; // Handle cases where lastName might be empty
+  }
+  if (email) {
+    const emailUser = email.split('@')[0];
+    return { firstName: emailUser, lastName: '' };
+  }
+  return { firstName: 'User', lastName: '' };
 };
+
 
 // Mock user for email/password sign-in
 const MOCK_EMAIL_USER: UserProfile = {
@@ -56,12 +64,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         let userProfile = allUsers.find(u => u.id === firebaseUser.uid || u.email === firebaseUser.email);
 
         if (!userProfile) {
-          const { firstName, lastName } = parseName(firebaseUser.displayName);
+          // For Apple, displayName might not be immediately available or might be just email.
+          // Firebase attempts to get name, but it's only provided on first sign-in.
+          const { firstName, lastName } = parseName(firebaseUser.displayName, firebaseUser.email);
           userProfile = {
             id: firebaseUser.uid,
             firstName,
             lastName,
-            email: firebaseUser.email || 'no-email@example.com',
+            email: firebaseUser.email || `user-${firebaseUser.uid.substring(0,5)}@silzeypos.com`, // Fallback email
             avatarUrl: firebaseUser.photoURL || `https://placehold.co/150x150.png?text=${firstName.charAt(0)}${lastName.charAt(0) || ''}`,
             dataAiHint: 'user avatar',
             bio: 'Welcome to Silzey POS!',
@@ -122,7 +132,24 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       await signInWithPopup(auth, googleProvider);
     } catch (error) {
       console.error("Error during Google sign-in:", error);
-      alert("Google Sign-In Failed. Please try again.");
+      alert("Google Sign-In Failed. Please try again or check console for details.");
+      setLoading(false);
+    }
+  };
+
+  const signInWithApple = async () => {
+    setLoading(true);
+    try {
+      await signInWithPopup(auth, appleProvider);
+    } catch (error: any) {
+      console.error("Error during Apple sign-in:", error);
+      let errorMessage = "Apple Sign-In Failed. Please try again or check console for details.";
+      if (error.code === 'auth/account-exists-with-different-credential') {
+        errorMessage = "An account already exists with the same email address. Try signing in with a different method.";
+      } else if (error.code === 'auth/cancelled-popup-request' || error.code === 'auth/popup-closed-by-user') {
+        errorMessage = "Apple Sign-In was cancelled.";
+      }
+      alert(errorMessage);
       setLoading(false);
     }
   };
@@ -179,6 +206,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     user,
     loading,
     signInWithGoogle,
+    signInWithApple,
     signInWithEmail,
     signOut,
   };
@@ -197,3 +225,4 @@ export const useAuth = () => {
   }
   return context;
 };
+
