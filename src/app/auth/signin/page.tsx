@@ -46,7 +46,7 @@ export default function SignInPage() {
     if (!success) {
       toast({
         title: "Sign In Failed",
-        description: "Invalid email or password. (Hint: kim.l@silzeypos.com / passwordDancer$1976)",
+        description: "Invalid email or password.",
         variant: "destructive",
       });
     }
@@ -123,9 +123,6 @@ export default function SignInPage() {
        <CardFooter className="flex flex-col items-center justify-center text-sm space-y-1">
         <p className="text-muted-foreground">
           Signing in with Google will create an account if you're new.
-        </p>
-         <p className="text-xs text-muted-foreground">
-          (Mock email login: <code className="bg-muted p-0.5 rounded">kim.l@silzeypos.com</code> / <code className="bg-muted p-0.5 rounded">passwordDancer$1976</code>)
         </p>
       </CardFooter>
     </Card>
