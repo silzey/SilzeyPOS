@@ -4,6 +4,7 @@
 import type { FC } from 'react';
 import Image from 'next/image';
 import type { Product } from '@/types/pos';
+import { Badge } from '@/components/ui/badge';
 
 interface ProductStoryReelProps {
   products: Product[];
@@ -15,11 +16,26 @@ const ProductStoryReel: FC<ProductStoryReelProps> = ({ products, onProductSelect
     return null;
   }
 
+  // Define overlay options and their frequency.
+  // null means no overlay.
+  // New: ~15%, 5% off: ~10%, 10% off: ~10%, No overlay: ~65%
+  const overlayOptions: (string | null)[] = [
+    "New", "New", "New", // 3 instances for "New"
+    "5% off", "5% off",     // 2 instances for "5% off"
+    "10% off", "10% off",   // 2 instances for "10% off"
+    null, null, null, null, null, null, null, null, null, null, null, null, null // 13 instances for no overlay
+  ]; // Total 20 options
+
   return (
     <div className="container mx-auto mb-8 px-0">
       <div className="overflow-x-auto whitespace-nowrap py-3 no-scrollbar flex gap-3 sm:gap-4 pl-4 pr-4">
         {products.map((product, index) => {
           const isFifthItem = (index + 1) % 5 === 0;
+          
+          // Determine overlay for this item
+          const randomOptionIndex = Math.floor(Math.random() * overlayOptions.length);
+          const selectedOverlayText = overlayOptions[randomOptionIndex];
+
           return (
             <div
               key={product.id}
@@ -54,7 +70,18 @@ const ProductStoryReel: FC<ProductStoryReelProps> = ({ products, onProductSelect
                   />
                 </div>
               </div>
-              <p className="text-xs text-center mt-1.5 w-16 sm:w-20 truncate text-muted-foreground group-hover:text-primary transition-colors">
+
+              {/* Overlay Badge */}
+              <div className="h-5 mt-1 flex items-center justify-center"> {/* Container to stabilize layout height */}
+                {selectedOverlayText === "New" && (
+                  <Badge variant="default" className="bg-green-600 hover:bg-green-700 text-white text-[10px] px-1.5 py-0.5 leading-none">New</Badge>
+                )}
+                {selectedOverlayText && selectedOverlayText.includes("off") && (
+                  <Badge variant="destructive" className="text-[10px] px-1.5 py-0.5 leading-none">{selectedOverlayText}</Badge>
+                )}
+              </div>
+              
+              <p className="text-xs text-center mt-0.5 w-16 sm:w-20 truncate text-muted-foreground group-hover:text-primary transition-colors">
                 {product.name}
               </p>
             </div>
