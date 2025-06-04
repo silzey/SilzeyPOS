@@ -34,6 +34,9 @@ const mapInventoryItemToProduct = (item: InventoryItem): Product => ({
   dataAiHint: item.dataAiHint,
 });
 
+// Define categories that are visually "weed" for the story reel
+const WEED_PHOTO_CATEGORIES_FOR_REEL: Category[] = ["Flower", "Concentrates"];
+
 export default function PosPage() {
   const [showSplash, setShowSplash] = useState(true);
   const [activeCategory, setActiveCategory] = useState<Category>(CATEGORIES[0]);
@@ -79,13 +82,11 @@ export default function PosPage() {
   }, [user]);
 
   const storyReelProducts = useMemo(() => {
-    // Get a diverse set of up to 25 in-stock items for the story reel
-    const allInStockProducts = masterInventory
-        .filter(item => item.stock > 0)
+    const visuallyWeedProducts = masterInventory
+        .filter(item => item.stock > 0 && WEED_PHOTO_CATEGORIES_FOR_REEL.includes(item.category)) // Filter by defined "weed photo" categories
         .map(mapInventoryItemToProduct);
 
-    // Shuffle to get variety if there are more than 25 products
-    const shuffled = [...allInStockProducts].sort(() => 0.5 - Math.random());
+    const shuffled = [...visuallyWeedProducts].sort(() => 0.5 - Math.random());
     return shuffled.slice(0, 25);
   }, [masterInventory]);
 
