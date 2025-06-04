@@ -19,16 +19,16 @@ const lastNames = [
 ];
 
 const customerAvatars = [
-    'https://placehold.co/150x150', // Changed here
-    'https://placehold.co/150x150', // Changed here
-    'https://placehold.co/150x150', // Changed here
-    'https://placehold.co/150x150', // Changed here
-    'https://placehold.co/150x150', // Changed here
-    'https://placehold.co/150x150', // Changed here
-    'https://placehold.co/150x150', // Changed here
-    'https://placehold.co/150x150', // Changed here
-    'https://placehold.co/150x150', // Changed here
-    'https://placehold.co/150x150', // Changed here
+    'https://placehold.co/150x150',
+    'https://placehold.co/150x150',
+    'https://placehold.co/150x150',
+    'https://placehold.co/150x150',
+    'https://placehold.co/150x150',
+    'https://placehold.co/150x150',
+    'https://placehold.co/150x150',
+    'https://placehold.co/150x150',
+    'https://placehold.co/150x150',
+    'https://placehold.co/150x150',
 ];
 const customerDataHints = ['person face', 'user portrait', 'smiling individual', 'customer photo', 'avatar image', 'profile picture', 'happy user', 'client image', 'member photo', 'user icon'];
 
@@ -52,11 +52,26 @@ const mockProductNamesByCategory: Record<ProductCategory, string[]> = {
   "Edibles": ["Lunar Gummies", "Orion Brownies", "Cosmic Cookies", "Stardust Cereal Bar", "Nebula Chocolate", "Galaxy Grape Bites", "Planet Peach Pastries"],
 };
 
+const CATEGORY_ITEM_IMAGES: Record<ProductCategory, { url: string; hint: string }[]> = {
+  "Flower": [
+    { url: "https://images.pexels.com/photos/7667726/pexels-photo-7667726.jpeg?auto=compress&cs=tinysrgb&w=80&h=80&dpr=1", hint: "cannabis flower" },
+    { url: "https://images.pexels.com/photos/7955084/pexels-photo-7955084.jpeg?auto=compress&cs=tinysrgb&w=80&h=80&dpr=1", hint: "cannabis bud" },
+  ],
+  "Concentrates": [
+    { url: "https://images.pexels.com/photos/7667723/pexels-photo-7667723.jpeg?auto=compress&cs=tinysrgb&w=80&h=80&dpr=1", hint: "cannabis concentrate" },
+  ],
+  "Vapes": [
+    { url: "https://images.pexels.com/photos/8169697/pexels-photo-8169697.jpeg?auto=compress&cs=tinysrgb&w=80&h=80&dpr=1", hint: "vape pen" },
+  ],
+  "Edibles": [
+    { url: "https://images.pexels.com/photos/7758036/pexels-photo-7758036.jpeg?auto=compress&cs=tinysrgb&w=80&h=80&dpr=1", hint: "cannabis edibles" },
+    { url: "https://images.pexels.com/photos/7667756/pexels-photo-7667756.jpeg?auto=compress&cs=tinysrgb&w=80&h=80&dpr=1", hint: "cannabis cookies" },
+  ],
+};
+
 const getMockItemImage = (category: ProductCategory, index: number): { url: string; hint: string } => {
-  return {
-    url: `https://placehold.co/80x80`, // Changed here
-    hint: "cannabis"
-  };
+  const imagesForCategory = CATEGORY_ITEM_IMAGES[category];
+  return imagesForCategory[index % imagesForCategory.length];
 };
 
 const generateMockCartItemsForCustomer = (itemCount: number): CartItem[] => {
@@ -151,7 +166,7 @@ export const mockCustomers: Customer[] = Array.from({ length: 10 }, (_, i) => { 
   };
 });
 
-const ALL_USERS_STORAGE_KEY = 'allUserProfilesSilzeyPOS'; // Updated key
+const ALL_USERS_STORAGE_KEY = 'allUserProfilesSilzeyPOS';
 
 export const getCustomerById = (id: string): Customer | undefined => {
     // First, check static mock customers
@@ -172,7 +187,7 @@ export const getCustomerById = (id: string): Customer | undefined => {
                     // won't have pre-existing order history in this mock setup.
                     return {
                         ...foundProfile,
-                        orderHistory: [],
+                        orderHistory: [], // Dynamically created mock users won't have static history here
                         currentOrder: undefined,
                         // rewardsPoints should be part of UserProfile from AuthContext
                     };
