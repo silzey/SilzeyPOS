@@ -29,19 +29,18 @@ const ProductStoryReel: FC<ProductStoryReelProps> = ({ products, onProductSelect
               onKeyDown={(e) => onProductSelect && e.key === 'Enter' && onProductSelect(product)}
               aria-label={`View ${product.name}`}
             >
-              <div className="relative"> {/* New wrapper for image and its potential rotating border */}
+              {/* Sized Relative Wrapper for positioning */}
+              <div className="relative w-16 h-16 sm:w-20 sm:h-20">
                 {isFifthItem && (
                   <div
-                    className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 
-                               w-[calc(4rem+6px)] h-[calc(4rem+6px)] 
-                               sm:w-[calc(5rem+8px)] sm:h-[calc(5rem+8px)] 
-                               rounded-full rotating-red-border z-0"
+                    className="absolute inset-[-2px] rounded-full rotating-red-border z-0"
+                    // inset-[-2px] makes it 2px larger on all sides than its parent before its own border.
+                    // The .rotating-red-border class applies its own border (e.g., border-2).
                   />
                 )}
-                {/* Image container */}
+                {/* Image Container */}
                 <div
-                  className="w-16 h-16 sm:w-20 sm:h-20 
-                             rounded-full overflow-hidden border-2 border-primary/30 
+                  className="w-full h-full rounded-full overflow-hidden border-2 border-primary/30 
                              group-hover:border-primary shadow-md transition-all duration-200 
                              relative transform group-hover:scale-105 z-10 bg-background"
                 >
