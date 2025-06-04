@@ -16,8 +16,6 @@ const ProductStoryReel: FC<ProductStoryReelProps> = ({ products, onProductSelect
     return null;
   }
 
-  // Updated overlay options: "New", "5% off", "10% off", "7% off"
-  // Every circle will now have one of these.
   const overlayOptions: string[] = [
     "New", 
     "5% off", 
@@ -27,30 +25,27 @@ const ProductStoryReel: FC<ProductStoryReelProps> = ({ products, onProductSelect
 
   return (
     <div className="container mx-auto mb-8 px-0">
-      <div className="overflow-x-auto whitespace-nowrap py-3 no-scrollbar flex gap-3 sm:gap-4 pl-4 pr-4">
+      <div className="overflow-x-auto whitespace-nowrap py-3 no-scrollbar flex gap-3 sm:gap-4 px-0"> {/* Changed pl-4 pr-4 to px-0 */}
         {products.map((product, index) => {
           const isFifthItem = (index + 1) % 5 === 0;
           
-          // Determine overlay for this item, ensuring every item gets one
-          const selectedOverlayText = overlayOptions[index % overlayOptions.length]; // Cycle through options
+          const selectedOverlayText = overlayOptions[index % overlayOptions.length];
 
           return (
             <div
               key={product.id}
-              className="inline-flex flex-col items-center cursor-pointer group"
+              className="inline-flex flex-col items-center cursor-pointer group first:ml-4 last:mr-4 md:first:ml-0 md:last:mr-0" // Add margin for first/last on mobile, remove on md+
               onClick={() => onProductSelect && onProductSelect(product)}
               tabIndex={onProductSelect ? 0 : -1}
               onKeyDown={(e) => onProductSelect && e.key === 'Enter' && onProductSelect(product)}
               aria-label={`View ${product.name}`}
             >
-              {/* Sized Relative Wrapper for positioning the image and its border */}
               <div className="relative w-16 h-16 sm:w-20 sm:h-20">
                 {isFifthItem && (
                   <div
                     className="absolute inset-[-2px] rounded-full pulsating-color-border z-0"
                   />
                 )}
-                {/* Image Container */}
                 <div
                   className="w-full h-full rounded-full overflow-hidden border-2 border-primary/30 
                              group-hover:border-primary shadow-md transition-all duration-200 
@@ -69,7 +64,6 @@ const ProductStoryReel: FC<ProductStoryReelProps> = ({ products, onProductSelect
                 </div>
               </div>
 
-              {/* Overlay Badge Container - ensure consistent height */}
               <div className="h-5 mt-1 flex items-center justify-center">
                 {selectedOverlayText === "New" && (
                   <Badge variant="default" className="bg-green-600 hover:bg-green-700 text-white text-[10px] px-1.5 py-0.5 leading-none">New</Badge>
