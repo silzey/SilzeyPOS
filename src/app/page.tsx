@@ -3,8 +3,8 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import type { Product, CartItem, Category, CustomerInfo, Order, UserProfile, InventoryItem } from '@/types/pos'; // Added InventoryItem
-import { CATEGORIES, TAGS } from '@/lib/data'; // generateProducts removed from here
-import { generateMockInventory } from '@/lib/mockInventory'; // Import from mockInventory
+import { CATEGORIES, TAGS } from '@/lib/data';
+import { generateMockInventory } from '@/lib/mockInventory';
 import { getUpsellSuggestions, type UpsellSuggestionsOutput } from '@/ai/flows/upsell-suggestions';
 
 import SplashScreen from '@/components/pos/SplashScreen';
@@ -12,6 +12,7 @@ import ThankYouCard from '@/components/pos/ThankYouCard';
 import Header from '@/components/pos/Header';
 import CategoryNavigation from '@/components/pos/CategoryNavigation';
 import FilterControls from '@/components/pos/FilterControls';
+import ProductStoryReel from '@/components/pos/ProductStoryReel'; // Added import
 import ProductGrid from '@/components/pos/ProductGrid';
 import ProductDetailModal from '@/components/pos/ProductDetailModal';
 import CartSheet from '@/components/pos/CartSheet';
@@ -59,7 +60,6 @@ export default function PosPage() {
 
   useEffect(() => {
     const timer = setTimeout(() => setShowSplash(false), 3000);
-    // Load master inventory on mount
     setMasterInventory(generateMockInventory());
     return () => clearTimeout(timer);
   }, []);
@@ -78,16 +78,25 @@ export default function PosPage() {
     }
   }, [user]);
 
+  const storyReelProducts = useMemo(() => {
+    // Get a diverse set of up to 25 in-stock items for the story reel
+    const allInStockProducts = masterInventory
+        .filter(item => item.stock > 0)
+        .map(mapInventoryItemToProduct);
+
+    // Shuffle to get variety if there are more than 25 products
+    const shuffled = [...allInStockProducts].sort(() => 0.5 - Math.random());
+    return shuffled.slice(0, 25);
+  }, [masterInventory]);
 
   const productsForCategory = useMemo(() => {
-    // Filter master inventory by active category and map to Product type
     return masterInventory
-      .filter(item => item.category === activeCategory && item.stock > 0) // Only show in-stock items
+      .filter(item => item.category === activeCategory && item.stock > 0)
       .map(mapInventoryItemToProduct);
   }, [masterInventory, activeCategory]);
 
   const filteredAndSortedProducts = useMemo(() => {
-    let products = [...productsForCategory]; // Use products derived from inventory
+    let products = [...productsForCategory];
     if (selectedTag) {
       products = products.filter((p) => p.tags === selectedTag);
     }
@@ -110,11 +119,9 @@ export default function PosPage() {
     setActiveCategory(category);
     setSelectedTag("");
     setSearchTerm("");
-    // Master inventory is already loaded, so changing category will re-trigger memos
   }, []);
 
   const addToCart = useCallback((product: Product) => {
-    // Find the corresponding inventory item to check stock
     const inventoryItem = masterInventory.find(item => item.id === product.id);
     if (!inventoryItem) {
         toast({ title: "Error", description: "Product not found in inventory.", variant: "destructive" });
@@ -143,7 +150,7 @@ export default function PosPage() {
 
   const updateQuantity = useCallback((productId: string, delta: number) => {
     const inventoryItem = masterInventory.find(item => item.id === productId);
-    if (!inventoryItem) return; // Should not happen
+    if (!inventoryItem) return;
 
     setCart((prev) => {
         const updatedCart = prev.map((item) => {
@@ -214,8 +221,7 @@ export default function PosPage() {
       return;
     }
 
-    // Decrement stock for items in cart
-    const currentInventory = generateMockInventory(); // Get latest from localStorage
+    const currentInventory = generateMockInventory(); 
     const updatedInventory = [...currentInventory];
     let possibleToFinalize = true;
 
@@ -238,16 +244,14 @@ export default function PosPage() {
 
     if (!possibleToFinalize) {
         setCheckoutMessage("Could not finalize sale due to stock issues. Please review cart or inventory.");
-        // Refresh master inventory on POS page to reflect any potential discrepancies immediately
         setMasterInventory(generateMockInventory());
         return;
     }
 
-    // Save updated inventory to localStorage
     if (typeof window !== 'undefined') {
         localStorage.setItem('silzeyAppInventory', JSON.stringify(updatedInventory));
     }
-    setMasterInventory(updatedInventory); // Update POS page's local master inventory state
+    setMasterInventory(updatedInventory);
 
     const newOrder: Order = {
       id: `POS-ORD-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
@@ -285,7 +289,6 @@ export default function PosPage() {
       console.error("Error saving pending order to localStorage:", error);
       setCheckoutMessage("An error occurred while submitting your order. Please try again.");
       toast({ title: "Submission Error", description: "Could not submit order to local queue.", variant: "destructive" });
-      // Rollback stock changes if order submission fails (simplified for mock)
        localStorage.setItem('silzeyAppInventory', JSON.stringify(currentInventory));
        setMasterInventory(currentInventory);
     }
@@ -312,6 +315,10 @@ export default function PosPage() {
           onTagChange={setSelectedTag}
           searchTerm={searchTerm}
           onSearchChange={(e) => setSearchTerm(e.target.value)}
+        />
+        <ProductStoryReel 
+            products={storyReelProducts} 
+            onProductSelect={setSelectedProduct} 
         />
         <ProductGrid
           products={filteredAndSortedProducts}
