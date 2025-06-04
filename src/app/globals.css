@@ -130,4 +130,22 @@
     -ms-overflow-style: none;  /* IE and Edge */
     scrollbar-width: none;  /* Firefox */
   }
+
+  /* Added for rotating red border */
+  .rotating-red-border {
+    border-width: 2px; /* Using Tailwind's border-width scale if possible or define explicitly */
+    border-color: #ef4444; /* Equivalent to Tailwind's red-500 */
+    animation: rotate-story-item 2.5s linear infinite;
+    will-change: transform; /* Hint to browser for optimization */
+  }
+
+  @keyframes rotate-story-item {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
 }
+
