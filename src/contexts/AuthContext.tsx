@@ -4,14 +4,14 @@
 import type { UserProfile } from '@/types/pos';
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { auth, googleProvider } from '@/lib/firebase'; // appleProvider removed
-import { onAuthStateChanged, signInWithPopup, signOut as firebaseSignOut, type User as FirebaseUser } from 'firebase/auth';
+import { auth, googleProvider } from '@/lib/firebase';
+import { onAuthStateChanged, signInWithPopup, signOut as firebaseSignOut, type User as FirebaseUser } from 'firebase/auth'; // Removed FirebaseError import
+import { useToast } from "@/hooks/use-toast";
 
 interface AuthContextType {
   user: UserProfile | null;
   loading: boolean;
   signInWithGoogle: () => Promise<void>;
-  // signInWithApple removed
   signInWithEmail: (email: string, pass: string) => Promise<boolean>;
   signOut: () => Promise<void>;
 }
@@ -42,7 +42,7 @@ const MOCK_EMAIL_USER: UserProfile = {
   firstName: 'Kim',
   lastName: 'Lunaris',
   email: 'kim.l@silzeypos.com',
-  avatarUrl: 'https://placehold.co/150x150.png?text=KL',
+  avatarUrl: 'https://placehold.co/150x150?text=KL',
   dataAiHint: 'user avatar',
   bio: 'The original mock user for Silzey POS.',
   memberSince: new Date(2022, 5, 15).toISOString(),
@@ -53,6 +53,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
+  const { toast } = useToast();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser: FirebaseUser | null) => {
@@ -70,7 +71,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             firstName,
             lastName,
             email: firebaseUser.email || `user-${firebaseUser.uid.substring(0,5)}@silzeypos.com`,
-            avatarUrl: firebaseUser.photoURL || `https://placehold.co/150x150.png?text=${firstName.charAt(0)}${lastName.charAt(0) || ''}`,
+            avatarUrl: firebaseUser.photoURL || `https://placehold.co/150x150?text=${firstName.charAt(0)}${lastName.charAt(0) || ''}`,
             dataAiHint: 'user avatar',
             bio: 'Welcome to Silzey POS!',
             memberSince: new Date().toISOString(),
@@ -122,20 +123,28 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
 
     return () => unsubscribe();
-  }, [router]);
+  }, [router, toast]);
 
   const signInWithGoogle = async () => {
     setLoading(true);
     try {
       await signInWithPopup(auth, googleProvider);
-    } catch (error) {
+      // Successful sign-in is handled by onAuthStateChanged
+    } catch (error: any) { // Changed type to any to check error.code
       console.error("Error during Google sign-in:", error);
-      alert("Google Sign-In Failed. Please try again or check console for details.");
+      let description = "Google Sign-In Failed. Please try again.";
+      if (error && error.code === 'auth/popup-closed-by-user') {
+        description = "Sign-in popup was closed before completion. Please try again.";
+      }
+      toast({
+        title: "Sign-In Issue",
+        description: description,
+        variant: "destructive",
+      });
+    } finally {
       setLoading(false);
     }
   };
-
-  // signInWithApple function removed
 
   const signInWithEmail = async (email: string, pass: string): Promise<boolean> => {
     setLoading(true);
@@ -189,7 +198,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     user,
     loading,
     signInWithGoogle,
-    // signInWithApple removed
     signInWithEmail,
     signOut,
   };
@@ -208,3 +216,4 @@ export const useAuth = () => {
   }
   return context;
 };
+
