@@ -16,15 +16,14 @@ const ProductStoryReel: FC<ProductStoryReelProps> = ({ products, onProductSelect
     return null;
   }
 
-  // Define overlay options and their frequency.
-  // null means no overlay.
-  // New: ~15%, 5% off: ~10%, 10% off: ~10%, No overlay: ~65%
-  const overlayOptions: (string | null)[] = [
-    "New", "New", "New", // 3 instances for "New"
-    "5% off", "5% off",     // 2 instances for "5% off"
-    "10% off", "10% off",   // 2 instances for "10% off"
-    null, null, null, null, null, null, null, null, null, null, null, null, null // 13 instances for no overlay
-  ]; // Total 20 options
+  // Updated overlay options: "New", "5% off", "10% off", "7% off"
+  // Every circle will now have one of these.
+  const overlayOptions: string[] = [
+    "New", 
+    "5% off", 
+    "10% off",
+    "7% off" 
+  ];
 
   return (
     <div className="container mx-auto mb-8 px-0">
@@ -32,9 +31,8 @@ const ProductStoryReel: FC<ProductStoryReelProps> = ({ products, onProductSelect
         {products.map((product, index) => {
           const isFifthItem = (index + 1) % 5 === 0;
           
-          // Determine overlay for this item
-          const randomOptionIndex = Math.floor(Math.random() * overlayOptions.length);
-          const selectedOverlayText = overlayOptions[randomOptionIndex];
+          // Determine overlay for this item, ensuring every item gets one
+          const selectedOverlayText = overlayOptions[index % overlayOptions.length]; // Cycle through options
 
           return (
             <div
@@ -71,12 +69,12 @@ const ProductStoryReel: FC<ProductStoryReelProps> = ({ products, onProductSelect
                 </div>
               </div>
 
-              {/* Overlay Badge */}
-              <div className="h-5 mt-1 flex items-center justify-center"> {/* Container to stabilize layout height */}
+              {/* Overlay Badge Container - ensure consistent height */}
+              <div className="h-5 mt-1 flex items-center justify-center">
                 {selectedOverlayText === "New" && (
                   <Badge variant="default" className="bg-green-600 hover:bg-green-700 text-white text-[10px] px-1.5 py-0.5 leading-none">New</Badge>
                 )}
-                {selectedOverlayText && selectedOverlayText.includes("off") && (
+                {(selectedOverlayText === "5% off" || selectedOverlayText === "10% off" || selectedOverlayText === "7% off") && (
                   <Badge variant="destructive" className="text-[10px] px-1.5 py-0.5 leading-none">{selectedOverlayText}</Badge>
                 )}
               </div>
