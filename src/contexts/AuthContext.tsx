@@ -4,14 +4,14 @@
 import type { UserProfile } from '@/types/pos';
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { auth, googleProvider, appleProvider } from '@/lib/firebase'; // Added appleProvider
+import { auth, googleProvider } from '@/lib/firebase'; // appleProvider removed
 import { onAuthStateChanged, signInWithPopup, signOut as firebaseSignOut, type User as FirebaseUser } from 'firebase/auth';
 
 interface AuthContextType {
   user: UserProfile | null;
   loading: boolean;
   signInWithGoogle: () => Promise<void>;
-  signInWithApple: () => Promise<void>; // Added signInWithApple
+  // signInWithApple removed
   signInWithEmail: (email: string, pass: string) => Promise<boolean>;
   signOut: () => Promise<void>;
 }
@@ -26,7 +26,7 @@ const parseName = (displayName: string | null, email?: string | null): { firstNa
     const parts = displayName.split(' ');
     const firstName = parts[0];
     const lastName = parts.slice(1).join(' ');
-    return { firstName, lastName: lastName || (parts.length > 1 ? '' : 'User') }; // Handle cases where lastName might be empty
+    return { firstName, lastName: lastName || (parts.length > 1 ? '' : 'User') };
   }
   if (email) {
     const emailUser = email.split('@')[0];
@@ -45,7 +45,7 @@ const MOCK_EMAIL_USER: UserProfile = {
   avatarUrl: 'https://placehold.co/150x150.png?text=KL',
   dataAiHint: 'user avatar',
   bio: 'The original mock user for Silzey POS.',
-  memberSince: new Date(2022, 5, 15).toISOString(), // Example date
+  memberSince: new Date(2022, 5, 15).toISOString(),
   rewardsPoints: 1500,
 };
 
@@ -64,14 +64,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         let userProfile = allUsers.find(u => u.id === firebaseUser.uid || u.email === firebaseUser.email);
 
         if (!userProfile) {
-          // For Apple, displayName might not be immediately available or might be just email.
-          // Firebase attempts to get name, but it's only provided on first sign-in.
           const { firstName, lastName } = parseName(firebaseUser.displayName, firebaseUser.email);
           userProfile = {
             id: firebaseUser.uid,
             firstName,
             lastName,
-            email: firebaseUser.email || `user-${firebaseUser.uid.substring(0,5)}@silzeypos.com`, // Fallback email
+            email: firebaseUser.email || `user-${firebaseUser.uid.substring(0,5)}@silzeypos.com`,
             avatarUrl: firebaseUser.photoURL || `https://placehold.co/150x150.png?text=${firstName.charAt(0)}${lastName.charAt(0) || ''}`,
             dataAiHint: 'user avatar',
             bio: 'Welcome to Silzey POS!',
@@ -137,22 +135,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const signInWithApple = async () => {
-    setLoading(true);
-    try {
-      await signInWithPopup(auth, appleProvider);
-    } catch (error: any) {
-      console.error("Error during Apple sign-in:", error);
-      let errorMessage = "Apple Sign-In Failed. Please try again or check console for details.";
-      if (error.code === 'auth/account-exists-with-different-credential') {
-        errorMessage = "An account already exists with the same email address. Try signing in with a different method.";
-      } else if (error.code === 'auth/cancelled-popup-request' || error.code === 'auth/popup-closed-by-user') {
-        errorMessage = "Apple Sign-In was cancelled.";
-      }
-      alert(errorMessage);
-      setLoading(false);
-    }
-  };
+  // signInWithApple function removed
 
   const signInWithEmail = async (email: string, pass: string): Promise<boolean> => {
     setLoading(true);
@@ -206,7 +189,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     user,
     loading,
     signInWithGoogle,
-    signInWithApple,
+    // signInWithApple removed
     signInWithEmail,
     signOut,
   };
@@ -225,4 +208,3 @@ export const useAuth = () => {
   }
   return context;
 };
-
