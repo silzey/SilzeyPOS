@@ -17,20 +17,33 @@ const lastNames = [
   'Campbell', 'Parker', 'Evans', 'Edwards', 'Collins', 'Stewart', 'Sanchez', 'Morris', 'Rogers', 'Reed'
 ];
 
-// Generic placeholders for user avatars
+// Generic placeholders for user avatars, now with .png
 const customerAvatars = [
-    'https://placehold.co/150x150',
-    'https://placehold.co/150x150',
-    'https://placehold.co/150x150',
-    'https://placehold.co/150x150',
-    'https://placehold.co/150x150',
-    'https://placehold.co/150x150',
-    'https://placehold.co/150x150',
-    'https://placehold.co/150x150',
-    'https://placehold.co/150x150',
-    'https://placehold.co/150x150',
+    'https://placehold.co/150x150.png',
+    'https://placehold.co/150x150.png',
+    'https://placehold.co/150x150.png',
+    'https://placehold.co/150x150.png',
+    'https://placehold.co/150x150.png',
+    'https://placehold.co/150x150.png',
+    'https://placehold.co/150x150.png',
+    'https://placehold.co/150x150.png',
+    'https://placehold.co/150x150.png',
+    'https://placehold.co/150x150.png',
 ];
-const customerDataHints = ['person face', 'user portrait', 'smiling individual', 'customer photo', 'avatar image', 'profile picture', 'happy user', 'client image', 'member photo', 'user icon'];
+
+// Updated data-ai-hints for more specific real person suggestions
+const customerDataHints = [
+  "woman smiling",
+  "man portrait",
+  "person profile",
+  "professional headshot",
+  "woman laughing",
+  "man outdoor",
+  "person candid",
+  "elderly person",
+  "young adult",
+  "person glasses"
+];
 
 const bios = [
   "Loves exploring new flower strains and enjoys a good sativa. Long-time loyal customer.",
@@ -150,8 +163,8 @@ export const mockCustomers: Customer[] = Array.from({ length: 10 }, (_, i) => {
     firstName: firstName,
     lastName: `${lastName}${i < lastNames.length ? '' : Math.floor(i / lastNames.length)}`,
     email: email,
-    avatarUrl: customerAvatars[i % customerAvatars.length], // Uses generic placehold.co
-    dataAiHint: customerDataHints[i % customerDataHints.length], // Uses generic hints
+    avatarUrl: customerAvatars[i % customerAvatars.length], // Uses updated customerAvatars with .png
+    dataAiHint: customerDataHints[i % customerDataHints.length], // Uses updated customerDataHints
     memberSince: specificMemberSince,
     rewardsPoints: specificRewards,
     bio: specificBio,
@@ -199,3 +212,4 @@ export const getCustomerById = (id: string): Customer | undefined => {
     }
     return undefined;
 };
+
