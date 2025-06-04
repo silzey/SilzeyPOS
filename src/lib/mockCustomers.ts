@@ -19,16 +19,16 @@ const lastNames = [
 ];
 
 const customerAvatars = [
-    'https://placehold.co/150x150.png',
-    'https://placehold.co/150x150.png',
-    'https://placehold.co/150x150.png',
-    'https://placehold.co/150x150.png',
-    'https://placehold.co/150x150.png',
-    'https://placehold.co/150x150.png',
-    'https://placehold.co/150x150.png',
-    'https://placehold.co/150x150.png',
-    'https://placehold.co/150x150.png',
-    'https://placehold.co/150x150.png',
+    'https://placehold.co/150x150', // Changed here
+    'https://placehold.co/150x150', // Changed here
+    'https://placehold.co/150x150', // Changed here
+    'https://placehold.co/150x150', // Changed here
+    'https://placehold.co/150x150', // Changed here
+    'https://placehold.co/150x150', // Changed here
+    'https://placehold.co/150x150', // Changed here
+    'https://placehold.co/150x150', // Changed here
+    'https://placehold.co/150x150', // Changed here
+    'https://placehold.co/150x150', // Changed here
 ];
 const customerDataHints = ['person face', 'user portrait', 'smiling individual', 'customer photo', 'avatar image', 'profile picture', 'happy user', 'client image', 'member photo', 'user icon'];
 
@@ -54,7 +54,7 @@ const mockProductNamesByCategory: Record<ProductCategory, string[]> = {
 
 const getMockItemImage = (category: ProductCategory, index: number): { url: string; hint: string } => {
   return {
-    url: `https://placehold.co/80x80.png`,
+    url: `https://placehold.co/80x80`, // Changed here
     hint: "cannabis"
   };
 };
@@ -67,7 +67,7 @@ const generateMockCartItemsForCustomer = (itemCount: number): CartItem[] => {
     const category = PRODUCT_CATEGORIES_LIST[Math.floor(Math.random() * PRODUCT_CATEGORIES_LIST.length)];
     const productNamesForCategory = mockProductNamesByCategory[category];
     let name = productNamesForCategory[Math.floor(Math.random() * productNamesForCategory.length)];
-    
+
     let uniqueNameAttempt = 0;
     while(usedNames.has(`${category}-${name}`) && uniqueNameAttempt < productNamesForCategory.length * 2) {
         name = productNamesForCategory[Math.floor(Math.random() * productNamesForCategory.length)];
@@ -80,9 +80,9 @@ const generateMockCartItemsForCustomer = (itemCount: number): CartItem[] => {
     items.push({
       id: `cust-prod-${category}-${Math.random().toString(36).substring(2, 7)}`,
       name: name,
-      price: (Math.random() * 35 + 10).toFixed(2), 
+      price: (Math.random() * 35 + 10).toFixed(2),
       tags: PRODUCT_TAGS_LIST[Math.floor(Math.random() * PRODUCT_TAGS_LIST.length)],
-      rating: (Math.random() * 1.5 + 3.5).toFixed(1), 
+      rating: (Math.random() * 1.5 + 3.5).toFixed(1),
       category: category,
       image: imageDetails.url,
       dataAiHint: imageDetails.hint,
@@ -100,7 +100,7 @@ const generateMockOrdersForCustomer = (orderCount: number, customerId: string): 
         const orderDate = new Date(Date.now() - Math.random() * 365 * 24 * 60 * 60 * 1000); // Within last year
         orders.push({
             id: `ORD-${customerId.slice(-3)}-${String(101 + i).padStart(3, '0')}`,
-            customerName: customerId, 
+            customerName: customerId,
             customerId: customerId, // Ensure customerId is present for linking
             orderDate: orderDate.toISOString(),
             processedAt: Math.random() > 0.1 ? new Date(orderDate.getTime() + Math.random() * 10 * 60 * 1000).toISOString() : undefined, // Most orders processed shortly after
@@ -124,11 +124,11 @@ export const mockCustomers: Customer[] = Array.from({ length: 10 }, (_, i) => { 
   const specificRewards = Math.floor(Math.random() * 3000) + 50;
   const specificMemberSince = new Date(Date.now() - Math.random() * 2 * 365 * 24 * 60 * 60 * 1000).toISOString();
   const specificId = `static-cust-${String(i + 1).padStart(3, '0')}`;
-  
+
   return {
     id: specificId,
     firstName: firstName,
-    lastName: `${lastName}${i < lastNames.length ? '' : Math.floor(i / lastNames.length)}`, 
+    lastName: `${lastName}${i < lastNames.length ? '' : Math.floor(i / lastNames.length)}`,
     email: email,
     avatarUrl: customerAvatars[i % customerAvatars.length],
     dataAiHint: customerDataHints[i % customerDataHints.length],
@@ -136,12 +136,12 @@ export const mockCustomers: Customer[] = Array.from({ length: 10 }, (_, i) => { 
     rewardsPoints: specificRewards,
     bio: specificBio,
     orderHistory: generateMockOrdersForCustomer(Math.floor(Math.random() * 8) + 1, specificId),
-    currentOrder: Math.random() > 0.7 ? { 
+    currentOrder: Math.random() > 0.7 ? {
         id: `CUR-ORD-${specificId.slice(-3)}-${String(Math.floor(Math.random()*99)+1).padStart(2,'0')}`,
         customerName: `${firstName} ${lastName}`,
         customerId: specificId,
-        orderDate: new Date(Date.now() - Math.random() * 5 * 60 * 60 * 1000).toISOString(), 
-        status: Math.random() > 0.5 ? "In-Store" : "Online", 
+        orderDate: new Date(Date.now() - Math.random() * 5 * 60 * 60 * 1000).toISOString(),
+        status: Math.random() > 0.5 ? "In-Store" : "Online",
         totalAmount: parseFloat((Math.random() * 150 + 20).toFixed(2)),
         itemCount: Math.floor(Math.random() * 3) + 1,
         items: generateMockCartItemsForCustomer(Math.floor(Math.random() * 3) + 1),
@@ -172,7 +172,7 @@ export const getCustomerById = (id: string): Customer | undefined => {
                     // won't have pre-existing order history in this mock setup.
                     return {
                         ...foundProfile,
-                        orderHistory: [], 
+                        orderHistory: [],
                         currentOrder: undefined,
                         // rewardsPoints should be part of UserProfile from AuthContext
                     };
@@ -184,4 +184,3 @@ export const getCustomerById = (id: string): Customer | undefined => {
     }
     return undefined;
 };
-

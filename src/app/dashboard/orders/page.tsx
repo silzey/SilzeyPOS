@@ -31,7 +31,7 @@ const mockProductNamesByCategory: Record<ProductCategory, string[]> = {
 
 const getMockImageForCategory = (category: ProductCategory, index: number): { url: string; hint: string } => {
   return {
-    url: `https://placehold.co/100x100.png`,
+    url: `https://placehold.co/100x100`, // Changed here
     hint: "cannabis"
   };
 };
@@ -67,7 +67,7 @@ const generateMockCartItems = (itemCount: number): CartItem[] => {
 
 const generateInitialMockOrders = (): Order[] => Array.from({ length: 25 }, (_, i) => { // Reduced static mocks
   const statusIndex = i % (ALL_ORDER_STATUSES.length -1); // Exclude "Pending Checkout" for initial mocks
-  const date = new Date(2024, 6, 28 - (i % 28)); 
+  const date = new Date(2024, 6, 28 - (i % 28));
   const items = generateMockCartItems(Math.floor(Math.random() * 4) + 1);
   const totalAmount = items.reduce((sum, item) => sum + parseFloat(item.price) * item.quantity, 0);
   return {
@@ -178,7 +178,7 @@ export default function OrdersPage() {
     // Combine and deduplicate (prefer localStorage if IDs match)
     const combined = [...pendingOrders, ...completedDashboardOrders, ...staticMockOrders];
     const uniqueOrders = Array.from(new Map(combined.map(order => [order.id, order])).values());
-    
+
     setAllOrders(uniqueOrders.sort((a,b) => new Date(b.orderDate).getTime() - new Date(a.orderDate).getTime() ));
   }, []);
 
@@ -425,7 +425,7 @@ export default function ProfilePage() {
           <CardHeader className="bg-muted/30 p-6 flex flex-col sm:flex-row items-center gap-4">
             <div className="relative w-24 h-24 sm:w-32 sm:h-32 rounded-full overflow-hidden border-4 border-primary">
               <Image
-                src={user.avatarUrl || 'https://placehold.co/150x150.png'}
+                src={user.avatarUrl || 'https://placehold.co/150x150'} // Changed here
                 alt={`${user.firstName} ${user.lastName}`}
                 layout="fill"
                 objectFit="cover"
@@ -462,7 +462,7 @@ export default function ProfilePage() {
                 </ul>
               </Card>
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <Card className="bg-accent/10 p-4 border-accent/30">
                     <CardHeader className="p-0 pb-2 flex flex-row items-center space-x-2">
@@ -484,7 +484,7 @@ export default function ProfilePage() {
                 </Card>
             </div>
              <div className="mt-6 flex justify-end">
-               <Button variant="outline" disabled> 
+               <Button variant="outline" disabled>
                 <Edit3 className="mr-2 h-4 w-4" /> Edit Profile
               </Button>
             </div>
@@ -494,4 +494,3 @@ export default function ProfilePage() {
     </div>
   );
 }
-

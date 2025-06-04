@@ -17,11 +17,11 @@ export const generateMockInventory = (): InventoryItem[] => {
         if (Array.isArray(parsedInventory) && parsedInventory.length === expectedTotalItems && parsedInventory[0]?.hasOwnProperty('salePrice')) {
             return parsedInventory;
         } else {
-            localStorage.removeItem(INVENTORY_STORAGE_KEY); 
+            localStorage.removeItem(INVENTORY_STORAGE_KEY);
         }
       } catch (e) {
         console.error("Error parsing inventory from localStorage:", e);
-        localStorage.removeItem(INVENTORY_STORAGE_KEY); 
+        localStorage.removeItem(INVENTORY_STORAGE_KEY);
       }
     }
   }
@@ -34,12 +34,12 @@ export const generateMockInventory = (): InventoryItem[] => {
     "Edibles": ["Lunar Lavender Gummies", "Cosmic Caramel Chews", "Stardust Swirl Brownies", "Nebula Nectar Cookies", "Planet Peach Pastries", "Terra Taffy", "Zenith Zesties", "Milky Way Mints", "Galaxy Grape Bites", "Orion Orange Slices"],
   };
 
-  let itemIndex = 0; 
+  let itemIndex = 0;
 
   PRODUCT_CATEGORIES_LIST.forEach((category) => {
-    for (let j = 0; j < 50; j++) { 
-      const nameBase = baseNames[category][j % baseNames[category].length]; 
-      const stock = Math.floor(Math.random() * 200) + (j % 10 === 0 ? 0 : 5); 
+    for (let j = 0; j < 50; j++) {
+      const nameBase = baseNames[category][j % baseNames[category].length];
+      const stock = Math.floor(Math.random() * 200) + (j % 10 === 0 ? 0 : 5);
       const lowStockThreshold = Math.floor(Math.random() * 20) + 10;
       const purchasePrice = parseFloat((Math.random() * 20 + 5).toFixed(2));
       const salePrice = parseFloat((purchasePrice * (1.5 + Math.random() * 0.8)).toFixed(2));
@@ -55,7 +55,7 @@ export const generateMockInventory = (): InventoryItem[] => {
         purchasePrice,
         salePrice,
         lastRestockDate: new Date(Date.now() - Math.random() * 60 * 24 * 60 * 60 * 1000).toISOString(),
-        imageUrl: `https://placehold.co/300x225.png`,
+        imageUrl: `https://placehold.co/300x225`, // Changed here
         dataAiHint: "cannabis",
         notes: Math.random() > 0.8 ? "Limited edition. High demand." : (Math.random() > 0.6 ? "Staff favorite. Recommend." : undefined),
         tags: PRODUCT_TAGS_LIST[itemIndex % PRODUCT_TAGS_LIST.length],
@@ -84,4 +84,3 @@ export const saveInventory = (inventory: InventoryItem[]): void => {
     }
   }
 };
-

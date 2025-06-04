@@ -76,7 +76,7 @@ export default function ProfilePage() {
           <CardHeader className="bg-muted/30 p-6 flex flex-col sm:flex-row items-center gap-4">
             <div className="relative w-24 h-24 sm:w-32 sm:h-32 rounded-full overflow-hidden border-4 border-primary">
               <Image
-                src={user.avatarUrl || 'https://placehold.co/150x150.png'}
+                src={user.avatarUrl || 'https://placehold.co/150x150'} // Changed here
                 alt={`${user.firstName} ${user.lastName}`}
                 layout="fill"
                 objectFit="cover"
@@ -113,7 +113,7 @@ export default function ProfilePage() {
                 </ul>
               </Card>
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <Card className="bg-accent/10 p-4 border-accent/30">
                     <CardHeader className="p-0 pb-2 flex flex-row items-center space-x-2">
@@ -135,7 +135,7 @@ export default function ProfilePage() {
                 </Card>
             </div>
              <div className="mt-6 flex justify-end">
-               <Button variant="outline" disabled> 
+               <Button variant="outline" disabled>
                 <Edit3 className="mr-2 h-4 w-4" /> Edit Profile
               </Button>
             </div>
