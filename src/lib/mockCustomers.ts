@@ -19,16 +19,16 @@ const lastNames = [
 ];
 
 const customerAvatars = [
-    'https://placehold.co/150x150.png?text=P1',
-    'https://placehold.co/150x150.png?text=P2',
-    'https://placehold.co/150x150.png?text=P3',
-    'https://placehold.co/150x150.png?text=P4',
-    'https://placehold.co/150x150.png?text=P5',
-    'https://placehold.co/150x150.png?text=P6',
-    'https://placehold.co/150x150.png?text=P7',
-    'https://placehold.co/150x150.png?text=P8',
-    'https://placehold.co/150x150.png?text=P9',
-    'https://placehold.co/150x150.png?text=P10',
+    'https://placehold.co/150x150.png',
+    'https://placehold.co/150x150.png',
+    'https://placehold.co/150x150.png',
+    'https://placehold.co/150x150.png',
+    'https://placehold.co/150x150.png',
+    'https://placehold.co/150x150.png',
+    'https://placehold.co/150x150.png',
+    'https://placehold.co/150x150.png',
+    'https://placehold.co/150x150.png',
+    'https://placehold.co/150x150.png',
 ];
 const customerDataHints = ['person face', 'user portrait', 'smiling individual', 'customer photo', 'avatar image', 'profile picture', 'happy user', 'client image', 'member photo', 'user icon'];
 
@@ -53,15 +53,9 @@ const mockProductNamesByCategory: Record<ProductCategory, string[]> = {
 };
 
 const getMockItemImage = (category: ProductCategory, index: number): { url: string; hint: string } => {
-  const hints: Record<ProductCategory, string> = {
-    Flower: "cannabis flower",
-    Concentrates: "cannabis concentrate",
-    Vapes: "vape pen",
-    Edibles: "food edible"
-  };
   return {
-    url: `https://placehold.co/80x80.png?text=${category.substring(0,1)}${index + 1}`,
-    hint: hints[category] || "product image"
+    url: `https://placehold.co/80x80.png`,
+    hint: "cannabis"
   };
 };
 
@@ -190,3 +184,4 @@ export const getCustomerById = (id: string): Customer | undefined => {
     }
     return undefined;
 };
+

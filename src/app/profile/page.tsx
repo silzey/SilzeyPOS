@@ -1,4 +1,3 @@
-
 "use client";
 
 import type { UserProfile as UserProfileType } from '@/types/pos';
@@ -81,7 +80,7 @@ export default function ProfilePage() {
                 alt={`${user.firstName} ${user.lastName}`}
                 layout="fill"
                 objectFit="cover"
-                data-ai-hint="user avatar"
+                data-ai-hint={user.dataAiHint || "user avatar"}
               />
             </div>
             <div className="text-center sm:text-left">
