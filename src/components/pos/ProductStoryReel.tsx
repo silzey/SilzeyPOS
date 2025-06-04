@@ -29,13 +29,11 @@ const ProductStoryReel: FC<ProductStoryReelProps> = ({ products, onProductSelect
               onKeyDown={(e) => onProductSelect && e.key === 'Enter' && onProductSelect(product)}
               aria-label={`View ${product.name}`}
             >
-              {/* Sized Relative Wrapper for positioning */}
+              {/* Sized Relative Wrapper for positioning the image and its border */}
               <div className="relative w-16 h-16 sm:w-20 sm:h-20">
                 {isFifthItem && (
                   <div
-                    className="absolute inset-[-2px] rounded-full rotating-red-border z-0"
-                    // inset-[-2px] makes it 2px larger on all sides than its parent before its own border.
-                    // The .rotating-red-border class applies its own border (e.g., border-2).
+                    className="absolute inset-[-2px] rounded-full pulsating-color-border z-0"
                   />
                 )}
                 {/* Image Container */}
@@ -51,8 +49,8 @@ const ProductStoryReel: FC<ProductStoryReelProps> = ({ products, onProductSelect
                     objectFit="cover"
                     className="rounded-full"
                     data-ai-hint={product.dataAiHint || product.category.toLowerCase()}
-                    priority={index < 5} // Prioritize first few images
-                    loading={index < 5 ? "eager" : "lazy"} // Eager load first few
+                    priority={index < 5} 
+                    loading={index < 5 ? "eager" : "lazy"}
                   />
                 </div>
               </div>

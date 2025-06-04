@@ -131,21 +131,32 @@
     scrollbar-width: none;  /* Firefox */
   }
 
-  /* Added for rotating red border */
-  .rotating-red-border {
-    border-width: 2px; /* Using Tailwind's border-width scale if possible or define explicitly */
-    border-color: #ef4444; /* Equivalent to Tailwind's red-500 */
-    animation: rotate-story-item 2.5s linear infinite;
-    will-change: transform; /* Hint to browser for optimization */
+  .pulsating-color-border {
+    border-width: 2px;
+    animation: rotate-and-pulsate-color 4s linear infinite;
+    will-change: transform, border-color;
   }
 
-  @keyframes rotate-story-item {
-    from {
+  @keyframes rotate-and-pulsate-color {
+    0% {
       transform: rotate(0deg);
+      border-color: #ef4444; /* Red */
     }
-    to {
+    20% {
+      border-color: #3b82f6; /* Blue */
+    }
+    40% {
+      border-color: #22c55e; /* Green */
+    }
+    60% {
+      border-color: #eab308; /* Yellow */
+    }
+    80% {
+      border-color: #8b5cf6; /* Purple */
+    }
+    100% {
       transform: rotate(360deg);
+      border-color: #ef4444; /* Back to Red */
     }
   }
 }
-
