@@ -22,7 +22,7 @@ const CATEGORY_REAL_IMAGES: Record<Category, { url: string; hint: string }[]> = 
     { url: "https://images.pexels.com/photos/7667737/pexels-photo-7667737.jpeg?auto=compress&cs=tinysrgb&w=300&h=225&dpr=1", hint: "vape cartridge" },
   ],
   "Edibles": [
-    { url: "https://images.pexels.com/photos/7758036/pexels-photo-7758036.jpeg?auto=compress&cs=tinysrgb&w=300&h=225&dpr=1", hint: "cannabis edibles" }, // Gummies
+    { url: "https://images.pexels.com/photos/7758036/pexels-photo-7758036.jpeg?auto=compress&cs=tinysrgb&w=300&h=225&dpr=1", hint: "cannabis edibles" },
     { url: "https://images.pexels.com/photos/7667756/pexels-photo-7667756.jpeg?auto=compress&cs=tinysrgb&w=300&h=225&dpr=1", hint: "cannabis cookies" },
     { url: "https://images.pexels.com/photos/5407073/pexels-photo-5407073.jpeg?auto=compress&cs=tinysrgb&w=300&h=225&dpr=1", hint: "cannabis chocolate" },
   ],
@@ -36,12 +36,11 @@ export const generateMockInventory = (): InventoryItem[] => {
     if (storedInventory) {
       try {
         const parsedInventory = JSON.parse(storedInventory) as InventoryItem[];
-        // Add a check to see if images are placeholders; if so, regenerate.
-        const needsRegeneration = parsedInventory.some(item => item.imageUrl.includes('placehold.co'));
-        if (Array.isArray(parsedInventory) && parsedInventory.length === expectedTotalItems && parsedInventory[0]?.hasOwnProperty('salePrice') && !needsRegeneration) {
+        const usesOldPlaceholders = parsedInventory.some(item => item.imageUrl.includes('placehold.co'));
+        if (Array.isArray(parsedInventory) && parsedInventory.length === expectedTotalItems && parsedInventory[0]?.hasOwnProperty('salePrice') && !usesOldPlaceholders) {
             return parsedInventory;
         } else {
-            localStorage.removeItem(INVENTORY_STORAGE_KEY);
+            localStorage.removeItem(INVENTORY_STORAGE_KEY); // Force regeneration if structure mismatch or old placeholders
         }
       } catch (e) {
         console.error("Error parsing inventory from localStorage:", e);
@@ -83,7 +82,7 @@ export const generateMockInventory = (): InventoryItem[] => {
         salePrice,
         lastRestockDate: new Date(Date.now() - Math.random() * 60 * 24 * 60 * 60 * 1000).toISOString(),
         imageUrl: imageDetails.url,
-        dataAiHint: imageDetails.hint,
+        dataAiHint: imageDetails.hint, // Use hint from Pexels images
         notes: Math.random() > 0.8 ? "Limited edition. High demand." : (Math.random() > 0.6 ? "Staff favorite. Recommend." : undefined),
         tags: PRODUCT_TAGS_LIST[itemIndex % PRODUCT_TAGS_LIST.length],
         rating: (Math.random() * 1.5 + 3.5).toFixed(1),

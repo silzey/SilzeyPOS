@@ -17,29 +17,33 @@ import OrderReceiptModal from '@/components/dashboard/OrderReceiptModal';
 import { CATEGORIES as PRODUCT_CATEGORIES_LIST, TAGS as PRODUCT_TAGS_LIST } from '@/lib/data';
 
 const POS_PENDING_ORDERS_STORAGE_KEY = 'posPendingOrdersSilzey';
-const DASHBOARD_COMPLETED_ORDERS_STORAGE_KEY = 'dashboardCompletedOrdersSilzey'; // For orders processed by dashboard
+const DASHBOARD_COMPLETED_ORDERS_STORAGE_KEY = 'dashboardCompletedOrdersSilzey';
 
 const ALL_ORDER_STATUSES: OrderStatus[] = ["In-Store", "Online", "Pending Checkout"];
 
+// Pexels images for products
 const CATEGORY_ORDER_IMAGES: Record<ProductCategory, { url: string; hint: string }[]> = {
   "Flower": [
     { url: "https://images.pexels.com/photos/7667726/pexels-photo-7667726.jpeg?auto=compress&cs=tinysrgb&w=100&h=100&dpr=1", hint: "cannabis flower" },
     { url: "https://images.pexels.com/photos/7955084/pexels-photo-7955084.jpeg?auto=compress&cs=tinysrgb&w=100&h=100&dpr=1", hint: "cannabis bud" },
+    { url: "https://images.pexels.com/photos/12960959/pexels-photo-12960959.jpeg?auto=compress&cs=tinysrgb&w=100&h=100&dpr=1", hint: "cannabis plant" },
   ],
   "Concentrates": [
     { url: "https://images.pexels.com/photos/7667723/pexels-photo-7667723.jpeg?auto=compress&cs=tinysrgb&w=100&h=100&dpr=1", hint: "cannabis concentrate" },
+    { url: "https://images.pexels.com/photos/7667727/pexels-photo-7667727.jpeg?auto=compress&cs=tinysrgb&w=100&h=100&dpr=1", hint: "cannabis oil" },
   ],
   "Vapes": [
     { url: "https://images.pexels.com/photos/8169697/pexels-photo-8169697.jpeg?auto=compress&cs=tinysrgb&w=100&h=100&dpr=1", hint: "vape pen" },
+    { url: "https://images.pexels.com/photos/7667737/pexels-photo-7667737.jpeg?auto=compress&cs=tinysrgb&w=100&h=100&dpr=1", hint: "vape cartridge" },
   ],
   "Edibles": [
     { url: "https://images.pexels.com/photos/7758036/pexels-photo-7758036.jpeg?auto=compress&cs=tinysrgb&w=100&h=100&dpr=1", hint: "cannabis edibles" },
     { url: "https://images.pexels.com/photos/7667756/pexels-photo-7667756.jpeg?auto=compress&cs=tinysrgb&w=100&h=100&dpr=1", hint: "cannabis cookies" },
+    { url: "https://images.pexels.com/photos/5407073/pexels-photo-5407073.jpeg?auto=compress&cs=tinysrgb&w=100&h=100&dpr=1", hint: "cannabis chocolate" },
   ],
 };
 
 
-// --- Mock Data Generation (Kept for baseline, but localStorage will be primary for dynamic orders) ---
 const mockProductNamesByCategory: Record<ProductCategory, string[]> = {
   "Flower": ["Mystic Haze Flower", "Stardust Sativa Pre-Roll", "Quasar Queen Flower", "Blue Dream Bud", "Green Crack Strain"],
   "Concentrates": ["Galaxy Gold Concentrate", "Cosmic Kush Shatter", "Nebula Nectar Wax", "Lunar Rosin", "Solar Flare Oil"],
@@ -74,15 +78,15 @@ const generateMockCartItems = (itemCount: number): CartItem[] => {
       rating: (Math.random() * 1.5 + 3.5).toFixed(1),
       category: category,
       image: imageDetails.url,
-      dataAiHint: imageDetails.hint,
+      dataAiHint: imageDetails.hint, // Use hint from Pexels images for products
       quantity: Math.floor(Math.random() * 3) + 1,
     });
   }
   return items;
 };
 
-const generateInitialMockOrders = (): Order[] => Array.from({ length: 25 }, (_, i) => { // Reduced static mocks
-  const statusIndex = i % (ALL_ORDER_STATUSES.length -1); // Exclude "Pending Checkout" for initial mocks
+const generateInitialMockOrders = (): Order[] => Array.from({ length: 25 }, (_, i) => {
+  const statusIndex = i % (ALL_ORDER_STATUSES.length -1);
   const date = new Date(2024, 6, 28 - (i % 28));
   const items = generateMockCartItems(Math.floor(Math.random() * 4) + 1);
   const totalAmount = items.reduce((sum, item) => sum + parseFloat(item.price) * item.quantity, 0);
@@ -93,12 +97,11 @@ const generateInitialMockOrders = (): Order[] => Array.from({ length: 25 }, (_, 
     status: ALL_ORDER_STATUSES[statusIndex],
     totalAmount: parseFloat(totalAmount.toFixed(2)),
     itemCount: items.reduce((sum, item) => sum + item.quantity, 0),
-    items: items,
+    items: items, // Product images here are Pexels
     shippingAddress: `${123 + i} Main St, Anytown, USA`,
     paymentMethod: ['Credit Card', 'PayPal', 'Stripe', 'Cash'][i % 4]
   };
 });
-// --- End Mock Data Generation ---
 
 const convertOrdersToCSV = (data: Order[]) => {
   const headers = ['Order ID', 'Customer Name', 'Customer ID', 'Order Date', 'Status', 'Total Amount', 'Item Count', 'Shipping Address', 'Payment Method', 'Submitted by POS', 'Items (Name|Qty|Price;...)'];
@@ -144,7 +147,7 @@ const getStatusBadgeVariant = (status: OrderStatus): "default" | "secondary" | "
   switch (status) {
     case "In-Store": return "default";
     case "Online": return "secondary";
-    case "Pending Checkout": return "destructive"; // Will be styled by className
+    case "Pending Checkout": return "destructive";
     default: return "outline";
   }
 };
@@ -153,7 +156,7 @@ const getStatusBadgeClassName = (status: OrderStatus): string => {
   switch (status) {
     case "In-Store": return "bg-blue-500/20 text-blue-700 border-blue-500/30";
     case "Online": return "bg-green-500/20 text-green-700 border-green-500/30";
-    case "Pending Checkout": return "bg-orange-500/20 text-orange-700 border-orange-500/30 animate-pulse"; // Pulsating effect
+    case "Pending Checkout": return "bg-orange-500/20 text-orange-700 border-orange-500/30 animate-pulse";
     default: return "border-muted-foreground";
   }
 };
@@ -169,7 +172,6 @@ export default function OrdersPage() {
   const router = useRouter();
 
   useEffect(() => {
-    // Load orders from all sources
     const staticMockOrders = generateInitialMockOrders();
     let pendingOrders: Order[] = [];
     try {
@@ -191,7 +193,6 @@ export default function OrdersPage() {
       console.error("Error parsing completed dashboard orders from localStorage", e);
     }
 
-    // Combine and deduplicate (prefer localStorage if IDs match)
     const combined = [...pendingOrders, ...completedDashboardOrders, ...staticMockOrders];
     const uniqueOrders = Array.from(new Map(combined.map(order => [order.id, order])).values());
 

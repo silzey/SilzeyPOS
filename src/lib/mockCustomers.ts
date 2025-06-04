@@ -2,7 +2,6 @@
 import type { Customer, Order, CartItem, Category as ProductCategory, UserProfile } from '@/types/pos';
 import { CATEGORIES as PRODUCT_CATEGORIES_LIST, TAGS as PRODUCT_TAGS_LIST } from '@/lib/data';
 
-// Expanded lists for more variety
 const firstNames = [
   'Alice', 'Bob', 'Clara', 'David', 'Eva', 'Finn', 'Grace', 'Henry', 'Ivy', 'Jack',
   'Kate', 'Liam', 'Mia', 'Noah', 'Olivia', 'Paul', 'Quinn', 'Ryan', 'Sofia', 'Tom',
@@ -18,6 +17,7 @@ const lastNames = [
   'Campbell', 'Parker', 'Evans', 'Edwards', 'Collins', 'Stewart', 'Sanchez', 'Morris', 'Rogers', 'Reed'
 ];
 
+// Generic placeholders for user avatars
 const customerAvatars = [
     'https://placehold.co/150x150',
     'https://placehold.co/150x150',
@@ -52,20 +52,25 @@ const mockProductNamesByCategory: Record<ProductCategory, string[]> = {
   "Edibles": ["Lunar Gummies", "Orion Brownies", "Cosmic Cookies", "Stardust Cereal Bar", "Nebula Chocolate", "Galaxy Grape Bites", "Planet Peach Pastries"],
 };
 
+// Pexels images for products within orders
 const CATEGORY_ITEM_IMAGES: Record<ProductCategory, { url: string; hint: string }[]> = {
   "Flower": [
     { url: "https://images.pexels.com/photos/7667726/pexels-photo-7667726.jpeg?auto=compress&cs=tinysrgb&w=80&h=80&dpr=1", hint: "cannabis flower" },
     { url: "https://images.pexels.com/photos/7955084/pexels-photo-7955084.jpeg?auto=compress&cs=tinysrgb&w=80&h=80&dpr=1", hint: "cannabis bud" },
+    { url: "https://images.pexels.com/photos/12960959/pexels-photo-12960959.jpeg?auto=compress&cs=tinysrgb&w=80&h=80&dpr=1", hint: "cannabis plant" },
   ],
   "Concentrates": [
     { url: "https://images.pexels.com/photos/7667723/pexels-photo-7667723.jpeg?auto=compress&cs=tinysrgb&w=80&h=80&dpr=1", hint: "cannabis concentrate" },
+    { url: "https://images.pexels.com/photos/7667727/pexels-photo-7667727.jpeg?auto=compress&cs=tinysrgb&w=80&h=80&dpr=1", hint: "cannabis oil" },
   ],
   "Vapes": [
     { url: "https://images.pexels.com/photos/8169697/pexels-photo-8169697.jpeg?auto=compress&cs=tinysrgb&w=80&h=80&dpr=1", hint: "vape pen" },
+    { url: "https://images.pexels.com/photos/7667737/pexels-photo-7667737.jpeg?auto=compress&cs=tinysrgb&w=80&h=80&dpr=1", hint: "vape cartridge" },
   ],
   "Edibles": [
     { url: "https://images.pexels.com/photos/7758036/pexels-photo-7758036.jpeg?auto=compress&cs=tinysrgb&w=80&h=80&dpr=1", hint: "cannabis edibles" },
     { url: "https://images.pexels.com/photos/7667756/pexels-photo-7667756.jpeg?auto=compress&cs=tinysrgb&w=80&h=80&dpr=1", hint: "cannabis cookies" },
+    { url: "https://images.pexels.com/photos/5407073/pexels-photo-5407073.jpeg?auto=compress&cs=tinysrgb&w=80&h=80&dpr=1", hint: "cannabis chocolate" },
   ],
 };
 
@@ -100,7 +105,7 @@ const generateMockCartItemsForCustomer = (itemCount: number): CartItem[] => {
       rating: (Math.random() * 1.5 + 3.5).toFixed(1),
       category: category,
       image: imageDetails.url,
-      dataAiHint: imageDetails.hint,
+      dataAiHint: imageDetails.hint, // Use hint from Pexels images for products
       quantity: Math.floor(Math.random() * 2) + 1,
     });
   }
@@ -110,15 +115,15 @@ const generateMockCartItemsForCustomer = (itemCount: number): CartItem[] => {
 const generateMockOrdersForCustomer = (orderCount: number, customerId: string): Order[] => {
     const orders: Order[] = [];
     for (let i = 0; i < orderCount; i++) {
-        const items = generateMockCartItemsForCustomer(Math.floor(Math.random() * 4) + 1); // 1 to 4 items per order
+        const items = generateMockCartItemsForCustomer(Math.floor(Math.random() * 4) + 1);
         const totalAmount = items.reduce((sum, item) => sum + parseFloat(item.price) * item.quantity, 0);
-        const orderDate = new Date(Date.now() - Math.random() * 365 * 24 * 60 * 60 * 1000); // Within last year
+        const orderDate = new Date(Date.now() - Math.random() * 365 * 24 * 60 * 60 * 1000);
         orders.push({
             id: `ORD-${customerId.slice(-3)}-${String(101 + i).padStart(3, '0')}`,
             customerName: customerId,
-            customerId: customerId, // Ensure customerId is present for linking
+            customerId: customerId,
             orderDate: orderDate.toISOString(),
-            processedAt: Math.random() > 0.1 ? new Date(orderDate.getTime() + Math.random() * 10 * 60 * 1000).toISOString() : undefined, // Most orders processed shortly after
+            processedAt: Math.random() > 0.1 ? new Date(orderDate.getTime() + Math.random() * 10 * 60 * 1000).toISOString() : undefined,
             status: Math.random() > 0.3 ? "In-Store" : "Online",
             totalAmount: parseFloat(totalAmount.toFixed(2)),
             itemCount: items.reduce((sum, item) => sum + item.quantity, 0),
@@ -127,11 +132,11 @@ const generateMockOrdersForCustomer = (orderCount: number, customerId: string): 
             shippingAddress: Math.random() > 0.6 ? `${100+i} ${['Oak', 'Pine', 'Maple', 'Elm'][i%4]} St, ${['Townsville', 'Cityburg', 'Villagetown'][i%3]}, USA` : undefined,
         });
     }
-    return orders.sort((a, b) => new Date(b.orderDate).getTime() - new Date(a.orderDate).getTime()); // Sort by most recent
+    return orders.sort((a, b) => new Date(b.orderDate).getTime() - new Date(a.orderDate).getTime());
 };
 
 
-export const mockCustomers: Customer[] = Array.from({ length: 10 }, (_, i) => { // Reduced static mock count
+export const mockCustomers: Customer[] = Array.from({ length: 10 }, (_, i) => {
   const firstName = firstNames[i % firstNames.length];
   const lastName = lastNames[i % lastNames.length];
   const email = `${firstName.toLowerCase()}.${lastName.toLowerCase()}${i + 1}@example.com`;
@@ -145,8 +150,8 @@ export const mockCustomers: Customer[] = Array.from({ length: 10 }, (_, i) => { 
     firstName: firstName,
     lastName: `${lastName}${i < lastNames.length ? '' : Math.floor(i / lastNames.length)}`,
     email: email,
-    avatarUrl: customerAvatars[i % customerAvatars.length],
-    dataAiHint: customerDataHints[i % customerDataHints.length],
+    avatarUrl: customerAvatars[i % customerAvatars.length], // Uses generic placehold.co
+    dataAiHint: customerDataHints[i % customerDataHints.length], // Uses generic hints
     memberSince: specificMemberSince,
     rewardsPoints: specificRewards,
     bio: specificBio,
@@ -159,7 +164,7 @@ export const mockCustomers: Customer[] = Array.from({ length: 10 }, (_, i) => { 
         status: Math.random() > 0.5 ? "In-Store" : "Online",
         totalAmount: parseFloat((Math.random() * 150 + 20).toFixed(2)),
         itemCount: Math.floor(Math.random() * 3) + 1,
-        items: generateMockCartItemsForCustomer(Math.floor(Math.random() * 3) + 1),
+        items: generateMockCartItemsForCustomer(Math.floor(Math.random() * 3) + 1), // Product images here are Pexels
         paymentMethod: "Pending",
         shippingAddress: Math.random() > 0.5 && Math.random() > 0.5 ? `${200+i} ${['Willow', 'Birch', 'Cedar'][i%3]} Ave, ${['Metropolis', 'Gotham', 'Star City'][i%3]}, USA` : undefined,
     } : undefined,
@@ -169,13 +174,11 @@ export const mockCustomers: Customer[] = Array.from({ length: 10 }, (_, i) => { 
 const ALL_USERS_STORAGE_KEY = 'allUserProfilesSilzeyPOS';
 
 export const getCustomerById = (id: string): Customer | undefined => {
-    // First, check static mock customers
     const staticCustomer = mockCustomers.find(customer => customer.id === id);
     if (staticCustomer) {
         return staticCustomer;
     }
 
-    // Then, check localStorage for all users (which includes Google-signed-in users)
     if (typeof window !== 'undefined') {
         const allUsersRaw = localStorage.getItem(ALL_USERS_STORAGE_KEY);
         if (allUsersRaw) {
@@ -183,13 +186,10 @@ export const getCustomerById = (id: string): Customer | undefined => {
                 const allUserProfiles: UserProfile[] = JSON.parse(allUsersRaw);
                 const foundProfile = allUserProfiles.find(profile => profile.id === id);
                 if (foundProfile) {
-                    // Adapt UserProfile to Customer type. For simplicity, new users from Google
-                    // won't have pre-existing order history in this mock setup.
                     return {
                         ...foundProfile,
-                        orderHistory: [], // Dynamically created mock users won't have static history here
+                        orderHistory: [], 
                         currentOrder: undefined,
-                        // rewardsPoints should be part of UserProfile from AuthContext
                     };
                 }
             } catch (e) {
