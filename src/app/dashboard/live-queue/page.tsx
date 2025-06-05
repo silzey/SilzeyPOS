@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
-import { AlertTriangle, CheckCircle, ListChecks, RefreshCw, ShoppingCart } from 'lucide-react';
+import { AlertTriangle, CheckCircle, ListChecks, RefreshCw, ShoppingCart, Link as LinkIcon } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import Image from 'next/image';
 
@@ -89,13 +89,21 @@ export default function LivePosQueuePage() {
     }
   };
 
+  const handleMockPlaidConnect = () => {
+    toast({
+      title: "Plaid Integration (Mock)",
+      description: "This would typically launch Plaid Link to securely connect a bank account.",
+      duration: 5000,
+    });
+  };
 
-  if (isLoading) {
+
+  if (isLoading && pendingOrders.length === 0) { // Show full loader only on initial empty load
     return <div className="flex justify-center items-center h-full"><RefreshCw className="h-8 w-8 animate-spin text-primary" /> <p className="ml-2">Loading pending orders...</p></div>;
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <Card className="shadow-xl">
         <CardHeader>
           <CardTitle className="font-headline text-primary flex items-center">
@@ -105,19 +113,19 @@ export default function LivePosQueuePage() {
         </CardHeader>
         <CardContent>
           <div className="mb-4 flex justify-end">
-            <Button onClick={loadPendingOrders} variant="outline" size="sm">
+            <Button onClick={loadPendingOrders} variant="outline" size="sm" disabled={isLoading}>
               <RefreshCw className={`mr-2 h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
               Refresh Queue
             </Button>
           </div>
-          {pendingOrders.length === 0 ? (
+          {pendingOrders.length === 0 && !isLoading ? (
             <div className="text-center py-10">
               <ShoppingCart className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
               <p className="text-xl font-semibold text-muted-foreground">No pending orders.</p>
               <p className="text-sm text-muted-foreground">New orders from the POS will appear here.</p>
             </div>
           ) : (
-            <ScrollArea className="h-[calc(100vh-280px)]"> {/* Adjust height as needed */}
+            <ScrollArea className="h-[calc(100vh-340px)]"> {/* Adjust height as needed */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-1">
                 {pendingOrders.map(order => (
                   <Card key={order.id} className="flex flex-col shadow-lg hover:shadow-xl transition-shadow">
@@ -175,6 +183,29 @@ export default function LivePosQueuePage() {
               </div>
             </ScrollArea>
           )}
+        </CardContent>
+      </Card>
+
+      <Card className="shadow-xl">
+        <CardHeader>
+          <CardTitle className="font-headline text-primary flex items-center">
+            <LinkIcon className="mr-2 h-6 w-6" /> Plaid Integration (Mock)
+          </CardTitle>
+          <CardDescription>
+            This section is a placeholder to demonstrate where Plaid integration for bank account linking and payments could be initiated.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-col items-center justify-center space-y-4 p-8">
+          <p className="text-sm text-muted-foreground text-center">
+            For ACH payments or verifying customer bank accounts, you would integrate Plaid Link here.
+          </p>
+          <Button 
+            onClick={handleMockPlaidConnect} 
+            variant="default" 
+            className="bg-[#00A0FF] hover:bg-[#008fdd] text-white px-6 py-3 text-base"
+          >
+            <LinkIcon className="mr-2 h-5 w-5" /> Connect a bank account
+          </Button>
         </CardContent>
       </Card>
     </div>
