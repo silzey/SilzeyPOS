@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, PrinterIcon, XCircle, ShoppingBag } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { TransactionItem, Order as AppOrder, TransactionStatus, OrderStatus as AppOrderStatus, CartItem } from '@/types/pos';
-import { mockOrders } from '@/app/dashboard/orders/page'; 
+import { generateInitialMockOrders } from '@/lib/mockOrderData'; // Import from new lib file
 
 // Mock transaction data - in a real app, you'd fetch this or have it available
 const mockTransactionsData: Array<{
@@ -64,7 +64,8 @@ function PrintableReceiptContent() {
           };
         }
       } else if (recordTypeParam === 'order') {
-        const order = mockOrders.find(o => o.id === recordId);
+        const allMockOrders = generateInitialMockOrders(); // Get mock orders
+        const order = allMockOrders.find(o => o.id === recordId); // Find in the generated list
         if (order) {
           foundRecord = {
             id: order.id,
@@ -176,9 +177,9 @@ function PrintableReceiptContent() {
                   />
                 )}
                 <div className="flex-grow grid grid-cols-[1fr_auto_auto] gap-x-2 items-center">
-                    <span className="truncate">{item.name} (x{item.qty})</span>
-                    <span className="text-right text-muted-foreground">${item.price.toFixed(2)} ea.</span>
-                    <span className="text-right font-medium">${(item.price * item.qty).toFixed(2)}</span>
+                    <span className="truncate">{item.name} (x{(item as CartItem).quantity || (item as TransactionItem).qty})</span> {/* Handle quantity key difference */}
+                    <span className="text-right text-muted-foreground">${(item as CartItem).price ? parseFloat((item as CartItem).price).toFixed(2) : (item as TransactionItem).price.toFixed(2)} ea.</span>
+                    <span className="text-right font-medium">${((item as CartItem).price ? parseFloat((item as CartItem).price) : (item as TransactionItem).price * ((item as CartItem).quantity || (item as TransactionItem).qty)).toFixed(2)}</span>
                 </div>
               </div>
             ))}
