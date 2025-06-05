@@ -8,7 +8,7 @@ import { useEffect, useState } from 'react';
 import FullPageLoader from '@/components/ui/loader'; // Import the new loader
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Home, ShoppingBag, Users, BarChart3, LogOut as LogOutIcon, Menu, Terminal, Package } from 'lucide-react'; // Added Package
+import { Home, ShoppingBag, Users, BarChart3, LogOut as LogOutIcon, Menu, Terminal, Package, Ticket, Settings } from 'lucide-react'; // Added Package, Ticket, Settings
 import {
   Sheet,
   SheetContent,
@@ -45,6 +45,10 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     headerTitle = 'Inventory Management';
   } else if (pathname === '/dashboard/analytics') { 
     headerTitle = 'Analytics';
+  } else if (pathname === '/dashboard/promotions') {
+    headerTitle = 'Promotions Management';
+  } else if (pathname === '/dashboard/settings') {
+    headerTitle = 'Store Settings';
   }
 
 
@@ -91,11 +95,25 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         <Link href="/dashboard/customers"><Users className="mr-3 h-5 w-5" /> Customers</Link>
       </Button>
       <Button 
+        variant={pathname === '/dashboard/promotions' ? "secondary" : "ghost"}
+        className="w-full justify-start text-foreground hover:bg-primary/10 hover:text-primary" 
+        onClick={() => { alert("Navigate to Promotions (mock)"); if (isMobileMenuOpen) setIsMobileMenuOpen(false); }}
+      >
+        <Ticket className="mr-3 h-5 w-5" /> Promotions
+      </Button>
+      <Button 
         variant={pathname === '/dashboard/analytics' ? "secondary" : "ghost"}
         className="w-full justify-start text-foreground hover:bg-primary/10 hover:text-primary" 
         onClick={() => { alert("Navigate to Analytics (mock)"); if (isMobileMenuOpen) setIsMobileMenuOpen(false); }}
       >
         <BarChart3 className="mr-3 h-5 w-5" /> Analytics
+      </Button>
+       <Button 
+        variant={pathname === '/dashboard/settings' ? "secondary" : "ghost"}
+        className="w-full justify-start text-foreground hover:bg-primary/10 hover:text-primary" 
+        onClick={() => { alert("Navigate to Settings (mock)"); if (isMobileMenuOpen) setIsMobileMenuOpen(false); }}
+      >
+        <Settings className="mr-3 h-5 w-5" /> Settings
       </Button>
     </>
   );
@@ -160,3 +178,4 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     </div>
   );
 }
+
