@@ -6,22 +6,20 @@ import { BarChart, Bar, PieChart, Pie, Cell, ResponsiveContainer, XAxis, YAxis, 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { StatCard } from '@/components/dashboard/StatCard';
 import type { Order, Category, UserProfile } from '@/types/pos';
-import { DollarSign, ShoppingCart, Users, TrendingUp, Percent } from 'lucide-react'; // Added Percent icon
+import { DollarSign, ShoppingCart, Users, TrendingUp, ClipboardList } from 'lucide-react'; // Added ClipboardList
 import { Skeleton } from '@/components/ui/skeleton';
 
 const DASHBOARD_COMPLETED_ORDERS_STORAGE_KEY = 'dashboardCompletedOrdersSilzey';
 const ALL_USERS_STORAGE_KEY = 'allUserProfilesSilzeyPOS';
-const CATEGORIES_FOR_CHART: Category[] = ["Flower", "Concentrates", "Vapes", "Edibles"]; // For pie chart
+const CATEGORIES_FOR_CHART: Category[] = ["Flower", "Concentrates", "Vapes", "Edibles"];
 
-// Define colors for the pie chart slices - ensure enough colors for your categories
 const PIE_CHART_COLORS = ["hsl(var(--chart-1))", "hsl(var(--chart-2))", "hsl(var(--chart-3))", "hsl(var(--chart-4))", "hsl(var(--chart-5))"];
 
-interface RevenueByCategoryData {
-  name: Category;
+interface ChartData {
+  name: string;
   value: number;
 }
 
-// Helper for monthly sales data for BarChart
 const generateMonthlySalesData = (orders: Order[]): Array<{ name: string; sales: number }> => {
   const salesByMonth: { [key: string]: number } = {};
   const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -32,7 +30,6 @@ const generateMonthlySalesData = (orders: Order[]): Array<{ name: string; sales:
     salesByMonth[monthKey] = (salesByMonth[monthKey] || 0) + order.totalAmount;
   });
 
-  // Get the last 6-12 months of data for the chart
   const sortedMonths = Object.keys(salesByMonth).sort((a, b) => {
     const [monthA, yearA] = a.split(' ');
     const [monthB, yearB] = b.split(' ');
@@ -40,11 +37,11 @@ const generateMonthlySalesData = (orders: Order[]): Array<{ name: string; sales:
   });
   
   const recentMonthsData = sortedMonths.slice(-12).map(monthKey => ({
-    name: monthKey.split(' ')[0], // Just month name for brevity
+    name: monthKey.split(' ')[0],
     sales: salesByMonth[monthKey]
   }));
 
-  if (recentMonthsData.length < 6) { // Pad with zero sales months if not enough data
+  if (recentMonthsData.length < 6) {
     const currentYear = new Date().getFullYear();
     const currentMonthIndex = new Date().getMonth();
     for(let i = 5; i >= 0 && recentMonthsData.length < 6 ; i--) {
@@ -55,13 +52,12 @@ const generateMonthlySalesData = (orders: Order[]): Array<{ name: string; sales:
             year -=1;
         }
         const monthName = monthNames[monthIndex];
-        if (!recentMonthsData.find(d => d.name === monthName && d.sales > 0)) { // Avoid overwriting actual data
+        if (!recentMonthsData.find(d => d.name === monthName && d.sales > 0)) {
              recentMonthsData.unshift({name: monthName, sales: 0});
         }
     }
-     return recentMonthsData.slice(-6); // Ensure only 6 months displayed
+     return recentMonthsData.slice(-6);
   }
-
   return recentMonthsData;
 };
 
@@ -71,8 +67,10 @@ export default function AnalyticsPage() {
   const [averageOrderValue, setAverageOrderValue] = useState(0);
   const [totalOrders, setTotalOrders] = useState(0);
   const [totalCustomers, setTotalCustomers] = useState(0);
-  const [revenueByCategory, setRevenueByCategory] = useState<RevenueByCategoryData[]>([]);
+  const [averageItemsPerOrder, setAverageItemsPerOrder] = useState(0);
+  const [revenueByCategory, setRevenueByCategory] = useState<ChartData[]>([]);
   const [monthlySales, setMonthlySales] = useState<Array<{name: string; sales: number}>>([]);
+  const [salesByPaymentMethod, setSalesByPaymentMethod] = useState<ChartData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -92,7 +90,6 @@ export default function AnalyticsPage() {
       }
     }
 
-    // Calculate KPIs
     const revenue = allCompletedOrders.reduce((sum, order) => sum + order.totalAmount, 0);
     setTotalRevenue(revenue);
     setTotalOrders(allCompletedOrders.length);
@@ -103,9 +100,10 @@ export default function AnalyticsPage() {
     const uniqueCustomerIds = new Set([...customerIdsFromOrders, ...customerIdsFromProfiles]);
     setTotalCustomers(uniqueCustomerIds.size);
 
+    const totalItemsSold = allCompletedOrders.reduce((sum, order) => sum + order.itemCount, 0);
+    setAverageItemsPerOrder(allCompletedOrders.length > 0 ? totalItemsSold / allCompletedOrders.length : 0);
 
-    // Revenue by Category
-    const categoryRevenueMap: Record<Category, number> = { Flower: 0, Concentrates: 0, Vapes: 0, Edibles: 0 };
+    const categoryRevenueMap: Record<string, number> = {};
     allCompletedOrders.forEach(order => {
       order.items.forEach(item => {
         if (CATEGORIES_FOR_CHART.includes(item.category)) {
@@ -115,12 +113,22 @@ export default function AnalyticsPage() {
     });
     const categoryData = CATEGORIES_FOR_CHART.map(cat => ({
       name: cat,
-      value: parseFloat(categoryRevenueMap[cat].toFixed(2))
+      value: parseFloat(categoryRevenueMap[cat]?.toFixed(2) || "0")
     })).filter(d => d.value > 0);
     setRevenueByCategory(categoryData);
 
-    // Monthly Sales
     setMonthlySales(generateMonthlySalesData(allCompletedOrders));
+
+    const paymentMethodRevenueMap: Record<string, number> = {};
+    allCompletedOrders.forEach(order => {
+        const method = order.paymentMethod || 'Unknown';
+        paymentMethodRevenueMap[method] = (paymentMethodRevenueMap[method] || 0) + order.totalAmount;
+    });
+    const paymentData = Object.entries(paymentMethodRevenueMap)
+        .map(([name, value]) => ({ name, value: parseFloat(value.toFixed(2)) }))
+        .filter(d => d.value > 0)
+        .sort((a,b) => b.value - a.value); // Sort for consistent display
+    setSalesByPaymentMethod(paymentData);
 
     setIsLoading(false);
   }, []);
@@ -128,12 +136,13 @@ export default function AnalyticsPage() {
   if (isLoading) {
     return (
       <div className="space-y-8">
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-          {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-28 w-full" />)}
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+          {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-28 w-full" />)}
         </div>
+        <Skeleton className="h-96 w-full" /> {/* For Sales Over Time Bar Chart */}
         <div className="grid gap-6 md:grid-cols-2">
-          <Skeleton className="h-96 w-full" />
-          <Skeleton className="h-96 w-full" />
+          <Skeleton className="h-96 w-full" /> {/* For Revenue by Category Pie Chart */}
+          <Skeleton className="h-96 w-full" /> {/* For Sales by Payment Method Pie Chart */}
         </div>
       </div>
     );
@@ -147,17 +156,17 @@ export default function AnalyticsPage() {
             <CardDescription>High-level overview of your business performance.</CardDescription>
         </CardHeader>
         <CardContent>
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
                 <StatCard title="Total Revenue" value={`$${totalRevenue.toFixed(2)}`} icon={DollarSign} description="All time gross revenue" />
                 <StatCard title="Average Order Value" value={`$${averageOrderValue.toFixed(2)}`} icon={ShoppingCart} description="Average amount per order" />
                 <StatCard title="Total Orders" value={totalOrders.toString()} icon={TrendingUp} description="All completed orders" />
                 <StatCard title="Total Customers" value={totalCustomers.toString()} icon={Users} description="Unique customer profiles" />
+                <StatCard title="Avg. Items Per Order" value={averageItemsPerOrder.toFixed(1)} icon={ClipboardList} description="Average items in each sale" />
             </div>
         </CardContent>
       </Card>
 
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
-        <Card className="shadow-lg lg:col-span-3">
+      <Card className="shadow-lg">
           <CardHeader>
             <CardTitle className="font-headline text-primary">Sales Over Time</CardTitle>
             <CardDescription>Monthly sales revenue (mock data for last 6-12 months).</CardDescription>
@@ -180,9 +189,10 @@ export default function AnalyticsPage() {
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
-        </Card>
-
-        <Card className="shadow-lg lg:col-span-2">
+      </Card>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <Card className="shadow-lg">
           <CardHeader>
             <CardTitle className="font-headline text-primary">Revenue by Category</CardTitle>
             <CardDescription>Distribution of revenue across product categories.</CardDescription>
@@ -203,23 +213,60 @@ export default function AnalyticsPage() {
                   stroke="hsl(var(--background))"
                 >
                   {revenueByCategory.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={PIE_CHART_COLORS[index % PIE_CHART_COLORS.length]} />
+                    <Cell key={`cell-cat-${index}`} fill={PIE_CHART_COLORS[index % PIE_CHART_COLORS.length]} />
                   ))}
                 </Pie>
                 <Tooltip formatter={(value: number, name: string) => [`$${value.toFixed(2)}`, name]}/>
                 <Legend 
                     iconSize={10} 
                     wrapperStyle={{ fontSize: '12px', color: "hsl(var(--muted-foreground))" }} 
-                    formatter={(value, entry) => {
-                        const { color } = entry;
-                        return <span style={{ color }}>{value}</span>;
-                    }}
+                    formatter={(value, entry) => <span style={{ color: entry.color }}>{value}</span>}
                 />
               </PieChart>
             </ResponsiveContainer>
             ) : (
                 <div className="flex items-center justify-center h-[350px]">
                     <p className="text-muted-foreground">No revenue data available for categories.</p>
+                </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card className="shadow-lg">
+          <CardHeader>
+            <CardTitle className="font-headline text-primary">Sales by Payment Method</CardTitle>
+            <CardDescription>Revenue distribution across payment methods.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {salesByPaymentMethod.length > 0 ? (
+            <ResponsiveContainer width="100%" height={350}>
+              <PieChart>
+                <Pie
+                  data={salesByPaymentMethod}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                  outerRadius={110}
+                  fill="#8884d8"
+                  dataKey="value"
+                  stroke="hsl(var(--background))"
+                >
+                  {salesByPaymentMethod.map((entry, index) => (
+                    <Cell key={`cell-pay-${index}`} fill={PIE_CHART_COLORS[(index + 2) % PIE_CHART_COLORS.length]} /> // Offset colors
+                  ))}
+                </Pie>
+                <Tooltip formatter={(value: number, name: string) => [`$${value.toFixed(2)}`, name]}/>
+                <Legend 
+                    iconSize={10} 
+                    wrapperStyle={{ fontSize: '12px', color: "hsl(var(--muted-foreground))" }} 
+                    formatter={(value, entry) => <span style={{ color: entry.color }}>{value}</span>}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+            ) : (
+                <div className="flex items-center justify-center h-[350px]">
+                    <p className="text-muted-foreground">No sales data available by payment method.</p>
                 </div>
             )}
           </CardContent>
