@@ -327,3 +327,5 @@ const DetailItem: FC<DetailItemProps> = ({ icon: IconComponent, label, value, is
 );
 
 export default InventoryItemDetailModal;
+
+    
