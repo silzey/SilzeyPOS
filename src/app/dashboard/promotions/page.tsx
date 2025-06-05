@@ -10,13 +10,14 @@ import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Ticket, Zap, Trash2, PlusCircle, PackageOpen, AlertTriangle } from 'lucide-react';
+import { Ticket, Zap, Trash2, PlusCircle, PackageOpen, AlertTriangle, Eye, Edit } from 'lucide-react'; // Added Eye, Edit
 import type { InventoryItem, ReelConfigItem } from '@/types/pos';
-import { generateMockInventory } from '@/lib/mockInventory';
+import { generateMockInventory, saveInventory } from '@/lib/mockInventory';
 import { useToast } from "@/hooks/use-toast";
 import { ScrollArea } from '@/components/ui/scroll-area';
+import InventoryItemDetailModal from '@/components/dashboard/InventoryItemDetailModal';
 
-const REEL_CONFIG_STORAGE_KEY = 'silzeyPosReelConfigV2'; // Changed key to reset if old structure exists
+const REEL_CONFIG_STORAGE_KEY = 'silzeyPosReelConfigV2';
 const MAX_REEL_ITEMS = 25;
 
 const BADGE_OPTIONS = ["None", "New", "Featured", "5% Off", "10% Off", "Limited"];
@@ -26,6 +27,8 @@ export default function PromotionsPage() {
   const [reelConfigItems, setReelConfigItems] = useState<ReelConfigItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
+  const [selectedItemForModal, setSelectedItemForModal] = useState<InventoryItem | null>(null);
+  const [isItemModalOpen, setIsItemModalOpen] = useState(false);
 
   useEffect(() => {
     const inventory = generateMockInventory();
@@ -35,16 +38,14 @@ export default function PromotionsPage() {
     if (storedConfigRaw) {
       try {
         const storedConfig = JSON.parse(storedConfigRaw);
-        // Basic validation: check if it's an array and items have expected properties
         if (Array.isArray(storedConfig) && storedConfig.every(item => 'inventoryItemId' in item && 'badgeType' in item && 'pulsatingBorder' in item)) {
           setReelConfigItems(storedConfig);
         } else {
-          // If data is malformed, initialize with default
           initializeDefaultReelConfig(inventory);
         }
       } catch (e) {
         console.error("Error parsing reel config from localStorage:", e);
-        initializeDefaultReelConfig(inventory); // Initialize on error
+        initializeDefaultReelConfig(inventory);
       }
     } else {
       initializeDefaultReelConfig(inventory);
@@ -53,7 +54,6 @@ export default function PromotionsPage() {
   }, []);
 
   const initializeDefaultReelConfig = (inventory: InventoryItem[]) => {
-    // Select first few items from "Flower" and "Concentrates" for a visually appealing default
     const flowerItems = inventory.filter(item => item.category === "Flower").slice(0, 5);
     const concentrateItems = inventory.filter(item => item.category === "Concentrates").slice(0, 5);
     const defaultSelection = [...flowerItems, ...concentrateItems].slice(0, MAX_REEL_ITEMS);
@@ -64,8 +64,6 @@ export default function PromotionsPage() {
       pulsatingBorder: index % 4 === 0,
     }));
     setReelConfigItems(initialConfig);
-    // Optionally save this default to localStorage immediately
-    // localStorage.setItem(REEL_CONFIG_STORAGE_KEY, JSON.stringify(initialConfig));
   };
 
   const handleBadgeChange = (inventoryItemId: string, newBadge: string) => {
@@ -86,7 +84,6 @@ export default function PromotionsPage() {
       toast({ title: "Reel Full", description: `Cannot add more than ${MAX_REEL_ITEMS} items to the reel.`, variant: "destructive" });
       return;
     }
-    // Find an inventory item not already in the reel
     const currentReelItemIds = new Set(reelConfigItems.map(rc => rc.inventoryItemId));
     const availableInventory = allInventory.filter(invItem => !currentReelItemIds.has(invItem.id));
 
@@ -107,12 +104,33 @@ export default function PromotionsPage() {
   const getInventoryItemDetails = (inventoryItemId: string): InventoryItem | undefined => {
     return allInventory.find(item => item.id === inventoryItemId);
   };
+
+  const handleViewItemDetails = (item: InventoryItem) => {
+    setSelectedItemForModal(item);
+    setIsItemModalOpen(true);
+  };
+
+  const handleCloseItemModal = () => {
+    setIsItemModalOpen(false);
+    setSelectedItemForModal(null);
+  };
+
+  const handleSaveItemDetails = (editedItem: InventoryItem) => {
+    const updatedInventory = allInventory.map(invItem =>
+      invItem.id === editedItem.id ? editedItem : invItem
+    );
+    setAllInventory(updatedInventory);
+    saveInventory(updatedInventory); // Save to localStorage
+    handleCloseItemModal();
+    toast({ title: "Product Saved!", description: `${editedItem.name} details have been updated successfully.` });
+  };
   
   if (isLoading) {
     return <div className="flex justify-center items-center h-64"><Zap className="h-8 w-8 animate-spin text-primary" /> Loading Reel Config...</div>;
   }
 
   return (
+    <>
     <div className="space-y-8">
       <Card className="shadow-lg">
         <CardHeader>
@@ -157,7 +175,7 @@ export default function PromotionsPage() {
                     <TableHead>Category</TableHead>
                     <TableHead className="w-[150px]">Badge Type</TableHead>
                     <TableHead className="text-center w-[150px]">Pulsating Border</TableHead>
-                    <TableHead className="text-right w-[100px]">Actions</TableHead>
+                    <TableHead className="text-right w-[120px]">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -222,10 +240,27 @@ export default function PromotionsPage() {
                             </Tooltip>
                           </TooltipProvider>
                         </TableCell>
-                        <TableCell className="text-right">
-                         <Button variant="ghost" size="icon" onClick={() => handleRemoveFromReel(product.id)}>
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
+                        <TableCell className="text-right space-x-1">
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button variant="ghost" size="icon" onClick={() => handleViewItemDetails(product)} aria-label={`View details for ${product.name}`}>
+                                  <Eye className="h-4 w-4 text-blue-600" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent><p>View/Edit Product Details</p></TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                         <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                 <Button variant="ghost" size="icon" onClick={() => handleRemoveFromReel(product.id)} aria-label={`Remove ${product.name} from reel`}>
+                                  <Trash2 className="h-4 w-4 text-destructive" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent><p>Remove from Reel</p></TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
                         </TableCell>
                       </TableRow>
                     );
@@ -242,5 +277,12 @@ export default function PromotionsPage() {
         </CardFooter>
       </Card>
     </div>
+    <InventoryItemDetailModal
+        item={selectedItemForModal}
+        isOpen={isItemModalOpen}
+        onClose={handleCloseItemModal}
+        onSave={handleSaveItemDetails}
+    />
+    </>
   );
 }
