@@ -8,7 +8,7 @@ import { useEffect, useState } from 'react';
 import FullPageLoader from '@/components/ui/loader'; // Import the new loader
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Home, ShoppingBag, Users, BarChart3, LogOut as LogOutIcon, Menu, Terminal, Package, Ticket, Settings as SettingsIcon, Store, CreditCard, UserCog } from 'lucide-react'; // Added SettingsIcon, Store, CreditCard, UserCog
+import { Home, ShoppingBag, Users, BarChart3, LogOut as LogOutIcon, Menu, Terminal, Package, Ticket, Settings as SettingsIcon, Store, CreditCard, UserCog, Leaf, Cog } from 'lucide-react'; // Added SettingsIcon, Store, CreditCard, UserCog, Leaf, Cog
 import {
   Sheet,
   SheetContent,
@@ -51,9 +51,13 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     headerTitle = 'Live POS Queue';
   } else if (pathname === '/dashboard/inventory') {
     headerTitle = 'Inventory Management';
+  } else if (pathname === '/dashboard/cultivation') {
+    headerTitle = 'Cultivation Management';
+  } else if (pathname === '/dashboard/processing') {
+    headerTitle = 'Processing & Manufacturing';
   } else if (pathname === '/dashboard/analytics') { 
     headerTitle = 'Business Analytics Dashboard';
-  } else if (pathname === '/dashboard/promotions') { // Updated
+  } else if (pathname === '/dashboard/promotions') { 
     headerTitle = 'Promotions Management';
   } else if (pathname.startsWith('/dashboard/settings')) { 
     if (pathname === '/dashboard/settings/store-profile') {
@@ -108,6 +112,22 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       >
         <Link href="/dashboard/inventory"><Package className="mr-3 h-5 w-5" /> Inventory</Link>
       </Button>
+       <Button
+        variant={pathname.startsWith('/dashboard/cultivation') ? "secondary" : "ghost"}
+        className="w-full justify-start text-foreground hover:bg-primary/10 hover:text-primary"
+        asChild
+        onClick={() => isMobile && setIsMobileMenuOpen(false)}
+      >
+        <Link href="/dashboard/cultivation"><Leaf className="mr-3 h-5 w-5" /> Cultivation</Link>
+      </Button>
+       <Button
+        variant={pathname.startsWith('/dashboard/processing') ? "secondary" : "ghost"}
+        className="w-full justify-start text-foreground hover:bg-primary/10 hover:text-primary"
+        asChild
+        onClick={() => isMobile && setIsMobileMenuOpen(false)}
+      >
+        <Link href="/dashboard/processing"><Cog className="mr-3 h-5 w-5" /> Processing</Link>
+      </Button>
       <Button
         variant={pathname === '/dashboard/orders' ? "secondary" : "ghost"}
         className="w-full justify-start text-foreground hover:bg-primary/10 hover:text-primary"
@@ -125,9 +145,9 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         <Link href="/dashboard/customers"><Users className="mr-3 h-5 w-5" /> Customers</Link>
       </Button>
       <Button 
-        variant={pathname === '/dashboard/promotions' ? "secondary" : "ghost"} // Updated
+        variant={pathname === '/dashboard/promotions' ? "secondary" : "ghost"} 
         className="w-full justify-start text-foreground hover:bg-primary/10 hover:text-primary" 
-        asChild // Updated
+        asChild 
         onClick={() => isMobile && setIsMobileMenuOpen(false)}
       >
         <Link href="/dashboard/promotions"><Ticket className="mr-3 h-5 w-5" /> Promotions</Link> 
