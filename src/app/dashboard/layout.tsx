@@ -8,12 +8,20 @@ import { useEffect, useState } from 'react';
 import FullPageLoader from '@/components/ui/loader'; // Import the new loader
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Home, ShoppingBag, Users, BarChart3, LogOut as LogOutIcon, Menu, Terminal, Package, Ticket, Settings } from 'lucide-react'; // Added Package, Ticket, Settings
+import { Home, ShoppingBag, Users, BarChart3, LogOut as LogOutIcon, Menu, Terminal, Package, Ticket, Settings as SettingsIcon, Store, CreditCard, UserCog } from 'lucide-react'; // Added SettingsIcon, Store, CreditCard, UserCog
 import {
   Sheet,
   SheetContent,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const { user, loading, signOut } = useAuth();
@@ -47,18 +55,32 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     headerTitle = 'Analytics';
   } else if (pathname === '/dashboard/promotions') {
     headerTitle = 'Promotions Management';
-  } else if (pathname === '/dashboard/settings') {
+  } else if (pathname.startsWith('/dashboard/settings')) { // Updated to check startsWith
     headerTitle = 'Store Settings';
   }
 
 
-  const commonNavLinks = (
+  const settingsDropdownItems = (isMobile?: boolean) => (
+    <>
+      <DropdownMenuItem onClick={() => { alert("Navigate to Store Profile (mock)"); if (isMobile) setIsMobileMenuOpen(false); }}>
+        <Store className="mr-2 h-4 w-4" /> Store Profile
+      </DropdownMenuItem>
+      <DropdownMenuItem onClick={() => { alert("Navigate to Payment Methods (mock)"); if (isMobile) setIsMobileMenuOpen(false); }}>
+        <CreditCard className="mr-2 h-4 w-4" /> Payment Methods
+      </DropdownMenuItem>
+      <DropdownMenuItem onClick={() => { alert("Navigate to Staff Management (mock)"); if (isMobile) setIsMobileMenuOpen(false); }}>
+        <UserCog className="mr-2 h-4 w-4" /> Staff Management
+      </DropdownMenuItem>
+    </>
+  );
+
+  const commonNavLinks = (isMobile?: boolean) => (
     <>
       <Button
         variant={pathname === '/dashboard' ? "secondary" : "ghost"}
         className="w-full justify-start text-foreground hover:bg-primary/10 hover:text-primary"
         asChild
-        onClick={() => isMobileMenuOpen && setIsMobileMenuOpen(false)}
+        onClick={() => isMobile && setIsMobileMenuOpen(false)}
       >
         <Link href="/dashboard"><Home className="mr-3 h-5 w-5" /> Overview</Link>
       </Button>
@@ -66,7 +88,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         variant={pathname === '/dashboard/live-queue' ? "secondary" : "ghost"}
         className="w-full justify-start text-foreground hover:bg-primary/10 hover:text-primary"
         asChild
-        onClick={() => isMobileMenuOpen && setIsMobileMenuOpen(false)}
+        onClick={() => isMobile && setIsMobileMenuOpen(false)}
       >
         <Link href="/dashboard/live-queue"><Terminal className="mr-3 h-5 w-5" /> Live POS Queue</Link>
       </Button>
@@ -74,7 +96,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         variant={pathname.startsWith('/dashboard/inventory') ? "secondary" : "ghost"}
         className="w-full justify-start text-foreground hover:bg-primary/10 hover:text-primary"
         asChild
-        onClick={() => isMobileMenuOpen && setIsMobileMenuOpen(false)}
+        onClick={() => isMobile && setIsMobileMenuOpen(false)}
       >
         <Link href="/dashboard/inventory"><Package className="mr-3 h-5 w-5" /> Inventory</Link>
       </Button>
@@ -82,7 +104,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         variant={pathname === '/dashboard/orders' ? "secondary" : "ghost"}
         className="w-full justify-start text-foreground hover:bg-primary/10 hover:text-primary"
         asChild
-        onClick={() => isMobileMenuOpen && setIsMobileMenuOpen(false)}
+        onClick={() => isMobile && setIsMobileMenuOpen(false)}
       >
         <Link href="/dashboard/orders"><ShoppingBag className="mr-3 h-5 w-5" /> All Orders</Link>
       </Button>
@@ -90,31 +112,40 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         variant={pathname.startsWith('/dashboard/customers') ? "secondary" : "ghost"}
         className="w-full justify-start text-foreground hover:bg-primary/10 hover:text-primary"
         asChild
-        onClick={() => isMobileMenuOpen && setIsMobileMenuOpen(false)}
+        onClick={() => isMobile && setIsMobileMenuOpen(false)}
       >
         <Link href="/dashboard/customers"><Users className="mr-3 h-5 w-5" /> Customers</Link>
       </Button>
       <Button 
         variant={pathname === '/dashboard/promotions' ? "secondary" : "ghost"}
         className="w-full justify-start text-foreground hover:bg-primary/10 hover:text-primary" 
-        onClick={() => { alert("Navigate to Promotions (mock)"); if (isMobileMenuOpen) setIsMobileMenuOpen(false); }}
+        onClick={() => { alert("Navigate to Promotions (mock)"); if (isMobile) setIsMobileMenuOpen(false); }}
       >
         <Ticket className="mr-3 h-5 w-5" /> Promotions
       </Button>
       <Button 
         variant={pathname === '/dashboard/analytics' ? "secondary" : "ghost"}
         className="w-full justify-start text-foreground hover:bg-primary/10 hover:text-primary" 
-        onClick={() => { alert("Navigate to Analytics (mock)"); if (isMobileMenuOpen) setIsMobileMenuOpen(false); }}
+        onClick={() => { alert("Navigate to Analytics (mock)"); if (isMobile) setIsMobileMenuOpen(false); }}
       >
         <BarChart3 className="mr-3 h-5 w-5" /> Analytics
       </Button>
-       <Button 
-        variant={pathname === '/dashboard/settings' ? "secondary" : "ghost"}
-        className="w-full justify-start text-foreground hover:bg-primary/10 hover:text-primary" 
-        onClick={() => { alert("Navigate to Settings (mock)"); if (isMobileMenuOpen) setIsMobileMenuOpen(false); }}
-      >
-        <Settings className="mr-3 h-5 w-5" /> Settings
-      </Button>
+      
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button
+            variant={pathname.startsWith('/dashboard/settings') ? "secondary" : "ghost"}
+            className="w-full justify-start text-foreground hover:bg-primary/10 hover:text-primary"
+          >
+            <SettingsIcon className="mr-3 h-5 w-5" /> Settings
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent className="w-56">
+          <DropdownMenuLabel>Store Configuration</DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          {settingsDropdownItems(isMobile)}
+        </DropdownMenuContent>
+      </DropdownMenu>
     </>
   );
 
@@ -129,7 +160,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           <p className="text-xs text-muted-foreground">Admin Dashboard</p>
         </div>
         <nav className="flex-1 p-4 space-y-2">
-          {commonNavLinks}
+          {commonNavLinks(false)}
         </nav>
         <div className="p-4 mt-auto border-t">
            <Button variant="outline" className="w-full justify-start" onClick={signOut}>
@@ -156,7 +187,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                    <p className="text-xs text-muted-foreground">Admin Dashboard</p>
                 </div>
                 <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
-                  {commonNavLinks}
+                  {commonNavLinks(true)}
                 </nav>
                  <div className="p-4 mt-auto border-t">
                    <Button variant="outline" className="w-full justify-start" onClick={() => { signOut(); setIsMobileMenuOpen(false);}}>
@@ -178,4 +209,3 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     </div>
   );
 }
-
