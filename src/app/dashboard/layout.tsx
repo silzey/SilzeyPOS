@@ -53,7 +53,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     headerTitle = 'Inventory Management';
   } else if (pathname === '/dashboard/analytics') { 
     headerTitle = 'Business Analytics Dashboard';
-  } else if (pathname === '/dashboard/promotions') {
+  } else if (pathname === '/dashboard/promotions') { // Updated
     headerTitle = 'Promotions Management';
   } else if (pathname.startsWith('/dashboard/settings')) { 
     if (pathname === '/dashboard/settings/store-profile') {
@@ -125,11 +125,12 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         <Link href="/dashboard/customers"><Users className="mr-3 h-5 w-5" /> Customers</Link>
       </Button>
       <Button 
-        variant={pathname === '/dashboard/promotions' ? "secondary" : "ghost"}
+        variant={pathname === '/dashboard/promotions' ? "secondary" : "ghost"} // Updated
         className="w-full justify-start text-foreground hover:bg-primary/10 hover:text-primary" 
-        onClick={() => { alert("Navigate to Promotions (mock)"); if (isMobile) setIsMobileMenuOpen(false); }}
+        asChild // Updated
+        onClick={() => isMobile && setIsMobileMenuOpen(false)}
       >
-        <Ticket className="mr-3 h-5 w-5" /> Promotions
+        <Link href="/dashboard/promotions"><Ticket className="mr-3 h-5 w-5" /> Promotions</Link> 
       </Button>
       <Button 
         variant={pathname === '/dashboard/analytics' ? "secondary" : "ghost"}
