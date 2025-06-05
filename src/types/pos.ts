@@ -12,6 +12,12 @@ export interface Product {
   dataAiHint?: string;
 }
 
+// Added for the enhanced story reel
+export interface ReelDisplayProduct extends Product {
+  badgeType?: string; // e.g., "New", "10% Off", "None"
+  pulsatingBorder?: boolean;
+}
+
 export interface CartItem extends Product {
   quantity: number;
 }
@@ -92,3 +98,10 @@ export interface InventoryItem {
   rating: string;       // Added from Product
 }
 
+// Configuration for items in the Product Story Reel
+export interface ReelConfigItem {
+  inventoryItemId: string; // Links to InventoryItem.id
+  badgeType: string; // e.g., "New", "5% Off", "None"
+  pulsatingBorder: boolean;
+  // Add order/priority if needed in the future
+}

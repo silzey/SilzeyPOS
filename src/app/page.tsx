@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import type { Product, CartItem, Category, CustomerInfo, Order, UserProfile, InventoryItem } from '@/types/pos'; // Added InventoryItem
+import type { Product, CartItem, Category, CustomerInfo, Order, UserProfile, InventoryItem, ReelConfigItem, ReelDisplayProduct } from '@/types/pos';
 import { CATEGORIES, TAGS } from '@/lib/data';
 import { generateMockInventory } from '@/lib/mockInventory';
 import { getUpsellSuggestions, type UpsellSuggestionsOutput } from '@/ai/flows/upsell-suggestions';
@@ -12,7 +12,7 @@ import ThankYouCard from '@/components/pos/ThankYouCard';
 import Header from '@/components/pos/Header';
 import CategoryNavigation from '@/components/pos/CategoryNavigation';
 import FilterControls from '@/components/pos/FilterControls';
-import ProductStoryReel from '@/components/pos/ProductStoryReel'; // Added import
+import ProductStoryReel from '@/components/pos/ProductStoryReel';
 import ProductGrid from '@/components/pos/ProductGrid';
 import ProductDetailModal from '@/components/pos/ProductDetailModal';
 import CartSheet from '@/components/pos/CartSheet';
@@ -21,6 +21,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from '@/contexts/AuthContext';
 
 const POS_PENDING_ORDERS_STORAGE_KEY = 'posPendingOrdersSilzey';
+const REEL_CONFIG_STORAGE_KEY = 'silzeyPosReelConfigV2';
+const WEED_PHOTO_CATEGORIES_FOR_REEL_FALLBACK: Category[] = ["Flower", "Concentrates"];
 
 // Helper to map InventoryItem to Product for POS display
 const mapInventoryItemToProduct = (item: InventoryItem): Product => ({
@@ -34,8 +36,6 @@ const mapInventoryItemToProduct = (item: InventoryItem): Product => ({
   dataAiHint: item.dataAiHint,
 });
 
-// Define categories that are visually "weed" for the story reel
-const WEED_PHOTO_CATEGORIES_FOR_REEL: Category[] = ["Flower", "Concentrates"];
 
 export default function PosPage() {
   const [showSplash, setShowSplash] = useState(true);
@@ -57,15 +57,62 @@ export default function PosPage() {
   const [upsellData, setUpsellData] = useState<UpsellSuggestionsOutput | null>(null);
   const [isLoadingUpsell, setIsLoadingUpsell] = useState(false);
   const [masterInventory, setMasterInventory] = useState<InventoryItem[]>([]);
+  const [reelDisplayProducts, setReelDisplayProducts] = useState<ReelDisplayProduct[]>([]);
 
   const { toast } = useToast();
   const { user } = useAuth();
 
   useEffect(() => {
     const timer = setTimeout(() => setShowSplash(false), 3000);
-    setMasterInventory(generateMockInventory());
+    const inventory = generateMockInventory();
+    setMasterInventory(inventory);
     return () => clearTimeout(timer);
   }, []);
+
+  // Effect to load and prepare story reel products
+  useEffect(() => {
+    if (masterInventory.length > 0) {
+      const storedConfigRaw = localStorage.getItem(REEL_CONFIG_STORAGE_KEY);
+      let productsForReel: ReelDisplayProduct[] = [];
+
+      if (storedConfigRaw) {
+        try {
+          const reelConfig: ReelConfigItem[] = JSON.parse(storedConfigRaw);
+          productsForReel = reelConfig.map(config => {
+            const inventoryItem = masterInventory.find(item => item.id === config.inventoryItemId);
+            if (inventoryItem) {
+              return {
+                ...mapInventoryItemToProduct(inventoryItem),
+                badgeType: config.badgeType,
+                pulsatingBorder: config.pulsatingBorder,
+              };
+            }
+            return null;
+          }).filter(Boolean) as ReelDisplayProduct[];
+        } catch (e) {
+          console.error("Error parsing reel config for POS display:", e);
+          // Fallback if parsing fails
+        }
+      }
+      
+      // Fallback logic if no config or parsing failed and productsForReel is empty
+      if (productsForReel.length === 0) {
+        const fallbackItems = masterInventory
+            .filter(item => item.stock > 0 && WEED_PHOTO_CATEGORIES_FOR_REEL_FALLBACK.includes(item.category))
+            .map(mapInventoryItemToProduct)
+            .map((product, index) => ({
+              ...product,
+              badgeType: index % 5 === 0 ? 'New' : (index % 5 === 1 ? 'Featured' : 'None'),
+              pulsatingBorder: index % 7 === 0,
+            }));
+        const shuffledFallback = [...fallbackItems].sort(() => 0.5 - Math.random());
+        productsForReel = shuffledFallback.slice(0, 25);
+      }
+      
+      setReelDisplayProducts(productsForReel.slice(0, 25)); // Ensure max 25 items
+    }
+  }, [masterInventory]);
+
 
   useEffect(() => {
     if (user) {
@@ -80,15 +127,6 @@ export default function PosPage() {
       setRewardsPoints(0);
     }
   }, [user]);
-
-  const storyReelProducts = useMemo(() => {
-    const visuallyWeedProducts = masterInventory
-        .filter(item => item.stock > 0 && WEED_PHOTO_CATEGORIES_FOR_REEL.includes(item.category)) // Filter by defined "weed photo" categories
-        .map(mapInventoryItemToProduct);
-
-    const shuffled = [...visuallyWeedProducts].sort(() => 0.5 - Math.random());
-    return shuffled.slice(0, 25);
-  }, [masterInventory]);
 
   const productsForCategory = useMemo(() => {
     return masterInventory
@@ -222,17 +260,17 @@ export default function PosPage() {
       return;
     }
 
-    const currentInventory = generateMockInventory(); 
-    const updatedInventory = [...currentInventory];
+    const currentInventoryState = generateMockInventory(); // Get fresh state for this transaction
+    const updatedInventoryTransaction = [...currentInventoryState];
     let possibleToFinalize = true;
 
     for (const cartItem of cart) {
-        const inventoryIndex = updatedInventory.findIndex(invItem => invItem.id === cartItem.id);
+        const inventoryIndex = updatedInventoryTransaction.findIndex(invItem => invItem.id === cartItem.id);
         if (inventoryIndex !== -1) {
-            if (updatedInventory[inventoryIndex].stock >= cartItem.quantity) {
-                updatedInventory[inventoryIndex].stock -= cartItem.quantity;
+            if (updatedInventoryTransaction[inventoryIndex].stock >= cartItem.quantity) {
+                updatedInventoryTransaction[inventoryIndex].stock -= cartItem.quantity;
             } else {
-                toast({ title: "Stock Issue", description: `Not enough stock for ${cartItem.name}. Only ${updatedInventory[inventoryIndex].stock} available.`, variant: "destructive" });
+                toast({ title: "Stock Issue", description: `Not enough stock for ${cartItem.name}. Only ${updatedInventoryTransaction[inventoryIndex].stock} available.`, variant: "destructive" });
                 possibleToFinalize = false;
                 break;
             }
@@ -245,14 +283,16 @@ export default function PosPage() {
 
     if (!possibleToFinalize) {
         setCheckoutMessage("Could not finalize sale due to stock issues. Please review cart or inventory.");
-        setMasterInventory(generateMockInventory());
+        // Do not update masterInventory state here, as the transaction failed.
+        // The generateMockInventory() inside this function was only for the transaction's scope.
         return;
     }
 
+    // If successful, save the updated inventory to localStorage AND update the masterInventory state
     if (typeof window !== 'undefined') {
-        localStorage.setItem('silzeyAppInventory', JSON.stringify(updatedInventory));
+        localStorage.setItem('silzeyAppInventory', JSON.stringify(updatedInventoryTransaction));
     }
-    setMasterInventory(updatedInventory);
+    setMasterInventory(updatedInventoryTransaction); // Update the main page's inventory state
 
     const newOrder: Order = {
       id: `POS-ORD-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
@@ -290,11 +330,12 @@ export default function PosPage() {
       console.error("Error saving pending order to localStorage:", error);
       setCheckoutMessage("An error occurred while submitting your order. Please try again.");
       toast({ title: "Submission Error", description: "Could not submit order to local queue.", variant: "destructive" });
-       localStorage.setItem('silzeyAppInventory', JSON.stringify(currentInventory));
-       setMasterInventory(currentInventory);
+       // Revert inventory in localStorage if submission to pending orders fails
+       localStorage.setItem('silzeyAppInventory', JSON.stringify(currentInventoryState));
+       setMasterInventory(currentInventoryState);
     }
 
-  }, [user, customerInfo, cart, totalPrice, cartItemCount, toast, masterInventory]);
+  }, [user, customerInfo, cart, totalPrice, cartItemCount, toast, masterInventory]); // Added masterInventory to dependency array
 
   if (showSplash) return <SplashScreen isVisible={showSplash} />;
   if (showThankYouCard) return <ThankYouCard isVisible={showThankYouCard} message={thankYouMessage} />;
@@ -318,7 +359,7 @@ export default function PosPage() {
           onSearchChange={(e) => setSearchTerm(e.target.value)}
         />
         <ProductStoryReel 
-            products={storyReelProducts} 
+            products={reelDisplayProducts} 
             onProductSelect={setSelectedProduct} 
         />
         <ProductGrid
