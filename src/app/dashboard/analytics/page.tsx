@@ -226,7 +226,6 @@ export default function AnalyticsPage() {
         </Card>
       </div>
       
-      {/* Placeholder for more advanced sections */}
       <Card className="shadow-md">
         <CardHeader>
             <CardTitle className="font-headline text-xl text-primary">Advanced Analytics</CardTitle>
