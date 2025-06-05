@@ -86,7 +86,6 @@ function PrintableReceiptContent() {
   useEffect(() => {
     if (record && record !== undefined) { 
       const timer = setTimeout(() => {
-        // Check if already printing to avoid loops if print dialog itself causes re-renders
         if (!(window as any).isPrinting) {
           (window as any).isPrinting = true;
           window.print();
@@ -158,60 +157,78 @@ function PrintableReceiptContent() {
     <div id="printable-receipt-area" className="min-h-screen bg-gray-100 p-2 sm:p-4 print:bg-white print:p-0 flex justify-center items-start sm:items-center">
       <style jsx global>{`
         @media print {
-          body { 
-            -webkit-print-color-adjust: exact !important; 
-            print-color-adjust: exact !important; 
-            background-color: white !important;
-            margin: 0 !important;
-            padding: 0 !important;
+          body * {
+            visibility: hidden !important;
           }
-
-          /* Hide dashboard layout elements if this page is rendered within it */
-          /* Targets the sidebar in dashboard/layout.tsx based on its common structure/classes */
-          body > div > aside.hidden.sm\\:flex,
-          body > div.min-h-screen > aside.hidden.sm\\:flex {
-            display: none !important;
+          #printable-receipt-area, #printable-receipt-area * {
+            visibility: visible !important;
           }
-          /* Targets the header in dashboard/layout.tsx */
-          body > div > div.flex-1 > header.sticky.top-0,
-          body > div.min-h-screen > div.flex-1 > header.sticky.top-0 {
-            display: none !important;
-          }
-          
-          /* Ensure the main content area (if dashboard layout is wrapping) and our receipt take full space */
-          body > div > div.flex-1,
-          body > div > div.flex-1 > main,
-          body > div.min-h-screen > div.flex-1,
-          body > div.min-h-screen > div.flex-1 > main,
-          div#printable-receipt-area {
+          #printable-receipt-area {
+            position: absolute !important;
+            left: 0 !important;
+            top: 0 !important;
             width: 100% !important;
-            min-height: 0 !important; /* Override min-h-screen for print */
             height: auto !important;
-            padding: 0 !important;
             margin: 0 !important;
-            overflow: visible !important; /* Important for printing all content */
+            padding: 0 !important;
             background-color: white !important;
             border: none !important;
             box-shadow: none !important;
           }
-
-          /* Style the actual receipt card for printing */
-          /* This targets the direct child of #printable-receipt-area that has bg-white (the receipt card) */
-          div#printable-receipt-area > div.bg-white { 
-            margin: 0.5in !important; /* This creates the page margins */
-            padding: 0 !important; /* Receipt card's own padding is fine for content inside */
+          #printable-receipt-area > div:first-child { /* Targets the receipt card */
+            margin: 0.5in !important;
+            padding: 20px !important; /* Reset Tailwind's p-6 for more control */
             box-shadow: none !important;
             border: none !important;
-            width: auto !important; /* Let content determine width within the margins */
-            max-width: calc(100% - 1in) !important; /* Ensure it doesn't exceed printable area width */
+            width: auto !important; /* Content determines width within margins */
+            max-width: calc(100% - 1in) !important; /* Ensure it fits */
+            font-family: 'PT Sans', sans-serif !important; /* Consistent font */
+            font-size: 10pt !important; /* Base font size for print */
+            line-height: 1.4 !important;
           }
-
-          .no-print { 
-            display: none !important; 
+          .no-print {
+            display: none !important;
           }
-
           @page {
-             margin: 0; /* Set browser's own page margins to 0, control via receipt card margin */
+            margin: 0; 
+            size: letter portrait;
+          }
+          #printable-receipt-area, #printable-receipt-area * {
+            color: #000000 !important; /* Ensure all text is black */
+            background-color: transparent !important; /* Ensure no unwanted backgrounds */
+            border-color: #cccccc !important; /* Standardize border colors */
+          }
+          #printable-receipt-area img {
+            max-width: 100% !important; /* Ensure images scale down if too large */
+            -webkit-print-color-adjust: exact !important; 
+            print-color-adjust: exact !important; /* Helps with image printing */
+          }
+          #printable-receipt-area h1, #printable-receipt-area h2, #printable-receipt-area .font-headline, #printable-receipt-area .font-cursive {
+            font-family: 'PT Sans', sans-serif !important; /* Override special fonts for print */
+          }
+          #printable-receipt-area .text-primary, 
+          #printable-receipt-area .text-destructive,
+          #printable-receipt-area .text-green-500,
+          #printable-receipt-area .text-accent,
+          #printable-receipt-area .text-accent-foreground {
+            color: #000000 !important;
+          }
+          #printable-receipt-area .text-muted-foreground {
+            color: #333333 !important;
+          }
+           #printable-receipt-area .badge, #printable-receipt-area .bg-accent\\/20, #printable-receipt-area .bg-green-500\\/20, #printable-receipt-area .bg-blue-500\\/20, #printable-receipt-area .bg-yellow-500\\/20, #printable-receipt-area .bg-red-500\\/20 {
+            border: 1px solid #aaaaaa !important;
+            background-color: transparent !important;
+            color: #000000 !important;
+            padding: 2px 4px !important;
+            font-size: 8pt !important;
+          }
+          #printable-receipt-area .border-dashed {
+            border-style: dashed !important;
+          }
+          #printable-receipt-area .separator { /* Targeting the Separator component if it renders a specific class */
+             border-color: #cccccc !important;
+             background-color: #cccccc !important; /* For SeparatorPrimitive.Root */
           }
         }
       `}</style>
@@ -220,14 +237,14 @@ function PrintableReceiptContent() {
           <h1 className="text-3xl font-cursive text-primary">Silzey POS</h1>
           <p className="text-xl font-headline font-semibold uppercase">{record.recordType} DETAILS</p>
         </header>
-        <Separator className="my-4 border-dashed" />
+        <Separator className="my-4 border-dashed separator" />
         <section className="text-sm space-y-1 mb-4">
           <div className="flex justify-between"><span>{record.identifierLabel}:</span> <strong className="font-mono">{record.id}</strong></div>
           <div className="flex justify-between"><span>Date:</span> <strong>{new Date(record.date).toLocaleString()}</strong></div>
           <div className="flex justify-between"><span>Customer:</span> <strong>{record.customerName}</strong></div>
-          <div className="flex justify-between"><span>Status:</span> <Badge variant={statusBadge.variant as any} className={`capitalize ${statusBadge.className}`}>{record.status}</Badge></div>
+          <div className="flex justify-between"><span>Status:</span> <Badge variant={statusBadge.variant as any} className={`capitalize ${statusBadge.className} badge`}>{record.status}</Badge></div>
         </section>
-        <Separator className="my-4" />
+        <Separator className="my-4 separator" />
         <section className="mb-4">
           <h2 className="font-semibold text-sm mb-1 flex items-center"><ShoppingBag className="mr-2 h-4 w-4 text-primary" />Items:</h2>
           <div className="space-y-1.5 text-xs">
@@ -253,14 +270,14 @@ function PrintableReceiptContent() {
              {record.items.length === 0 && <p className="text-muted-foreground text-center py-2">No items in this {record.recordType.toLowerCase()}.</p>}
           </div>
         </section>
-        <Separator className="my-4" />
+        <Separator className="my-4 separator" />
         <section className="text-right space-y-1 mb-6">
           <div className="flex justify-between items-center text-lg font-bold text-primary">
             <span>TOTAL:</span>
             <span>{record.totalAmountDisplay}</span>
           </div>
         </section>
-        <Separator className="my-4 border-dashed" />
+        <Separator className="my-4 border-dashed separator" />
         <footer className="text-center text-xs text-muted-foreground">
           <p>Thank you for your business at Silzey POS!</p>
           <p>Questions? Call (555) 123-4567</p>
