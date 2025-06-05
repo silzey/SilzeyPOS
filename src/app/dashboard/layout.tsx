@@ -46,7 +46,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     headerTitle = 'Orders Management';
   } else if (pathname.startsWith('/dashboard/customers')) {
     headerTitle = 'Customer Management';
-    if (pathname.split('/').length > 3) headerTitle = "Customer Profile";
+    if (pathname.split('/').length > 3 && pathname.split('/')[3] !== '') headerTitle = "Customer Profile";
   } else if (pathname === '/dashboard/live-queue') { 
     headerTitle = 'Live POS Queue';
   } else if (pathname === '/dashboard/inventory') {
@@ -55,20 +55,28 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     headerTitle = 'Analytics';
   } else if (pathname === '/dashboard/promotions') {
     headerTitle = 'Promotions Management';
-  } else if (pathname.startsWith('/dashboard/settings')) { // Updated to check startsWith
-    headerTitle = 'Store Settings';
+  } else if (pathname.startsWith('/dashboard/settings')) { 
+    if (pathname === '/dashboard/settings/store-profile') {
+        headerTitle = 'Store Profile Settings';
+    } else if (pathname === '/dashboard/settings/payment-methods') {
+        headerTitle = 'Payment Methods Settings';
+    } else if (pathname === '/dashboard/settings/staff-management') {
+        headerTitle = 'Staff Management Settings';
+    } else {
+        headerTitle = 'Store Settings';
+    }
   }
 
 
   const settingsDropdownItems = (isMobile?: boolean) => (
     <>
-      <DropdownMenuItem onClick={() => { alert("Navigate to Store Profile (mock)"); if (isMobile) setIsMobileMenuOpen(false); }}>
+      <DropdownMenuItem onClick={() => { router.push('/dashboard/settings/store-profile'); if (isMobile) setIsMobileMenuOpen(false); }}>
         <Store className="mr-2 h-4 w-4" /> Store Profile
       </DropdownMenuItem>
-      <DropdownMenuItem onClick={() => { alert("Navigate to Payment Methods (mock)"); if (isMobile) setIsMobileMenuOpen(false); }}>
+      <DropdownMenuItem onClick={() => { router.push('/dashboard/settings/payment-methods'); if (isMobile) setIsMobileMenuOpen(false); }}>
         <CreditCard className="mr-2 h-4 w-4" /> Payment Methods
       </DropdownMenuItem>
-      <DropdownMenuItem onClick={() => { alert("Navigate to Staff Management (mock)"); if (isMobile) setIsMobileMenuOpen(false); }}>
+      <DropdownMenuItem onClick={() => { router.push('/dashboard/settings/staff-management'); if (isMobile) setIsMobileMenuOpen(false); }}>
         <UserCog className="mr-2 h-4 w-4" /> Staff Management
       </DropdownMenuItem>
     </>
