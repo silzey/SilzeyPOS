@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, PrinterIcon, XCircle, ShoppingBag } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { TransactionItem, Order as AppOrder, TransactionStatus, OrderStatus as AppOrderStatus, CartItem } from '@/types/pos';
-import { generateInitialMockOrders } from '@/lib/mockOrderData'; // Import from new lib file
+import { generateInitialMockOrders } from '@/lib/mockOrderData'; 
 
 // Mock transaction data - in a real app, you'd fetch this or have it available
 const mockTransactionsData: Array<{
@@ -19,7 +19,7 @@ const mockTransactionsData: Array<{
   date: string;
   amount: string;
   status: TransactionStatus;
-  items: TransactionItem[]; // Transactions keep simpler items for now
+  items: TransactionItem[]; 
 }> = [
   { id: 'TRX731', customer: 'Aisha Khan', date: '2024-07-28', amount: '$75.50', status: 'Completed', items: [{id: 'item-1', name: 'Flower Product A', qty: 1, price: 30.00}, {id: 'item-2', name: 'Edible Product B', qty: 2, price: 22.75}] },
   { id: 'TRX732', customer: 'Ben Carter', date: '2024-07-28', amount: '$120.00', status: 'Completed', items: [{id: 'item-3', name: 'Vape Cartridge X', qty: 2, price: 60.00}] },
@@ -29,9 +29,9 @@ interface DisplayableRecord {
   id: string;
   recordType: 'Transaction' | 'Order';
   customerName: string;
-  date: string; // ISO string for Orders, simple string for Transactions
+  date: string; 
   status: TransactionStatus | AppOrderStatus;
-  items: CartItem[] | TransactionItem[]; // Union type for items
+  items: CartItem[] | TransactionItem[]; 
   totalAmountDisplay: string;
   identifierLabel: string;
 }
@@ -56,24 +56,24 @@ function PrintableReceiptContent() {
             id: transaction.id,
             recordType: 'Transaction',
             customerName: transaction.customer,
-            date: new Date().toISOString(), // Standardize date for display
+            date: new Date().toISOString(), 
             status: transaction.status,
-            items: transaction.items, // Stays as TransactionItem[]
+            items: transaction.items, 
             totalAmountDisplay: transaction.amount,
             identifierLabel: 'Transaction ID'
           };
         }
       } else if (recordTypeParam === 'order') {
-        const allMockOrders = generateInitialMockOrders(); // Get mock orders
-        const order = allMockOrders.find(o => o.id === recordId); // Find in the generated list
+        const allMockOrders = generateInitialMockOrders(); 
+        const order = allMockOrders.find(o => o.id === recordId); 
         if (order) {
           foundRecord = {
             id: order.id,
             recordType: 'Order',
             customerName: order.customerName,
-            date: order.orderDate, // This is an ISO string
+            date: order.orderDate, 
             status: order.status,
-            items: order.items, // This is CartItem[]
+            items: order.items, 
             totalAmountDisplay: `$${order.totalAmount.toFixed(2)}`,
             identifierLabel: 'Order ID'
           };
@@ -86,13 +86,24 @@ function PrintableReceiptContent() {
   useEffect(() => {
     if (record && record !== undefined) { 
       const timer = setTimeout(() => {
-        window.print();
+        // Check if already printing to avoid loops if print dialog itself causes re-renders
+        if (!(window as any).isPrinting) {
+          (window as any).isPrinting = true;
+          window.print();
+          (window as any).isPrinting = false; 
+        }
       }, 500);
       return () => clearTimeout(timer);
     }
   }, [record]);
 
-  const handlePrint = () => window.print();
+  const handlePrint = () => {
+    if (!(window as any).isPrinting) {
+        (window as any).isPrinting = true;
+        window.print();
+        (window as any).isPrinting = false; 
+    }
+  };
   const handleClose = () => window.opener ? window.close() : router.push('/dashboard');
 
   if (record === undefined) {
@@ -144,9 +155,65 @@ function PrintableReceiptContent() {
 
 
   return (
-    <div className="min-h-screen bg-gray-100 p-2 sm:p-4 print:bg-white print:p-0 flex justify-center items-start sm:items-center">
+    <div id="printable-receipt-area" className="min-h-screen bg-gray-100 p-2 sm:p-4 print:bg-white print:p-0 flex justify-center items-start sm:items-center">
       <style jsx global>{`
-        @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } .no-print { display: none !important; } @page { margin: 0.5in; } }
+        @media print {
+          body { 
+            -webkit-print-color-adjust: exact !important; 
+            print-color-adjust: exact !important; 
+            background-color: white !important;
+            margin: 0 !important;
+            padding: 0 !important;
+          }
+
+          /* Hide dashboard layout elements if this page is rendered within it */
+          /* Targets the sidebar in dashboard/layout.tsx based on its common structure/classes */
+          body > div > aside.hidden.sm\\:flex,
+          body > div.min-h-screen > aside.hidden.sm\\:flex {
+            display: none !important;
+          }
+          /* Targets the header in dashboard/layout.tsx */
+          body > div > div.flex-1 > header.sticky.top-0,
+          body > div.min-h-screen > div.flex-1 > header.sticky.top-0 {
+            display: none !important;
+          }
+          
+          /* Ensure the main content area (if dashboard layout is wrapping) and our receipt take full space */
+          body > div > div.flex-1,
+          body > div > div.flex-1 > main,
+          body > div.min-h-screen > div.flex-1,
+          body > div.min-h-screen > div.flex-1 > main,
+          div#printable-receipt-area {
+            width: 100% !important;
+            min-height: 0 !important; /* Override min-h-screen for print */
+            height: auto !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            overflow: visible !important; /* Important for printing all content */
+            background-color: white !important;
+            border: none !important;
+            box-shadow: none !important;
+          }
+
+          /* Style the actual receipt card for printing */
+          /* This targets the direct child of #printable-receipt-area that has bg-white (the receipt card) */
+          div#printable-receipt-area > div.bg-white { 
+            margin: 0.5in !important; /* This creates the page margins */
+            padding: 0 !important; /* Receipt card's own padding is fine for content inside */
+            box-shadow: none !important;
+            border: none !important;
+            width: auto !important; /* Let content determine width within the margins */
+            max-width: calc(100% - 1in) !important; /* Ensure it doesn't exceed printable area width */
+          }
+
+          .no-print { 
+            display: none !important; 
+          }
+
+          @page {
+             margin: 0; /* Set browser's own page margins to 0, control via receipt card margin */
+          }
+        }
       `}</style>
       <div className="bg-white p-6 shadow-2xl rounded-lg w-full max-w-sm print:shadow-none print:border-none print:max-w-full print:rounded-none">
         <header className="text-center mb-6">
@@ -177,7 +244,7 @@ function PrintableReceiptContent() {
                   />
                 )}
                 <div className="flex-grow grid grid-cols-[1fr_auto_auto] gap-x-2 items-center">
-                    <span className="truncate">{item.name} (x{(item as CartItem).quantity || (item as TransactionItem).qty})</span> {/* Handle quantity key difference */}
+                    <span className="truncate">{item.name} (x{(item as CartItem).quantity || (item as TransactionItem).qty})</span>
                     <span className="text-right text-muted-foreground">${(item as CartItem).price ? parseFloat((item as CartItem).price).toFixed(2) : (item as TransactionItem).price.toFixed(2)} ea.</span>
                     <span className="text-right font-medium">${((item as CartItem).price ? parseFloat((item as CartItem).price) : (item as TransactionItem).price * ((item as CartItem).quantity || (item as TransactionItem).qty)).toFixed(2)}</span>
                 </div>
@@ -218,3 +285,4 @@ export default function PrintableReceiptPage() {
     </Suspense>
   );
 }
+
