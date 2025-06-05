@@ -52,7 +52,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   } else if (pathname === '/dashboard/inventory') {
     headerTitle = 'Inventory Management';
   } else if (pathname === '/dashboard/analytics') { 
-    headerTitle = 'Analytics';
+    headerTitle = 'Business Analytics Dashboard';
   } else if (pathname === '/dashboard/promotions') {
     headerTitle = 'Promotions Management';
   } else if (pathname.startsWith('/dashboard/settings')) { 
@@ -134,9 +134,10 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       <Button 
         variant={pathname === '/dashboard/analytics' ? "secondary" : "ghost"}
         className="w-full justify-start text-foreground hover:bg-primary/10 hover:text-primary" 
-        onClick={() => { alert("Navigate to Analytics (mock)"); if (isMobile) setIsMobileMenuOpen(false); }}
+        asChild
+        onClick={() => isMobile && setIsMobileMenuOpen(false)}
       >
-        <BarChart3 className="mr-3 h-5 w-5" /> Analytics
+        <Link href="/dashboard/analytics"><BarChart3 className="mr-3 h-5 w-5" /> Analytics</Link>
       </Button>
       
       <DropdownMenu>
