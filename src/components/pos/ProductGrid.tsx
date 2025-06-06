@@ -35,11 +35,11 @@ const ProductGrid: FC<ProductGridProps> = ({ products, onProductSelect }) => {
       {rows.map((rowItems, rowIndex) => (
         // We render a row container even if it's empty to maintain the 5-row structure,
         // but content within will only appear if rowItems has products.
-        <div key={`row-${rowIndex}`} className="overflow-hidden rounded-lg shadow-sm border border-border/50 bg-muted/20 p-1">
+        <div key={`row-${rowIndex}`} className="overflow-hidden rounded-lg shadow-lg bg-card p-1">
           {/* Optional: Add a row title if desired in the future. For now, keeping it clean.
           <h3 className="text-md font-semibold mb-2 pl-3 pt-2 text-muted-foreground">Shelf {rowIndex + 1}</h3>
           */}
-          <div className="flex overflow-x-auto space-x-4 p-3">
+          <div className="flex overflow-x-auto space-x-4 p-3 no-scrollbar">
             {rowItems.length > 0 ? (
               rowItems.map((product) => (
                 <div key={product.id} className="flex-shrink-0 w-48 sm:w-52 md:w-56 lg:w-60 xl:w-64">
