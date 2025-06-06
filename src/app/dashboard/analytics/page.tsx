@@ -6,7 +6,7 @@ import { BarChart, Bar, PieChart, Pie, Cell, ResponsiveContainer, XAxis, YAxis, 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { StatCard } from '@/components/dashboard/StatCard';
 import type { Order, Category, UserProfile } from '@/types/pos';
-import { DollarSign, ShoppingCart, Users, TrendingUp, ClipboardList } from 'lucide-react'; // Added ClipboardList
+import { DollarSign, ShoppingCart, Users, TrendingUp, ClipboardList, ShieldCheck, Network, CalendarCheck, ClipboardCheck, Archive } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
 const DASHBOARD_COMPLETED_ORDERS_STORAGE_KEY = 'dashboardCompletedOrdersSilzey';
@@ -144,6 +144,7 @@ export default function AnalyticsPage() {
           <Skeleton className="h-96 w-full" /> {/* For Revenue by Category Pie Chart */}
           <Skeleton className="h-96 w-full" /> {/* For Sales by Payment Method Pie Chart */}
         </div>
+        <Skeleton className="h-64 w-full" /> {/* For Compliance & Data Integrity Card */}
       </div>
     );
   }
@@ -273,16 +274,58 @@ export default function AnalyticsPage() {
         </Card>
       </div>
       
-      <Card className="shadow-md">
+      <Card className="shadow-lg">
         <CardHeader>
-            <CardTitle className="font-headline text-xl text-primary">Advanced Analytics</CardTitle>
-            <CardDescription>More detailed reports and insights (coming soon).</CardDescription>
+          <CardTitle className="font-headline text-primary flex items-center">
+            <ShieldCheck className="mr-3 h-7 w-7" /> Compliance & Data Integrity
+          </CardTitle>
+          <CardDescription>Tools and information for maintaining regulatory compliance and data accuracy.</CardDescription>
         </CardHeader>
-        <CardContent>
-            <p className="text-muted-foreground">Future sections like Top Selling Products, Customer Segmentation, Inventory Analysis, etc., will appear here.</p>
+        <CardContent className="space-y-6">
+          <div className="p-4 border rounded-lg bg-muted/30">
+            <h4 className="font-semibold text-md flex items-center mb-1">
+              <Network className="mr-2 h-5 w-5 text-primary/80" /> Real-time System & State Integration
+            </h4>
+            <p className="text-sm text-muted-foreground">
+              Our POS is a real-time, web-based system designed for seamless integration with state cannabis tracking systems. 
+              (Conceptual - actual integration requires specific state API development and certification).
+            </p>
+          </div>
+
+          <div className="p-4 border rounded-lg bg-muted/30">
+            <h4 className="font-semibold text-md flex items-center mb-1">
+              <CalendarCheck className="mr-2 h-5 w-5 text-primary/80" /> Daily Record Reconciliation
+            </h4>
+            <p className="text-sm text-muted-foreground">
+              Tools to reconcile daily POS transaction data with the state tracking system at the end of each business day.
+              (Feature under development - placeholder for reconciliation reports and automated dashboards).
+            </p>
+          </div>
+
+          <div className="p-4 border rounded-lg bg-muted/30">
+            <h4 className="font-semibold text-md flex items-center mb-1">
+              <ClipboardCheck className="mr-2 h-5 w-5 text-primary/80" /> Weekly Physical Inventory Reconciliation
+            </h4>
+            <p className="text-sm text-muted-foreground">
+              Functionality to support and record weekly physical inventory counts and reconcile them with system records (at least once a week).
+              (Feature under development - placeholder for inventory audit tools and variance reports).
+            </p>
+          </div>
+
+          <div className="p-4 border rounded-lg bg-muted/30">
+            <h4 className="font-semibold text-md flex items-center mb-1">
+              <Archive className="mr-2 h-5 w-5 text-primary/80" /> Comprehensive Transaction Recording
+            </h4>
+            <p className="text-sm text-muted-foreground">
+              All critical transactions including sales, transfers, returns, recalls, spoilage, and destruction of cannabis are accurately recorded within the system.
+              (Placeholder for detailed transaction audit logs, export capabilities, and specialized reporting views for these transaction types).
+            </p>
+          </div>
         </CardContent>
       </Card>
 
     </div>
   );
 }
+
+    
