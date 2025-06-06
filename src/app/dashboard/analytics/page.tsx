@@ -5,8 +5,8 @@ import { useEffect, useState, useMemo } from 'react';
 import { BarChart, Bar, PieChart, Pie, Cell, ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { StatCard } from '@/components/dashboard/StatCard';
-import type { Order, Category, UserProfile } from '@/types/pos';
-import { DollarSign, ShoppingCart, Users, TrendingUp, ClipboardList, ShieldCheck, Network, CalendarCheck, ClipboardCheck, Archive, Brain } from 'lucide-react'; // Added Brain
+import type { Order, Category, UserProfile, CartItem } from '@/types/pos';
+import { DollarSign, ShoppingCart, Users, TrendingUp, ClipboardList, ShieldCheck, Network, CalendarCheck, ClipboardCheck, Archive, Brain, Megaphone, Activity } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
 const DASHBOARD_COMPLETED_ORDERS_STORAGE_KEY = 'dashboardCompletedOrdersSilzey';
@@ -18,6 +18,24 @@ const PIE_CHART_COLORS = ["hsl(var(--chart-1))", "hsl(var(--chart-2))", "hsl(var
 interface ChartData {
   name: string;
   value: number;
+}
+
+interface MockCampaign {
+  id: string;
+  name: string;
+  mockDuration: string;
+  targetMonth: number; // 0-indexed (e.g., 6 for July)
+  targetYear: number;
+  targetCategory?: Category; // Optional: if campaign targets a specific category
+  filterFn: (order: Order) => boolean;
+  analysis?: CampaignAnalysisData;
+}
+
+interface CampaignAnalysisData {
+  totalSales: number;
+  orderCount: number;
+  averageOrderValue: number;
+  impactNotes: string;
 }
 
 const generateMonthlySalesData = (orders: Order[]): Array<{ name: string; sales: number }> => {
@@ -71,7 +89,52 @@ export default function AnalyticsPage() {
   const [revenueByCategory, setRevenueByCategory] = useState<ChartData[]>([]);
   const [monthlySales, setMonthlySales] = useState<Array<{name: string; sales: number}>>([]);
   const [salesByPaymentMethod, setSalesByPaymentMethod] = useState<ChartData[]>([]);
+  const [mockCampaignsData, setMockCampaignsData] = useState<MockCampaign[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  const MOCK_CAMPAIGNS_DEFINITIONS: Omit<MockCampaign, 'analysis'>[] = [
+    {
+      id: 'flower-july',
+      name: 'Flower Power July (10% Off)',
+      mockDuration: 'July 1, 2024 - July 31, 2024',
+      targetMonth: 6, // July
+      targetYear: 2024,
+      targetCategory: 'Flower',
+      filterFn: (order: Order) => {
+        const orderDate = new Date(order.processedAt || order.orderDate);
+        return orderDate.getFullYear() === 2024 && orderDate.getMonth() === 6 && // July
+               order.items.some(item => item.category === 'Flower');
+      },
+    },
+    {
+      id: 'edibles-august',
+      name: 'Edible Extravaganza (BOGO)',
+      mockDuration: 'August 1, 2024 - August 31, 2024',
+      targetMonth: 7, // August
+      targetYear: 2024,
+      targetCategory: 'Edibles',
+      filterFn: (order: Order) => {
+        const orderDate = new Date(order.processedAt || order.orderDate);
+        return orderDate.getFullYear() === 2024 && orderDate.getMonth() === 7 && // August
+               order.items.some(item => item.category === 'Edibles');
+      },
+    },
+    {
+      id: 'vape-weekend',
+      name: 'Vape Velocity Weekend',
+      mockDuration: 'Sep 6, 2024 - Sep 8, 2024',
+      targetMonth: 8, // September
+      targetYear: 2024,
+      targetCategory: 'Vapes',
+      filterFn: (order: Order) => {
+        const orderDate = new Date(order.processedAt || order.orderDate);
+        // Specific weekend, adjust if needed
+        return orderDate.getFullYear() === 2024 && orderDate.getMonth() === 8 && orderDate.getDate() >= 6 && orderDate.getDate() <= 8 &&
+               order.items.some(item => item.category === 'Vapes');
+      },
+    }
+  ];
+
 
   useEffect(() => {
     setIsLoading(true);
@@ -127,8 +190,53 @@ export default function AnalyticsPage() {
     const paymentData = Object.entries(paymentMethodRevenueMap)
         .map(([name, value]) => ({ name, value: parseFloat(value.toFixed(2)) }))
         .filter(d => d.value > 0)
-        .sort((a,b) => b.value - a.value); // Sort for consistent display
+        .sort((a,b) => b.value - a.value);
     setSalesByPaymentMethod(paymentData);
+
+    // Process Mock Campaigns
+    const processedCampaigns = MOCK_CAMPAIGNS_DEFINITIONS.map(campaignDef => {
+      const campaignOrders = allCompletedOrders.filter(campaignDef.filterFn);
+      let totalSales = 0;
+      
+      // Calculate sales only from targeted category items if specified
+      if (campaignDef.targetCategory) {
+        campaignOrders.forEach(order => {
+            order.items.forEach(item => {
+                if (item.category === campaignDef.targetCategory) {
+                    totalSales += parseFloat(item.price) * item.quantity;
+                }
+            });
+        });
+      } else { // If no target category, sum total order amounts
+         totalSales = campaignOrders.reduce((sum, order) => sum + order.totalAmount, 0);
+      }
+
+      const orderCount = campaignOrders.length;
+      const averageOrderValue = orderCount > 0 ? totalSales / orderCount : 0;
+      
+      // Mock impact notes - in a real scenario, this would be more sophisticated
+      let impactNotes = `Campaign showed activity with ${orderCount} orders.`;
+      if (orderCount > 5 && campaignDef.targetCategory) {
+          impactNotes = `Strong performance in ${campaignDef.targetCategory}, driving significant engagement.`;
+      } else if (orderCount > 0 && campaignDef.targetCategory) {
+          impactNotes = `Moderate interest shown for ${campaignDef.targetCategory} products during the campaign.`;
+      } else if (orderCount === 0) {
+          impactNotes = `No orders matched this campaign's criteria. Consider broadening targets or timing.`;
+      }
+
+
+      return {
+        ...campaignDef,
+        analysis: {
+          totalSales,
+          orderCount,
+          averageOrderValue,
+          impactNotes,
+        }
+      };
+    });
+    setMockCampaignsData(processedCampaigns);
+
 
     setIsLoading(false);
   }, []);
@@ -139,13 +247,14 @@ export default function AnalyticsPage() {
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
           {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-28 w-full" />)}
         </div>
-        <Skeleton className="h-96 w-full" /> {/* For Sales Over Time Bar Chart */}
+        <Skeleton className="h-96 w-full" />
         <div className="grid gap-6 md:grid-cols-2">
-          <Skeleton className="h-96 w-full" /> {/* For Revenue by Category Pie Chart */}
-          <Skeleton className="h-96 w-full" /> {/* For Sales by Payment Method Pie Chart */}
+          <Skeleton className="h-96 w-full" />
+          <Skeleton className="h-96 w-full" />
         </div>
-        <Skeleton className="h-64 w-full" /> {/* For Compliance & Data Integrity Card */}
-        <Skeleton className="h-48 w-full" /> {/* For Advanced Analytics Card */}
+        <Skeleton className="h-80 w-full" /> {/* Placeholder for Campaign Analysis */}
+        <Skeleton className="h-64 w-full" />
+        <Skeleton className="h-48 w-full" />
       </div>
     );
   }
@@ -255,7 +364,7 @@ export default function AnalyticsPage() {
                   stroke="hsl(var(--background))"
                 >
                   {salesByPaymentMethod.map((entry, index) => (
-                    <Cell key={`cell-pay-${index}`} fill={PIE_CHART_COLORS[(index + 2) % PIE_CHART_COLORS.length]} /> // Offset colors
+                    <Cell key={`cell-pay-${index}`} fill={PIE_CHART_COLORS[(index + 2) % PIE_CHART_COLORS.length]} />
                   ))}
                 </Pie>
                 <Tooltip formatter={(value: number, name: string) => [`$${value.toFixed(2)}`, name]}/>
@@ -274,6 +383,36 @@ export default function AnalyticsPage() {
           </CardContent>
         </Card>
       </div>
+
+      <Card className="shadow-lg">
+        <CardHeader>
+          <CardTitle className="font-headline text-primary flex items-center">
+            <Megaphone className="mr-3 h-7 w-7" /> Promotional Campaign Analysis (Illustrative)
+          </CardTitle>
+          <CardDescription>Mock analysis of hypothetical past promotional campaigns based on order data.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {mockCampaignsData.length > 0 ? (
+            mockCampaignsData.map(campaign => (
+              <Card key={campaign.id} className="bg-muted/30 p-4 border-border hover:shadow-md transition-shadow">
+                <CardHeader className="p-0 pb-2">
+                  <CardTitle className="text-md font-semibold text-primary/90">{campaign.name}</CardTitle>
+                  <CardDescription className="text-xs">{campaign.mockDuration}</CardDescription>
+                </CardHeader>
+                <CardContent className="p-0 text-sm space-y-1">
+                  <div className="flex justify-between"><span>Total Sales (Targeted):</span> <span className="font-medium">${campaign.analysis?.totalSales.toFixed(2) || '0.00'}</span></div>
+                  <div className="flex justify-between"><span>Orders (Targeted):</span> <span className="font-medium">{campaign.analysis?.orderCount || 0}</span></div>
+                  <div className="flex justify-between"><span>Avg. Order Value (Targeted):</span> <span className="font-medium">${campaign.analysis?.averageOrderValue.toFixed(2) || '0.00'}</span></div>
+                  <p className="text-xs text-muted-foreground pt-1"><em>Impact:</em> {campaign.analysis?.impactNotes || 'N/A'}</p>
+                  <p className="text-xs text-muted-foreground"><em>ROI:</em> (Requires campaign cost data - N/A for this mock.)</p>
+                </CardContent>
+              </Card>
+            ))
+          ) : (
+            <p className="text-muted-foreground text-center py-4">No campaign data to display or insufficient order data for analysis.</p>
+          )}
+        </CardContent>
+      </Card>
       
       <Card className="shadow-lg">
         <CardHeader>
@@ -345,19 +484,12 @@ export default function AnalyticsPage() {
               Analyze customer purchasing patterns to tailor marketing and product offerings. (Feature under development)
             </p>
           </div>
-          <div className="p-4 border rounded-lg bg-muted/30">
-            <h4 className="font-semibold text-md mb-1">Promotional Campaign Analysis</h4>
-            <p className="text-sm text-muted-foreground">
-              Measure the ROI and impact of your promotional activities. (Feature under development)
-            </p>
-          </div>
+          {/* "Promotional Campaign Analysis" item removed from here as it's now a dedicated card */}
         </CardContent>
       </Card>
 
     </div>
   );
 }
-
-    
 
     
