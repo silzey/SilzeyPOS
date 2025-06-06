@@ -8,7 +8,7 @@ import { useEffect, useState } from 'react';
 import FullPageLoader from '@/components/ui/loader'; // Import the new loader
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Home, ShoppingBag, Users, BarChart3, LogOut as LogOutIcon, Menu, Terminal, Package, Ticket, Settings as SettingsIcon, Store, CreditCard, UserCog, Leaf, Cog } from 'lucide-react'; // Added SettingsIcon, Store, CreditCard, UserCog, Leaf, Cog
+import { Home, ShoppingBag, Users, BarChart3, LogOut as LogOutIcon, Menu, Terminal, Package, Ticket, Settings as SettingsIcon, Store, CreditCard, UserCog, Leaf, Cog, UsersRound } from 'lucide-react'; // Added UsersRound
 import {
   Sheet,
   SheetContent,
@@ -57,6 +57,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     headerTitle = 'Processing & Manufacturing';
   } else if (pathname === '/dashboard/analytics') { 
     headerTitle = 'Business Analytics Dashboard';
+  } else if (pathname === '/dashboard/customer-insights') {
+    headerTitle = 'Customer Insights & Segmentation';
   } else if (pathname === '/dashboard/promotions') { 
     headerTitle = 'Promotions Management';
   } else if (pathname.startsWith('/dashboard/settings')) { 
@@ -137,12 +139,20 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         <Link href="/dashboard/orders"><ShoppingBag className="mr-3 h-5 w-5" /> All Orders</Link>
       </Button>
       <Button
-        variant={pathname.startsWith('/dashboard/customers') ? "secondary" : "ghost"}
+        variant={pathname.startsWith('/dashboard/customers') && !pathname.startsWith('/dashboard/customer-insights') ? "secondary" : "ghost"}
         className="w-full justify-start text-foreground hover:bg-primary/10 hover:text-primary"
         asChild
         onClick={() => isMobile && setIsMobileMenuOpen(false)}
       >
-        <Link href="/dashboard/customers"><Users className="mr-3 h-5 w-5" /> Customers</Link>
+        <Link href="/dashboard/customers"><Users className="mr-3 h-5 w-5" /> Customers List</Link>
+      </Button>
+      <Button
+        variant={pathname.startsWith('/dashboard/customer-insights') ? "secondary" : "ghost"}
+        className="w-full justify-start text-foreground hover:bg-primary/10 hover:text-primary"
+        asChild
+        onClick={() => isMobile && setIsMobileMenuOpen(false)}
+      >
+        <Link href="/dashboard/customer-insights"><UsersRound className="mr-3 h-5 w-5" /> Customer Insights</Link>
       </Button>
       <Button 
         variant={pathname === '/dashboard/promotions' ? "secondary" : "ghost"} 

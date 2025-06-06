@@ -6,7 +6,7 @@ import { BarChart, Bar, PieChart, Pie, Cell, ResponsiveContainer, XAxis, YAxis, 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { StatCard } from '@/components/dashboard/StatCard';
 import type { Order, Category, UserProfile, CartItem } from '@/types/pos';
-import { DollarSign, ShoppingCart, Users, TrendingUp, ClipboardList, ShieldCheck, Network, CalendarCheck, ClipboardCheck, Archive, Brain, Megaphone, Activity } from 'lucide-react';
+import { DollarSign, ShoppingCart, Users, TrendingUp, ClipboardList, ShieldCheck, Network, CalendarCheck, ClipboardCheck, Archive, Brain, Megaphone, Activity, Link as LinkIcon } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
 const DASHBOARD_COMPLETED_ORDERS_STORAGE_KEY = 'dashboardCompletedOrdersSilzey';
@@ -481,10 +481,10 @@ export default function AnalyticsPage() {
           <div className="p-4 border rounded-lg bg-muted/30">
             <h4 className="font-semibold text-md mb-1">Customer Segmentation & Behavior</h4>
             <p className="text-sm text-muted-foreground">
-              Analyze customer purchasing patterns to tailor marketing and product offerings. (Feature under development)
+              Analyze purchasing patterns to tailor marketing. (See dedicated 
+              <a href="/dashboard/customer-insights" className="text-primary hover:underline ml-1">Customer Insights</a> page for more.)
             </p>
           </div>
-          {/* "Promotional Campaign Analysis" item removed from here as it's now a dedicated card */}
         </CardContent>
       </Card>
 
