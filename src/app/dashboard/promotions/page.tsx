@@ -200,7 +200,7 @@ export default function PromotionsPage() {
                       <TableRow key={product.id}>
                         <TableCell>
                           <Image
-                            src={product.imageUrl || 'https://placehold.co/60x60.png'}
+                            src={product.imageUrl} // Fallback removed, relying on inventory to have valid URL
                             alt={product.name}
                             width={60}
                             height={60}
