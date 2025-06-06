@@ -132,6 +132,9 @@ export default function CustomerInsightsPage() {
   const [customerMetrics, setCustomerMetrics] = useState<CustomerMetrics[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Moved PRODUCT_CATEGORIES_LIST declaration here
+  const PRODUCT_CATEGORIES_LIST: Category[] = ["Flower", "Concentrates", "Vapes", "Edibles"];
+
   useEffect(() => {
     setIsLoading(true);
     let allUserProfiles: UserProfile[] = [...mockCustomers]; // Start with static mocks
@@ -192,10 +195,8 @@ export default function CustomerInsightsPage() {
         .slice(0, 5);
     });
     return enthusiasts;
-  }, [customerMetrics]);
+  }, [customerMetrics, PRODUCT_CATEGORIES_LIST]); // Added PRODUCT_CATEGORIES_LIST to dependency array
   
-  const PRODUCT_CATEGORIES_LIST: Category[] = ["Flower", "Concentrates", "Vapes", "Edibles"];
-
 
   const recentNewcomers = useMemo(() => {
     const thirtyDaysAgo = new Date();
@@ -302,3 +303,4 @@ export default function CustomerInsightsPage() {
     </div>
   );
 }
+
