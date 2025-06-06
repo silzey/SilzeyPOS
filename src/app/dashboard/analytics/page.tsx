@@ -6,7 +6,7 @@ import { BarChart, Bar, PieChart, Pie, Cell, ResponsiveContainer, XAxis, YAxis, 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { StatCard } from '@/components/dashboard/StatCard';
 import type { Order, Category, UserProfile } from '@/types/pos';
-import { DollarSign, ShoppingCart, Users, TrendingUp, ClipboardList, ShieldCheck, Network, CalendarCheck, ClipboardCheck, Archive } from 'lucide-react';
+import { DollarSign, ShoppingCart, Users, TrendingUp, ClipboardList, ShieldCheck, Network, CalendarCheck, ClipboardCheck, Archive, Brain } from 'lucide-react'; // Added Brain
 import { Skeleton } from '@/components/ui/skeleton';
 
 const DASHBOARD_COMPLETED_ORDERS_STORAGE_KEY = 'dashboardCompletedOrdersSilzey';
@@ -145,6 +145,7 @@ export default function AnalyticsPage() {
           <Skeleton className="h-96 w-full" /> {/* For Sales by Payment Method Pie Chart */}
         </div>
         <Skeleton className="h-64 w-full" /> {/* For Compliance & Data Integrity Card */}
+        <Skeleton className="h-48 w-full" /> {/* For Advanced Analytics Card */}
       </div>
     );
   }
@@ -324,8 +325,39 @@ export default function AnalyticsPage() {
         </CardContent>
       </Card>
 
+      <Card className="shadow-lg">
+        <CardHeader>
+          <CardTitle className="font-headline text-primary flex items-center">
+            <Brain className="mr-3 h-7 w-7" /> Advanced Analytics
+          </CardTitle>
+          <CardDescription>Unlock deeper insights into your business operations.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="p-4 border rounded-lg bg-muted/30">
+            <h4 className="font-semibold text-md mb-1">Predictive Sales Forecasting</h4>
+            <p className="text-sm text-muted-foreground">
+              Leverage historical data and AI to predict future sales trends. (Feature under development)
+            </p>
+          </div>
+          <div className="p-4 border rounded-lg bg-muted/30">
+            <h4 className="font-semibold text-md mb-1">Customer Segmentation & Behavior</h4>
+            <p className="text-sm text-muted-foreground">
+              Analyze customer purchasing patterns to tailor marketing and product offerings. (Feature under development)
+            </p>
+          </div>
+          <div className="p-4 border rounded-lg bg-muted/30">
+            <h4 className="font-semibold text-md mb-1">Promotional Campaign Analysis</h4>
+            <p className="text-sm text-muted-foreground">
+              Measure the ROI and impact of your promotional activities. (Feature under development)
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
     </div>
   );
 }
+
+    
 
     
