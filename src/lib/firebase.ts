@@ -6,13 +6,13 @@ import { getAnalytics, isSupported } from "firebase/analytics";
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  apiKey: "AIzaSyCd9oRRgHKAfR94BWqcA_K02obfX1a4o8g",
-  authDomain: "silzeypos.firebaseapp.com",
-  projectId: "silzeypos",
-  storageBucket: "silzeypos.appspot.com", // Corrected: .firebasestorage.app is typically for direct file access URLs. The config usually has .appspot.com
-  messagingSenderId: "843110330842",
-  appId: "1:843110330842:web:d8c6cf0636726525e150e3",
-  measurementId: "G-1ZYB47G1BC"
+  apiKey: "AIzaSyBfr8rC9RvXbEKCIkdoHWl63FmhphyNF-w",
+  authDomain: "silzey-pos.firebaseapp.com",
+  projectId: "silzey-pos",
+  storageBucket: "silzey-pos.firebasestorage.app", // Using the value provided by user
+  messagingSenderId: "871677889267",
+  appId: "1:871677889267:web:e0b7113a84006a087c0586"
+  // measurementId is not present in the new config, which is fine as it's optional.
 };
 
 // Initialize Firebase
@@ -31,3 +31,4 @@ if (typeof window !== 'undefined') {
 }
 
 export { app, auth, googleProvider, analytics };
+
