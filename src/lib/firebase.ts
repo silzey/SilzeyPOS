@@ -31,4 +31,3 @@ if (typeof window !== 'undefined') {
 }
 
 export { app, auth, googleProvider, analytics };
-
