@@ -58,6 +58,12 @@ const nextConfig: NextConfig = {
         hostname: 'www.freepik.com',
         port: '',
         pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'lh3.googleusercontent.com', // For Google profile pictures
+        port: '',
+        pathname: '/**',
       }
     ],
   },
