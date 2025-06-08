@@ -10,11 +10,16 @@ const firebaseConfig = {
   projectId: "silzey-pos",
   storageBucket: "silzey-pos.firebasestorage.app",
   messagingSenderId: "871677889267",
-  appId: "1:871677889267:web:1f73535e03f96b077c0586" // Updated App ID
+  appId: "1:871677889267:web:1f73535e03f96b077c0586"
 };
 
 // Initialize Firebase
-const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+// Note: The previous version checked if an app already exists (`!getApps().length ? initializeApp(...) : getApp()`).
+// The simpler `initializeApp(firebaseConfig)` is used here as per your snippet.
+// This might lead to "Firebase app already exists" warnings in development with Next.js Hot Module Replacement.
+// If you see such warnings, we can revert to the previous check.
+const app = initializeApp(firebaseConfig);
+
 const auth = getAuth(app);
 const googleProvider = new GoogleAuthProvider();
 
