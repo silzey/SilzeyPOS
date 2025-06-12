@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>POS Page (Static Mockup)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { font-family: sans-serif; margin: 0; padding: 0; background: #f7f7f7; color: #222; }
+    .header { background: #232323; color: #fff; padding: 1em 2em; }
+    .main { padding: 2em 1em 4em 1em; }
+    .categories, .filters, .reel, .grid { margin-bottom: 2em; }
+    .category, .tag { display: inline-block; margin-right: 1em; background: #eee; padding: 0.5em 1em; border-radius: 3px; }
+    .cart { position: fixed; right: 1em; bottom: 1em; background: #fff; border: 1px solid #ddd; padding: 1em; box-shadow: 0 2px 8px #0002; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>POS Header</h1>
+    <div>Cart Items: <span>0</span></div>
+  </div>
+  <div class="main">
+    <div class="categories">
+      <h2>Categories</h2>
+      <span class="category">Category 1</span>
+      <span class="category">Category 2</span>
+      <span class="category">Category 3</span>
+      <!-- ... -->
+    </div>
+    <div class="filters">
+      <h3>Filters</h3>
+      <label>Sort:
+        <select>
+          <option>A-Z</option>
+          <option>Price Low-High</option>
+          <option>Price High-Low</option>
+        </select>
+      </label>
+      <label>Tag:
+        <select>
+          <option>All</option>
+          <option>Tag 1</option>
+          <option>Tag 2</option>
+        </select>
+      </label>
+      <input type="text" placeholder="Search...">
+    </div>
+    <div class="reel">
+      <h3>Product Story Reel</h3>
+      <div>
+        <span>Product 1</span> |
+        <span>Product 2</span> |
+        <span>Product 3</span>
+        <!-- ... -->
+      </div>
+    </div>
+    <div class="grid">
+      <h3>Products</h3>
+      <div>
+        <div>Product Card 1</div>
+        <div>Product Card 2</div>
+        <div>Product Card 3</div>
+        <!-- ... -->
+      </div>
+    </div>
+  </div>
+  <div class="cart">
+    <h4>Cart</h4>
+    <div>No items in cart</div>
+    <button>Checkout</button>
+  </div>
+</body>
+</html>
